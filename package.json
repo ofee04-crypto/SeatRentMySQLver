@@ -1,0 +1,33 @@
+{
+  "name": "SeatRentSysNew",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root control for AI scripts",
+  "scripts": {
+    "--- COMMANDS ---": "echo '=== AI XML 生成指令 ==='",
+    "xml:all": "npm run xml:front && npm run xml:back",
+    "//FRONTEND_COMMANDS": "--- 前端指令區 ---",
+    "xml:front": "npm run xml:front:full && npm run xml:front:core && npm run xml:front:spot && npm run xml:front:member && npm run xml:front:maintenance && npm run xml:front:merchantAndCoupon && npm run xml:front:rec",
+    "xml:front:full": "npx repomix --include \"frontend/**,frontend/package.json,frontend/vite.config.js,frontend/index.html\" --output \"AI_good/all/frontend_full.xml\"",
+    "xml:front:core": "npx repomix --include \"frontend/package.json,frontend/vite.config.js,frontend/index.html,frontend/src/main.js,frontend/src/App.vue,frontend/src/router/**,frontend/src/stores/**,frontend/src/utils/**\" --output \"AI_good/front/frontend_core.xml\"",
+    "xml:front:spot": "npx repomix --include \"frontend/src/**/spot/**,frontend/src/**/seat/**,frontend/src/router/**\" --output \"AI_good/front/frontend_spot.xml\"",
+    "xml:front:member": "npx repomix --include \"frontend/src/**/member/**,frontend/src/**/user/**,frontend/src/**/login/**,frontend/src/router/**\" --output \"AI_good/front/frontend_member.xml\"",
+    "xml:front:maintenance": "npx repomix --include \"frontend/src/**/maintenance/**,frontend/src/**/fix/**,frontend/src/router/**\" --output \"AI_good/front/frontend_maintenance.xml\"",
+    "xml:front:merchantAndCoupon": "npx repomix --include \"frontend/src/**/merchant/**,frontend/src/**/coupon/**,frontend/src/**/product/**,frontend/src/router/**\" --output \"AI_good/front/frontend_merchantAndCoupon.xml\"",
+    "xml:front:rec": "npx repomix --include \"frontend/src/**/rec/**,frontend/src/**/recommend/**,frontend/src/router/**\" --output \"AI_good/front/frontend_rec.xml\"",
+    "//BACKEND_COMMANDS": "--- 後端指令區 (已強制包含 DB 結構) ---",
+    "xml:back": "npm run xml:back:full && npm run xml:back:core && npm run xml:back:spot && npm run xml:back:maintenance && npm run xml:back:member && npm run xml:back:merchantAndCoupon && npm run xml:back:rec",
+    "xml:back:full": "npx repomix --include \"backend/**,backend/pom.xml\" --ignore \"backend/db/**\" --output \"AI_good/all/backend_full.xml\"",
+    "xml:back:core": "npx repomix --include \"backend/pom.xml,backend/src/main/resources/**,backend/**/config/**,backend/**/util/**,backend/**/security/**,backend/**/exception/**\" --output \"AI_good/back/backend_core.xml\"",
+    "xml:back:spot": "npx repomix --include \"backend/**/*spot*,backend/**/*seat*,backend/**/model/**,backend/**/entity/**,backend/**/repository/**,backend/**/dto/**,backend/pom.xml\" --output \"AI_good/back/backend_spot.xml\"",
+    "xml:back:maintenance": "npx repomix --include \"backend/**/*maintenance*,backend/**/*workorder*,backend/**/*fix*,backend/**/model/**,backend/**/entity/**,backend/**/repository/**,backend/**/dto/**,backend/pom.xml\" --output \"AI_good/back/backend_maintenance.xml\"",
+    "xml:back:member": "npx repomix --include \"backend/**/*member*,backend/**/*user*,backend/**/model/**,backend/**/entity/**,backend/**/repository/**,backend/**/dto/**,backend/pom.xml\" --output \"AI_good/back/backend_member.xml\"",
+    "xml:back:merchantAndCoupon": "npx repomix --include \"backend/**/*merchant*,backend/**/*coupon*,backend/**/*product*,backend/**/model/**,backend/**/entity/**,backend/**/repository/**,backend/**/dto/**,backend/pom.xml\" --output \"AI_good/back/backend_merchantAndCoupon.xml\"",
+    "xml:back:rec": "npx repomix --include \"backend/**/*rec*,backend/**/*recommend*,backend/**/model/**,backend/**/entity/**,backend/**/repository/**,backend/**/dto/**,backend/pom.xml\" --output \"AI_good/back/backend_rec.xml\""
+  },
+  "dependencies": {
+    "echarts": "^6.0.0",
+    "html5-qrcode": "^2.3.8",
+    "xlsx": "^0.18.5"
+  }
+}

@@ -1,0 +1,51 @@
+未來使用 對外API可以寫在這，資料架構像下面這樣
+
+假設之後使用 綠界、Google，就在integration這個資料夾底下開他們的資料夾
+
+ ── ecpay/
+    ├── client/  ← 封裝「怎麼呼叫外部 API」
+    ├── dto/      ← 外部 API 的 Request/Response 資料格式
+    └── config/  ← 讀 yml、建 HTTP Client Bean（baseUrl/timeout/Key）
+── google/
+    ├── client/
+    ├── dto/
+    └── config/
+
+config 解釋（設定/連線）
+
+*Properties：從yml讀取 baseUrl、timeout、apiKey、merchantId...
+
+*Config：建立 HTTP client（RestClient/WebClient），把 baseUrl、timeout、預設 header 放進去
+
+config 只管「連線怎麼建」與「設定怎麼讀」
+
+==================================================================
+dto 做什麼（外部資料模型）
+
+XxxRequest：外部 API 要你送的欄位
+
+XxxResponse：外部 API 回你的欄位
+
+（可選）XxxErrorResponse：外部固定的錯誤格式
+
+DTO 只描述外部格式，不放商業邏輯
+
+=============================================================
+client 做什麼（呼叫封裝）
+
+對外只暴露「乾淨的方法」
+
+createPayment(...) / geocode(...)
+
+裡面負責：
+拼URI / queryParam
+
+設header（Authorization / key）
+
+呼叫GET/POST
+
+把回應解析成 Response DTO
+
+把外部錯誤轉成系統可理解的 exception（或回傳統一格式）
+
+原則：service 只 call client，不自己碰 URL/Key/HTTP

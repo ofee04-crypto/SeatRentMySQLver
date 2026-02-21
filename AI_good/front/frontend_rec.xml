@@ -1,0 +1,5449 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: frontend/src/**/rec/**, frontend/src/**/recommend/**, frontend/src/router/**
+- Files matching these patterns are excluded: **/*.map, **/*.min.js, **/*.min.css, **/node_modules/**, **/dist/**, **/target/**, **/vendor/**, **/public/vendor/**, **/logs/**, **/*.log, **/*.svg, **/*.png, **/*.jpg, **/*.ico, AI_good/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+frontend/src/components/rec/RecRentAdd.vue
+frontend/src/components/rec/RecRentEdit.vue
+frontend/src/components/rec/RecRentSearch.vue
+frontend/src/components/rec/RecRentUserComplete.vue
+frontend/src/components/rec/RecRentUserOrder.vue
+frontend/src/components/rec/RecRentUserRecord.vue
+frontend/src/router/index.js
+frontend/src/views/rec/RecRentMgnChartPage.vue
+frontend/src/views/rec/RecRentMgnPage.vue
+frontend/src/views/rec/RecRentUserPage.vue
+frontend/src/views/rec/RecRentUserSearchPage.vue
+frontend/src/views/rec/RightsClaimPage.vue
+frontend/src/views/rec/VisitSiteReommandPage.vue
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="frontend/src/views/rec/RecRentUserPage.vue">
+<script setup>
+import { ref, onMounted, watch, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useMemberAuthStore } from '@/stores/memberAuth' // 引入 Store
+import { useAdminAuthStore } from '@/stores/adminAuth' // 引入 Store
+
+// --- Component Imports ---
+import RecRentUserOrder from '@/components/rec/RecRentUserOrder.vue'
+import RecRentUserComplete from '@/components/rec/RecRentUserComplete.vue'
+import RecRentUserRecord from '@/components/rec/RecRentUserRecord.vue'
+
+const route = useRoute()
+const router = useRouter()
+const memberAuthStore = useMemberAuthStore() // 初始化 Store
+const adminAuthStore = useAdminAuthStore() // 初始化 Store
+// --- 1. 狀態定義 (State Definitions) ---
+// [修正] 根據路由參數初始化 activeView，避免預設 'order' 導致 RecRentUserOrder 在歸還模式下被錯誤掛載
+// 這樣可以防止進入歸還頁面時，因為先渲染了租借頁面而觸發「有未歸還訂單」的防呆檢查
+const activeView = ref(
+  ['order', 'complete', 'record'].includes(route.params.action) ? route.params.action : 'order',
+)
+
+// --- 2. 視圖切換邏輯 (View Switching Logic) ---
+const setActiveView = (view) => {
+  activeView.value = view
+}
+
+// --- 3. 路由監聽 (Route Listener from UserPage) ---
+onMounted(() => {
+  // [新增] 進入頁面時，若 URL 有 spotId，同步到 Pinia；若 URL 沒有但 Pinia 有，則保留 Pinia 的值
+  if (route.query.spotId) {
+    memberAuthStore.setSpotId(route.query.spotId)
+  }
+})
+
+watch(
+  () => route.params.action,
+  (newAction) => {
+    if (newAction === 'order' || newAction === 'complete' || newAction === 'record') {
+      setActiveView(newAction)
+    }
+  },
+)
+
+// [新增] 監聽 URL 的 spotId 變化，隨時同步回 Pinia (例如使用者手動改網址)
+watch(
+  () => route.query.spotId,
+  (newId) => {
+    if (newId) {
+      memberAuthStore.setSpotId(newId)
+    }
+  },
+)
+
+// [新增] 統一取得目前的 SpotId (優先看 URL，沒有則看 Pinia)
+const currentSpotId = computed(() => {
+  return route.query.spotId || memberAuthStore.selectedSpotId
+})
+
+// --- 4. Computed for router-link ---
+const orderRoute = computed(() => {
+  const r = { name: 'rec-rent-user', params: { action: 'order' } }
+  // [修改] 使用 currentSpotId 確保切換時帶上 ID
+  if (currentSpotId.value) {
+    r.query = { spotId: currentSpotId.value }
+  }
+  return r
+})
+
+// [新增] 歸還頁面的路由物件，確保切換時也帶上 spotId
+const completeRoute = computed(() => {
+  const r = { name: 'rec-rent-user', params: { action: 'complete' } }
+  if (currentSpotId.value) {
+    r.query = { spotId: currentSpotId.value }
+  }
+  return r
+})
+
+// [新增] 紀錄頁面的路由物件
+const recordRoute = computed(() => {
+  const r = { name: 'rec-rent-user', params: { action: 'record' } }
+  if (currentSpotId.value) {
+    r.query = { spotId: currentSpotId.value }
+  }
+  return r
+})
+</script>
+
+<template>
+  <div class="top-nav">
+    <!-- 還原為 router-link，用於頁面內部切換 -->
+    <router-link :to="orderRoute" custom v-slot="{ navigate }">
+      <button
+        @click="navigate"
+        :class="{ active: activeView === 'order' }"
+        :disabled="activeView === 'order'"
+      >
+        租借＠Seat
+      </button>
+    </router-link>
+    <router-link :to="completeRoute" custom v-slot="{ navigate }">
+      <button
+        @click="navigate"
+        :class="{ active: activeView === 'complete' }"
+        :disabled="activeView === 'complete'"
+      >
+        歸還＠Seat
+      </button>
+    </router-link>
+    <router-link :to="recordRoute" custom v-slot="{ navigate }">
+      <button
+        @click="navigate"
+        :class="{ active: activeView === 'record' }"
+        :disabled="activeView === 'record'"
+      >
+        我的租借紀錄
+      </button>
+    </router-link>
+  </div>
+
+  <div class="rec-rent-container">
+    <div class="main-content">
+      <h1>＠Seat 租借服務</h1>
+
+      <!-- Views from UserPage -->
+      <div v-if="activeView === 'order'" class="view-section">
+        <!-- 傳遞 spotId 給子元件，會員資訊由子元件自行從 store 獲取 -->
+        <!-- [修改] 改用 currentSpotId，這樣即使 URL 暫時沒有 query，只要 Pinia 有值也能顯示 -->
+        <rec-rent-user-order v-if="currentSpotId" :spot-id="String(currentSpotId)" />
+        <div v-else class="alert alert-info">請先至「站點地圖」選擇一個租借站點。</div>
+        <router-link to="/SearchSpot" class="btn btn-primary">前往地圖</router-link>
+      </div>
+      <div v-if="activeView === 'complete'" class="view-section">
+        <rec-rent-user-complete />
+      </div>
+      <div v-if="activeView === 'record'" class="view-section">
+        <rec-rent-user-record />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* General container and navigation styles */
+.rec-rent-container {
+  display: flex;
+  flex-direction: column;
+  /* height: 100%; */ /* 移除，讓內容自然撐高 */
+  width: 100%;
+  font-family: 'Microsoft JhengHei', Arial, sans-serif;
+  background-color: #f9f9f9;
+}
+
+.top-nav {
+  width: 100%;
+  background-color: #acacac;
+  color: white;
+  display: flex;
+  padding-top: 0px;
+  flex-shrink: 0;
+}
+
+.top-nav button {
+  background-color: #01e68e;
+  color: #2b2b2b;
+  font-size: 25px;
+  font-weight: 500;
+  display: flex;
+  margin: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.top-nav button:disabled,
+.top-nav button.active {
+  background-color: #00ff9d;
+  color: black;
+  font-weight: bold;
+  cursor: not-allowed;
+}
+
+.top-nav button:not(:disabled):not(.active):hover {
+  background-color: #5dffc4;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  /* overflow-y: auto; */ /* 移除，交由 MainLayout 滾動 */
+}
+
+.view-section {
+  display: block;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/rec/RightsClaimPage.vue">
+<template>
+
+        <p>
+1. 租賃與歸還認定
+租借自 WebApp 顯示訂單時起算。歸還須確保 完全插入機台鎖槽 且 App 彈出「結案單」方視為終止。若因使用者原因導致被他人取走，使用者應負遺失賠償之責。
+2. 費率計算
+採分段計費制：
+● 第一階段：0-30 分鐘，固定收費 NT$45。
+● 第二階段：30 分鐘後，每 30 分鐘 NT$30。
+● 跨日累計：若超過 24 小時未歸還，除租金外，本公司有權先行鎖定帳號。
+3. 使用者檢查義務
+使用者取車/取物後應立即檢查。若發現損壞應透過 App 「報修功能」上傳照片。10 分鐘後未報修則視為領取時設備完好。
+4. 維修與損害賠償
+1. 正常耗損由本公司負擔。
+2. 遺失或人為毀損（如塗鴉、切割、支架彎曲）：賠償金 NT$1,500。
+3. 若因違規使用（如站立）導致他人受傷，由使用者承擔法律責任。
+5. 業者維護責任
+本公司承諾定期巡檢設備安全，但 不擔保 設備於租借期間因非預見因素產生的突發故障。若發生故障，使用者應立即停止使用。
+6. 爭議處理
+若對費用有爭議，應於扣款後 14 日內 提出。本條款以中華民國法律為準，以 台灣桃園地方法院 為第一審管轄法院。</p>
+<p>
+二、 使用者隱私權政策與個資蒐集聲明
+根據《個資法》第 8 條規定，您必須在 App 註冊頁面告知以下事項：
+1. 蒐集目的與類別
+蒐集目的： 租賃服務管理、金流扣款、設備追蹤、客服爭議處理、行銷活動推送。
+個資類別： 姓名、聯絡電話、電子郵件、地理位置（GPS）、信用卡號或第三方支付代碼。
+2. 利用期間與地區
+期間： 會員帳號有效期間內及法律規定之保存期限依會計法規定。
+地區： 台灣地區及本公司委託之雲端伺服器所在地。
+3. 使用者權利
+您可隨時透過 App 設定或聯繫客服行使：查詢、閱覽、製給複製本、補充、更正、停止蒐集處理或利用、刪除個人資料之權利。
+4. 設備位置追蹤
+為確保資產安全，本服務將於「租借期間」內記錄設備之位置資訊。歸還完成後，系統將停止主動追蹤該次行程位置。
+
+</p>
+</template>
+
+<script setup>
+
+</script>
+
+<style scoped>
+
+</style>
+</file>
+
+<file path="frontend/src/components/rec/RecRentEdit.vue">
+<script setup>
+import { ref, watch, onMounted } from 'vue'
+
+// 1. 定義 props
+const props = defineProps({
+  initialData: {
+    type: Object,
+    required: true,
+  },
+})
+
+// 2. 定義 emit 事件
+const emit = defineEmits(['save-rent', 'cancel'])
+
+// 3. 使用 ref 來儲存表單資料
+const form = ref({})
+const formTitle = ref('修改訂單')
+
+// 修正後的日期格式化函式，此方法更安全且能避免時區問題
+const formatDateTimeForInput = (dateTimeString) => {
+  if (!dateTimeString) {
+    return null // v-model 會將 null 處理為空值
+  }
+  
+  return dateTimeString.replace(' ', 'T').substring(0, 19)
+}
+
+// 4. 使用 watch 監聽 props.initialData 的變化
+watch(
+  () => props.initialData,
+  (newData) => {
+    // 只要 newData 是個有內容的物件，就進行更新
+    if (newData && Object.keys(newData).length > 0) {
+      formTitle.value = newData.recSeqId ? `修改訂單 (SeqID: ${newData.recSeqId})` : '修改訂單'
+
+      // 當 props 更新時，填充表單
+      form.value = {
+        ...newData,
+        recRentDT2: formatDateTimeForInput(newData.recRentDT2),
+        recReturnDT2: formatDateTimeForInput(newData.recReturnDT2),
+      }
+      console.log('表單資料已更新:', form.value)
+    }
+  },
+  { immediate: true, deep: true },
+)
+
+// 5. 提交表單的處理函式
+const saveRent = () => {
+  const dataToSend = {
+    ...form.value,
+    recRentDT2: form.value.recRentDT2 ? form.value.recRentDT2 : null,
+    recReturnDT2: form.value.recReturnDT2 ? form.value.recReturnDT2 : null,
+  }
+  emit('save-rent', dataToSend)
+}
+
+// 6. 取消操作
+const backToList = () => {
+  emit('cancel')
+}
+</script>
+
+<template>
+  <div class="view-section form-section active">
+    <h2 v-text="formTitle"></h2>
+
+    <div class="form-group">
+      <label>訂單編號:</label>
+      <!-- 設定為 disabled -->
+      <input v-model="form.recId" type="text" placeholder="訂單編號" disabled />
+    </div>
+    <div class="form-group">
+      <label>會員編號:</label>
+      <!-- 設定為 disabled -->
+      <input v-model="form.memId" type="number" placeholder="會員編號" disabled />
+    </div>
+    <div class="form-group">
+      <label>姓名:</label>
+      <input v-model="form.memName" type="text" placeholder="例如: 王大明" disabled />
+    </div>
+    <div class="form-group">
+      <label>座椅編號:</label>
+      <input v-model="form.seatsId" type="text" placeholder="例如: S001" disabled />
+    </div>
+    <div class="form-group">
+      <label>訂單狀態:</label>
+      <select v-model="form.recStatus">
+        <option value="租借中">租借中</option>
+        <option value="已完成">已完成</option>
+        <option value="未歸還">未歸還</option>
+        <option value="已取消">已取消</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>租借站點:</label>
+      <input v-model="form.spotIdRent" type="number" placeholder="例如: 1" required />
+    </div>
+    <div class="form-group">
+      <label>歸還站點:</label>
+      <input v-model="form.spotIdReturn" type="number" placeholder="例如: 2" />
+    </div>
+    <div class="form-group">
+      <label>租借時間:</label>
+      <input v-model="form.recRentDT2" type="datetime-local" step="1" required />
+    </div>
+    <div class="form-group">
+      <label>歸還時間:</label>
+      <input v-model="form.recReturnDT2" type="datetime-local" step="1" />
+    </div>
+    <div class="form-group">
+      <label>費用:</label>
+      <input v-model="form.recPayment" type="number" />
+    </div>
+    <!-- <div class="form-group">
+      <label>違規累計:</label>
+      <input v-model="form.recViolatInt" type="number" required />
+    </div> -->
+    <div class="form-group">
+      <label>備註:</label>
+      <input v-model="form.recNote" type="text" />
+    </div>
+
+    <div style="text-align: right">
+      <button class="btn-secondary" @click="backToList">取消</button>
+      <button class="btn-primary" @click="saveRent">儲存變更</button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* ========== 表單區塊 - 淺色風格 ========== */
+.form-section {
+  background: #f5f7fa;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+/* ========== 表單標題 ========== */
+.form-section h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e4e7ed;
+}
+
+/* ========== 表單組 ========== */
+.form-group {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.form-group label {
+  width: 180px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #606266;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  flex: 1;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #c0c4cc;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.08);
+  outline: none;
+}
+
+.form-group input::placeholder {
+  color: #c0c4cc;
+}
+
+/* ========== 停用輸入框樣式 ========== */
+.form-group input:disabled {
+  background: #f5f7fa;
+  color: #c0c4cc;
+  cursor: not-allowed;
+  border: 1px dashed #e4e7ed;
+}
+
+.view-section.active {
+  display: block;
+}
+
+/* ========== 按鈕樣式 ========== */
+button {
+  margin-left: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: #67c23a;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #85ce61;
+}
+
+.btn-secondary {
+  background: #909399;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #a6a9ad;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/rec/RecRentMgnPage.vue">
+<script setup>
+import { ref } from 'vue'
+import axios from 'axios'
+import RecRentSearch from '@/components/rec/RecRentSearch.vue'
+import RecRentAdd from '@/components/rec/RecRentAdd.vue'
+import RecRentEdit from '@/components/rec/RecRentEdit.vue' // 1. 引入 Edit 組件
+import Swal from 'sweetalert2'
+
+// --- 1. 狀態定義 ---
+const activeView = ref('list') // 'list', 'add', 'edit'
+const editingRent = ref(null) // Holds the data for the rent being edited
+const searchComponent = ref(null) // Ref to access the search component instance
+const API_URL = 'http://localhost:8080/rec-rent'
+
+// --- 2. 核心邏輯 ---
+
+// 新增或更新 (Create / Update)
+const handleSaveRent = async (formData) => {
+  try {
+    // [修正] 依據當前視圖模式決定 HTTP 方法與 URL
+    // 避免因為新增時填寫了 recId 而誤判為 PUT 請求
+    let method = 'post'
+    let url = `${API_URL}/new` // 對應 Controller 的 @PostMapping("/new")
+
+    if (activeView.value === 'edit') {
+      method = 'put'
+      url = `${API_URL}/${formData.recId}`
+    }
+
+    const res = await axios[method](url, formData)
+    if (res.status === 200 || res.status === 201) {
+      alert(activeView.value === 'edit' ? '更新成功！' : '新增成功！')
+      activeView.value = 'list'
+      // Use the ref to call the child's method
+      if (searchComponent.value) {
+        await searchComponent.value.loadRents()
+      }
+    } else {
+      alert('儲存失敗，請檢查輸入資料。')
+    }
+  } catch (err) {
+    console.error('儲存操作失敗:', err)
+    alert('儲存失敗，請檢查輸入資料。')
+  }
+}
+
+// 刪除 (Delete)
+const handleDeleteRent = async (id) => {
+  // 使用 SweetAlert2 彈出確認對話框，提供更好的使用者體驗
+  const result = await Swal.fire({
+    title: `確定要刪除訂單 #${id} 嗎?`,
+    text: '此操作無法復原！',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: '是的，刪除它！',
+    cancelButtonText: '取消',
+  })
+
+  // 如果使用者沒有確認，則中止操作
+  if (!result.isConfirmed) {
+    return
+  }
+
+  try {
+    // 呼叫後端 API 執行刪除，使用標準的 RESTful 風格 URL
+    const res = await axios.delete(`${API_URL}/${id}`)
+    
+    // 檢查回應狀態碼，200 (OK) 或 204 (No Content) 都代表成功
+    if (res.status === 200 || res.status === 204) {
+      await Swal.fire('已刪除！', `訂單 #${id} 已成功刪除。`, 'success')
+      // 如果 searchComponent 存在，則呼叫其方法重新載入訂單列表
+      if (searchComponent.value) {
+        await searchComponent.value.loadRents()
+      }
+    } else {
+      // 若狀態碼不為成功，顯示錯誤
+      Swal.fire('刪除失敗', `發生未預期的錯誤，狀態碼: ${res.status}`, 'error')
+    }
+  } catch (err) {
+    console.error('刪除操作失敗:', err)
+    // 處理 API 呼叫的錯誤
+    const errorMessage = err.response?.data?.message || err.message || '未知錯誤'
+    Swal.fire('刪除失敗', `錯誤: ${errorMessage}`, 'error')
+  }
+}
+
+// --- 3. 視圖切換邏輯 ---
+
+// 準備編輯資料
+const handleEditRent = (rent) => {
+  editingRent.value = { ...rent }
+  activeView.value = 'edit' // 切換到編輯視圖
+
+  // Scroll to top for better user experience
+  setTimeout(() => {
+    const mainContent = document.querySelector('.main-content')
+    if (mainContent) {
+      mainContent.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, 50)
+}
+
+// 切換到新增畫面
+const goToAddView = () => {
+  editingRent.value = null // Clear any editing data
+  activeView.value = 'add' // 切換到新增視圖
+}
+
+// 取消並返回列表
+const backToList = () => {
+  editingRent.value = null // Clear any editing data
+  activeView.value = 'list'
+}
+</script>
+
+<template>
+  <div class="rec-rent-container">
+    <div class="top-nav">
+      <button
+        @click="backToList"
+        :class="{ active: activeView === 'list' }"
+        :disabled="activeView === 'list'"
+      >
+        訂單查詢
+      </button>
+
+      <button
+        @click="goToAddView"
+        :class="{ active: activeView === 'add' }"
+        :disabled="activeView === 'add'"
+      >
+        新增訂單
+      </button>
+    </div>
+
+    <div class="main-content">
+      <h1>訂單管理系統</h1>
+
+      <div v-if="activeView === 'add'" class="view-section">
+        <rec-rent-add @save-rent="handleSaveRent" @cancel="backToList" />
+      </div>
+
+      <!--  組件的區塊 -->
+      <div v-if="activeView === 'edit'" class="view-section">
+        <rec-rent-edit
+          :initial-data="editingRent"
+          @save-rent="handleSaveRent"
+          @cancel="backToList"
+        />
+      </div>
+
+      <div v-if="activeView === 'list'" class="view-section">
+        <rec-rent-search
+          ref="searchComponent"
+          @edit-rent="handleEditRent"
+          @delete-rent="handleDeleteRent"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* ========== 主容器 - 淺色背景 ========== */
+.rec-rent-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Microsoft JhengHei', Arial, sans-serif;
+  background: linear-gradient(180deg, #f0f5fa 0%, #e8eef5 100%);
+}
+
+/* ========== 頂部導航 - 淺色風格 ========== */
+.top-nav {
+  width: 100%;
+  background: white;
+  display: flex;
+  padding: 12px 20px;
+  gap: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+}
+
+.top-nav button {
+  background: #409eff;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 22px;
+  margin: 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.top-nav button:disabled,
+.top-nav button.active {
+  background: #67c23a;
+  color: #fff;
+  font-weight: 600;
+  cursor: default;
+}
+
+.top-nav button:not(:disabled):hover {
+  background: #66b1ff;
+  transform: translateY(-1px);
+}
+
+/* ========== 主內容區 ========== */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* ========== 標題區 ========== */
+.main-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #303133;
+  margin-bottom: 20px;
+}
+
+/* ========== 視圖區塊 ========== */
+.view-section {
+  display: block;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.view-section:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+</style>
+</file>
+
+<file path="frontend/src/views/rec/VisitSiteReommandPage.vue">
+<script setup>
+import { ref, onMounted, computed, watch } from 'vue'
+
+const allData = ref([])
+const displayData = ref([]) // 用於顯示和隨機排序的資料
+const isLoading = ref(true)
+const error = ref(null)
+
+const currentPage = ref(1)
+const itemsPerPage = 15
+
+// --- 篩選用的狀態 ---
+const searchQuery = ref('') // 綁定輸入框
+const appliedSearchQuery = ref('') // 實際應用的搜尋關鍵字
+const selectedRegion = ref('') // 空字串代表 '所有地區'
+const selectedCategory = ref('all') // [新增] 'all', '景點', '餐廳'
+
+// 從指定的 URL 獲取資料
+async function fetchDataFromUrl(url) {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`無法從 ${url} 獲取資料: ${response.status} ${response.statusText}`)
+  }
+  return await response.json()
+}
+
+// 獲取所有景點和餐廳資料
+async function fetchAllData() {
+  isLoading.value = true
+  error.value = null
+
+  try {
+    const restaurantUrl =
+      'https://tdx.transportdata.tw/api/basic/v2/Tourism/Restaurant?%24top=9999&%24format=JSON'
+    const scenicSpotUrl =
+      'https://tdx.transportdata.tw/api/basic/v2/Tourism/ScenicSpot?%24top=9999&%24format=JSON'
+
+    const [restaurants, scenicSpots] = await Promise.all([
+      fetchDataFromUrl(restaurantUrl),
+      fetchDataFromUrl(scenicSpotUrl),
+    ])
+
+    const formattedRestaurants = restaurants.map((item) => ({
+      id: `res_${item.RestaurantID}`,
+      name: item.RestaurantName,
+      description: item.Description || '暫無描述',
+      pictureUrl: item.Picture?.PictureUrl1,
+      address: item.Address || '',
+      type: '餐廳',
+    }))
+
+    const formattedScenicSpots = scenicSpots.map((item) => ({
+      id: `spot_${item.ScenicSpotID}`,
+      name: item.ScenicSpotName,
+      description: item.DescriptionDetail || '暫無描述',
+      pictureUrl: item.Picture?.PictureUrl1,
+      address: item.Address || '',
+      type: '景點',
+    }))
+
+    // 恢復為按名稱排序，作為預設順序
+    allData.value = [...formattedRestaurants, ...formattedScenicSpots].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    )
+  } catch (e) {
+    error.value = e.message
+    console.error(e)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// --- 過濾與排序邏輯 ---
+
+// 固定的台灣縣市列表
+const uniqueRegions = [
+  '臺北市',
+  '新北市',
+  '桃園市',
+  '臺中市',
+  '臺南市',
+  '高雄市',
+  '基隆市',
+  '宜蘭縣',
+  '花蓮縣',
+  '臺東縣',
+  '新竹市',
+  '新竹縣',
+  '苗栗縣',
+  '彰化縣',
+  '南投縣',
+  '雲林縣',
+  '嘉義市',
+  '嘉義縣',
+  '屏東縣',
+  '澎湖縣',
+  '金門縣',
+  '連江縣',
+]
+
+// 根據`appliedSearchQuery`和地區篩選資料
+const filteredData = computed(() => {
+  let data = allData.value
+
+  if (selectedRegion.value) {
+    data = data.filter((item) => item.address.startsWith(selectedRegion.value))
+  }
+
+  // [新增] 根據類別篩選
+  if (selectedCategory.value !== 'all') {
+    data = data.filter((item) => item.type === selectedCategory.value)
+  }
+
+  if (appliedSearchQuery.value) {
+    const query = appliedSearchQuery.value.toLowerCase()
+    data = data.filter(
+      (item) =>
+        item.name.toLowerCase().includes(query) || item.address.toLowerCase().includes(query),
+    )
+  }
+  return data
+})
+
+// 監聽篩選結果，並將其同步到 displayData
+watch(
+  filteredData,
+  (newData) => {
+    displayData.value = newData
+    currentPage.value = 1 // 篩選變更時，重置頁碼
+  },
+  { immediate: true },
+)
+
+// --- 使用者操作 ---
+
+// 應用搜尋
+function applySearch() {
+  appliedSearchQuery.value = searchQuery.value
+}
+
+// 隨機排序當前顯示的列表
+function randomizeOrder() {
+  const dataToShuffle = [...displayData.value] // 複製以避免直接修改
+  // Fisher-Yates 演算法
+  for (let i = dataToShuffle.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[dataToShuffle[i], dataToShuffle[j]] = [dataToShuffle[j], dataToShuffle[i]]
+  }
+  displayData.value = dataToShuffle
+  currentPage.value = 1 // 隨機排序後，回到第一頁
+}
+
+// UX 優化: 當使用者清空輸入框時，也自動清空篩選結果
+watch(searchQuery, (newValue) => {
+  if (newValue === '') {
+    applySearch()
+  }
+})
+
+// --- 分頁邏輯 (依賴 displayData) ---
+
+const totalPages = computed(() => {
+  return Math.ceil(displayData.value.length / itemsPerPage)
+})
+
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return displayData.value.slice(start, end)
+})
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+onMounted(() => {
+  fetchAllData()
+})
+</script>
+
+<template>
+  <div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="text-center mb-4">
+      <h1 class="display-5">在地特色景點與美食餐廳</h1>
+      <!-- Data Source Information -->
+      <small class="text-muted">資料來源：交通部運輸資料流通服務平臺 (TDX)</small>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-light">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <!-- Left Controls: Filter and Randomizer -->
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <select class="form-select form-select-sm" v-model="selectedRegion" style="width: auto">
+              <option value="">所有地區</option>
+              <option v-for="region in uniqueRegions" :key="region" :value="region">
+                {{ region }}
+              </option></select
+            >&nbsp;&nbsp;&nbsp;&nbsp;
+
+            <!-- [新增] 類別篩選按鈕 -->
+            <div class="btn-group btn-group-sm" role="group">
+              <button
+                type="button"
+                class="btn"
+                :class="selectedCategory === 'all' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="selectedCategory = 'all'"
+              >
+                全部
+              </button>
+              <button
+                type="button"
+                class="btn"
+                :class="selectedCategory === '景點' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="selectedCategory = '景點'"
+              >
+                景點
+              </button>
+              <button
+                type="button"
+                class="btn"
+                :class="selectedCategory === '餐廳' ? 'btn-primary' : 'btn-outline-primary'"
+                @click="selectedCategory = '餐廳'"
+              >
+                餐廳
+              </button>
+            </div>
+
+            <button class="btn btn-success btn-sm" style="margin: 0 12px" @click="randomizeOrder">
+              <i class="fas fa-random me-1"></i> 隨機推薦
+            </button>
+          </div>
+
+          <!-- Right Controls: Search -->
+          <div class="flex-grow-1" style="max-width: 300px">
+            <form @submit.prevent="applySearch" class="w-100">
+              <div class="input-group input-group-sm">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="搜尋名稱或地址..."
+                  v-model="searchQuery"
+                />
+                <button class="btn btn-primary" type="submit" style="margin: 0 12px">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-3 text-muted">資料載入中，請稍候...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="alert alert-danger text-center">
+          <h4><i class="fas fa-exclamation-triangle me-2"></i>資料載入失敗</h4>
+          <p>{{ error }}</p>
+          <p class="mb-0">請確認您的網路連線是否正常，或稍後再試。</p>
+        </div>
+
+        <!-- No Data State -->
+        <div v-else-if="!isLoading && paginatedData.length === 0" class="text-center py-5">
+          <i class="fas fa-search-minus fa-3x text-muted mb-3"></i>
+          <h4>找不到符合條件的資料</h4>
+          <p class="text-muted">請嘗試調整或放寬您的篩選條件。</p>
+        </div>
+
+        <!-- Data Grid -->
+        <div v-else>
+          <div class="row g-4">
+            <div v-for="item in paginatedData" :key="item.id" class="col-12 col-md-4 g-4">
+              <a
+                :href="'https://www.google.com/search?q=' + encodeURIComponent(item.name)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-decoration-none"
+              >
+                <div class="card h-100 recommendation-card">
+                  <img
+                    :src="item.pictureUrl || 'https://picsum.photos/320?random=' + item.id"
+                    class="card-img-top"
+                    :alt="item.name"
+                    loading="lazy"
+                  />
+                  <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-dark">
+                      {{ item.name }}
+                      <div
+                        class="badge ms-2"
+                        :class="
+                          item.type === '景點' ? 'bg-primary text-white' : 'bg-warning text-dark'
+                        "
+                      >
+                        {{ item.type }}
+                      </div>
+                    </h5>
+                    <p class="card-text text-muted small flex-grow-1">
+                      {{ item.description.substring(0, 80)
+                      }}{{ item.description.length > 80 ? '...' : '' }}
+                    </p>
+                    <p class="card-text small text-muted">
+                      <i class="fas fa-map-marker-alt me-2"></i>{{ item.address }}
+                    </p>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer bg-light" v-if="!isLoading && paginatedData.length > 0">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <!-- Pagination Controls -->
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm m-0">
+              <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                <a class="page-link" href="#" @click.prevent="prevPage">« 上一頁</a>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link text-dark">第 {{ currentPage }} / {{ totalPages }} 頁</span>
+              </li>
+              <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                <a class="page-link" href="#" @click.prevent="nextPage">下一頁 »</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.recommendation-card {
+  transition:
+    transform 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
+  border: 1px solid #e9ecef;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.card-title .badge {
+  font-size: 0.8rem;
+  vertical-align: middle;
+}
+
+.card-img-top {
+  height: 250px;
+  object-fit: cover;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Font Awesome Icons (if you are using them) */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+</style>
+</file>
+
+<file path="frontend/src/components/rec/RecRentAdd.vue">
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+
+const memberList = ref([])
+const spotList = ref([])
+const seatList = ref([]) // [新增] 座位列表
+
+// [新增] 下拉選單顯示狀態
+const showMemId = ref(false)
+const showMemName = ref(false)
+const showSpotRentId = ref(false)
+const showSpotRentName = ref(false)
+const showSpotReturnId = ref(false)
+const showSpotReturnName = ref(false)
+const showSeatId = ref(false)
+
+const fetchMembers = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/api/members')
+    memberList.value = res.data
+  } catch (err) {
+    console.error('無法載入會員列表:', err)
+  }
+}
+
+const fetchSpots = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/spot/list')
+    spotList.value = res.data
+  } catch (err) {
+    console.error('無法載入據點列表:', err)
+  }
+}
+
+// [新增] 載入座位列表
+const fetchSeats = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/seats')
+    seatList.value = res.data
+  } catch (err) {
+    console.error('無法載入座位列表:', err)
+  }
+}
+
+// 1. 定義 emit 事件
+const emit = defineEmits(['save-rent', 'cancel'])
+
+// 2. 創建一個空的初始表單物件的函式
+const createInitialForm = () => ({
+  recSeqId: null,
+  // recId: '',
+  memId: '',
+  memName: '',
+  seatsId: '',
+  recStatus: '租借中',
+  recStatus: '租借中',
+  spotIdRent: '',
+  spotRentName: '', // [新增] 用於顯示/輸入
+  spotIdReturn: '',
+  spotReturnName: '', // [新增] 用於顯示/輸入
+  recRentDT2: '',
+  recReturnDT2: '',
+  recViolatInt: 0,
+  recNote: '', // [修正] 補上備註欄位的初始化
+})
+
+// 3. 使用 ref 來儲存表單資料
+const form = ref(createInitialForm())
+const formTitle = '新增訂單' // 標題是固定的
+
+// 連動邏輯
+
+
+// [新增] 過濾邏輯 (Computed)
+import { computed } from 'vue'
+
+const filteredMemIds = computed(() => {
+  if (!form.value.memId) return memberList.value
+  return memberList.value.filter(m => String(m.memId).includes(String(form.value.memId)))
+})
+
+const filteredMemNames = computed(() => {
+  if (!form.value.memName) return memberList.value
+  return memberList.value.filter(m => m.memName.includes(form.value.memName))
+})
+
+const filteredSpotRentIds = computed(() => {
+  if (!form.value.spotIdRent) return spotList.value
+  return spotList.value.filter(s => String(s.spotId).includes(String(form.value.spotIdRent)))
+})
+
+const filteredSpotRentNames = computed(() => {
+  if (!form.value.spotRentName) return spotList.value
+  return spotList.value.filter(s => s.spotName.includes(form.value.spotRentName))
+})
+
+const filteredSpotReturnIds = computed(() => {
+  if (!form.value.spotIdReturn) return spotList.value
+  return spotList.value.filter(s => String(s.spotId).includes(String(form.value.spotIdReturn)))
+})
+
+const filteredSpotReturnNames = computed(() => {
+  if (!form.value.spotReturnName) return spotList.value
+  return spotList.value.filter(s => s.spotName.includes(form.value.spotReturnName))
+})
+
+// [新增] 可用座位過濾：需符合「所在站點 = 租借站點」且「狀態 = 可使用(或類似狀態)」
+// 若後端座位狀態 definition: '可用', '使用中', '維修中'
+const filteredSeats = computed(() => {
+  let list = seatList.value
+  
+  // 1. 先篩選出屬於「目前租借站點」的座位
+  // if (form.value.spotIdRent) {
+  //   list = list.filter(s => s.spotId == form.value.spotIdRent)
+  // }
+  
+  // 2. 再根據輸入的 seatsId 進行模糊搜尋 (包含 ID, 名稱, 序號)
+  if (form.value.seatsId) {
+    const term = String(form.value.seatsId).toLowerCase()
+    list = list.filter(s => {
+      const id = String(s.seatsId).toLowerCase()
+      const name = (s.seatsName || '').toLowerCase()
+      const serial = (s.serialNumber || '').toLowerCase()
+      return id.includes(term) || name.includes(term) || serial.includes(term)
+    })
+  }
+  
+  // 3. 過濾掉非「可租借」狀態的座位 (可選)
+  list = list.filter(s => s.seatsStatus === '啟用') 
+  
+  return list
+})
+
+// [新增] 選擇處理函式
+const selectMember = (member) => {
+  form.value.memId = member.memId
+  form.value.memName = member.memName
+  showMemId.value = false
+  showMemName.value = false
+}
+
+const selectSpotRent = (spot) => {
+  form.value.spotIdRent = spot.spotId
+  form.value.spotRentName = spot.spotName
+  showSpotRentId.value = false
+  showSpotRentName.value = false
+}
+
+const selectSpotReturn = (spot) => {
+  form.value.spotIdReturn = spot.spotId
+  form.value.spotReturnName = spot.spotName
+  showSpotReturnId.value = false
+  showSpotReturnName.value = false
+}
+
+const selectSeat = (seat) => {
+  form.value.seatsId = seat.seatsId // 注意型別轉換若需要
+  showSeatId.value = false
+}
+
+// 延遲隱藏 (避免點擊選項前 input blur 導致選單消失)
+const delayHide = (refVar) => {
+  setTimeout(() => {
+    refVar.value = false
+  }, 200)
+}
+
+// [新增] 手動切換下拉選單顯示
+const toggleDropdown = (refVar) => {
+  refVar.value = !refVar.value
+}
+
+onMounted(() => {
+  fetchMembers()
+  fetchSpots()
+  fetchSeats()
+})
+
+// 4. 清空/重設表單的函式
+const resetForm = () => {
+  form.value = createInitialForm()
+}
+
+// 5. 提交表單的處理函式
+const saveRent = () => {
+  const dataToSend = {
+    ...form.value,
+    recRentDT2: form.value.recRentDT2 || null, // 保持 ISO 格式 (含 'T')，後端才能正確解析
+    recReturnDT2: form.value.recReturnDT2 || null, // 保持 ISO 格式 (含 'T')
+  }
+  emit('save-rent', dataToSend)
+  // 成功提交後通常會切換視圖，但如果需要留在原頁面，可以取消註解下一行
+  // resetForm();
+}
+
+// 6. 取消操作 (返回列表)
+const handleCancel = () => {
+  emit('cancel')
+}
+
+// [新增] 一鍵輸入預設值函式
+const fillDefaultValues = () => {
+  const now = new Date()
+
+  // 封裝格式化邏輯：將 Date 物件轉換為 datetime-local 所需的 YYYY-MM-DDTHH:mm:ss 格式
+  const toLocalISOString = (date) => {
+    const offset = date.getTimezoneOffset() * 60000
+    return new Date(date.getTime() - offset).toISOString().slice(0, 19)
+  }
+
+  // 計算昨天 (語意更清楚的寫法)
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  
+  form.value = {
+    recSeqId: null,
+    // recId: 'TEST-' + Math.floor(Math.random() * 10000), // 隨機產生訂單編號
+    memId: 1,
+    memName: '測試會員',
+    seatsId: '1',
+    recStatus: '租借中',
+    spotIdRent: 1,
+    spotIdReturn: 2,
+    recRentDT2: toLocalISOString(yesterday),
+    recReturnDT2: toLocalISOString(now),
+    recViolatInt: 2,
+    recNote: '系統自動帶入測試資料',
+  }
+}
+</script>
+
+<template>
+  <div class="view-section form-section active">
+    <!-- [修改] 標題區塊加入一鍵輸入按鈕 -->
+    <div class="form-header">
+      <h2>{{ formTitle }}</h2>
+      <button class="btn-warning btn-sm" @click="fillDefaultValues">一鍵輸入</button>
+    </div>
+
+    <!-- <div class="form-group">
+      <label>訂單編號(recId):</label>
+      <input v-model="form.recId" type="text" placeholder="必須..." />
+    </div> -->
+    <div class="form-group relative">
+      <label>會員編號:</label>
+      <input
+        v-model="form.memId"
+        type="number"
+        placeholder="必須、數字..."
+        required
+        @focus="showMemId = true"
+        @blur="delayHide(showMemId)"
+        @input="showMemId = true"
+        @keydown.esc="showMemId = false"
+      />
+      <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showMemId)">▼</span>
+      <ul v-if="showMemId && filteredMemIds.length" class="custom-dropdown">
+        <li v-for="m in filteredMemIds" :key="m.memId" @mousedown="selectMember(m)">
+          {{ m.memId }} - {{ m.memName }}
+        </li>
+      </ul>
+    </div>
+    <div class="form-group relative">
+      <label>會員姓名:</label>
+      <input
+        v-model="form.memName"
+        type="text"
+        placeholder="或輸入姓名快速搜尋..."
+        @focus="showMemName = true"
+        @blur="delayHide(showMemName)"
+        @input="showMemName = true"
+        @keydown.esc="showMemName = false"
+      />
+      <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showMemName)">▼</span>
+      <ul v-if="showMemName && filteredMemNames.length" class="custom-dropdown">
+        <li v-for="m in filteredMemNames" :key="m.memId" @mousedown="selectMember(m)">
+          {{ m.memId }} - {{ m.memName }}
+        </li>
+      </ul>
+    </div>
+    
+    <div class="form-group relative">
+      <label>座椅編號:</label>
+      <input
+        v-model="form.seatsId"
+        type="text"
+        placeholder="必須..."
+        required
+        @focus="showSeatId = true"
+        @blur="delayHide(showSeatId)"
+        @input="showSeatId = true"
+        @keydown.esc="showSeatId = false"
+      />
+      <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showSeatId)">▼</span>
+       <ul v-if="showSeatId && filteredSeats.length" class="custom-dropdown">
+        <li v-for="s in filteredSeats" :key="s.seatsId" @mousedown="selectSeat(s)">
+          {{ s.seatsName }} ( {{ s.serialNumber}} )
+        </li>
+      </ul>
+    </div>
+
+    <div class="form-group">
+      <label>訂單狀態:</label>
+      <select v-model="form.recStatus">
+        <option value="租借中">租借中</option>
+        <option value="已完成">已完成</option>
+        <option value="未歸還">未歸還</option>
+        <option value="已取消">已取消</option>
+      </select>
+    </div>
+    
+    <div class="form-group relative">
+      <label>租借站點編號:</label>
+      <input
+        v-model="form.spotIdRent"
+        type="number"
+        placeholder="必須、數字..."
+        required
+        @focus="showSpotRentId = true"
+        @blur="delayHide(showSpotRentId)"
+        @input="showSpotRentId = true"
+        @keydown.esc="showSpotRentId = false"
+      />
+      <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showSpotRentId)">▼</span>
+      <ul v-if="showSpotRentId && filteredSpotRentIds.length" class="custom-dropdown">
+        <li v-for="s in filteredSpotRentIds" :key="s.spotId" @mousedown="selectSpotRent(s)">
+          {{ s.spotId }} - {{ s.spotName }}
+        </li>
+      </ul>
+    </div>
+    <div class="form-group relative">
+      <label>租借站點名稱:</label>
+      <input
+        v-model="form.spotRentName"
+        type="text"
+        placeholder="或輸入名稱快速搜尋..."
+        @focus="showSpotRentName = true"
+        @blur="delayHide(showSpotRentName)"
+        @input="showSpotRentName = true"
+        @keydown.esc="showSpotRentName = false"
+      />
+      <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showSpotRentName)">▼</span>
+      <ul v-if="showSpotRentName && filteredSpotRentNames.length" class="custom-dropdown">
+        <li v-for="s in filteredSpotRentNames" :key="s.spotId" @mousedown="selectSpotRent(s)">
+          {{ s.spotName }} ({{ s.spotId }})
+        </li>
+      </ul>
+    </div>
+    
+    <div class="form-group relative">
+      <label>歸還站點編號:</label>
+      <input
+        v-model="form.spotIdReturn"
+        type="number"
+        placeholder="數字..."
+        @focus="showSpotReturnId = true"
+        @blur="delayHide(showSpotReturnId)"
+        @input="showSpotReturnId = true"
+        @keydown.esc="showSpotReturnId = false"
+      />
+      <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showSpotReturnId)">▼</span>
+       <ul v-if="showSpotReturnId && filteredSpotReturnIds.length" class="custom-dropdown">
+        <li v-for="s in filteredSpotReturnIds" :key="s.spotId" @mousedown="selectSpotReturn(s)">
+          {{ s.spotId }} - {{ s.spotName }}
+        </li>
+      </ul>
+    </div>
+    <div class="form-group relative">
+      <label>歸還站點名稱:</label>
+      <input
+        v-model="form.spotReturnName"
+        type="text"
+        placeholder="或輸入名稱快速搜尋..."
+        @focus="showSpotReturnName = true"
+        @blur="delayHide(showSpotReturnName)"
+        @input="showSpotReturnName = true"
+        @keydown.esc="showSpotReturnName = false"
+      />
+      <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showSpotReturnName)">▼</span>
+       <ul v-if="showSpotReturnName && filteredSpotReturnNames.length" class="custom-dropdown">
+        <li v-for="s in filteredSpotReturnNames" :key="s.spotId" @mousedown="selectSpotReturn(s)">
+          {{ s.spotName }} ({{ s.spotId }})
+        </li>
+      </ul>
+    </div>
+    <div class="form-group">
+      <label>租借時間:</label>
+      <input v-model="form.recRentDT2" type="datetime-local" step="1" placeholder="必須" required />
+    </div>
+    <div class="form-group">
+      <label>歸還時間:</label>
+      <input v-model="form.recReturnDT2" type="datetime-local" step="1" />
+    </div>
+    <!-- <div class="form-group">
+      <label>違規記點:</label>
+      <input v-model="form.recViolatInt" type="number" value="0" placeholder="數字..." required />
+    </div> -->
+    <div class="form-group">
+      <label>備註:</label>
+      <!-- [修正] 修正綁定錯誤，原本誤綁定到 memName -->
+      <input v-model="form.recNote" type="text" placeholder="選填..."/>
+    </div>
+
+    <div style="text-align: right">
+      <button class="btn-info" @click="resetForm">重設欄位</button>
+      <button class="btn-secondary" @click="handleCancel">取消</button>
+      <button class="btn-primary" @click="saveRent">儲存訂單</button>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* ========== 表單區塊 - 淺色風格 ========== */
+.form-section {
+  background: #f5f7fa;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+/* ========== 表單標題區塊 ========== */
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* 標題在左，按鈕在右，若要按鈕緊鄰標題可改為 flex-start 並加 gap */
+  border-bottom: 2px solid #e4e7ed;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+}
+
+.form-header h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #303133;
+  margin: 0; /* 移除預設邊距，由 header 控制 */
+}
+
+/* ========== 表單組 ========== */
+.form-group {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.form-group label {
+  width: 180px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #606266;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  flex: 1;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #c0c4cc;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.08);
+  outline: none;
+}
+
+.form-group input::placeholder {
+  color: #c0c4cc;
+}
+
+.view-section.active {
+  display: block;
+}
+
+/* ========== 按鈕樣式 ========== */
+button {
+  margin-left: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: #67c23a;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #85ce61;
+}
+
+.btn-secondary {
+  background: #909399;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #a6a9ad;
+}
+
+.btn-info {
+  background: #409eff;
+  color: white;
+}
+
+.btn-info:hover {
+  background: #66b1ff;
+}
+
+/* [新增] 小按鈕樣式 */
+/* [新增] 自訂下拉選單樣式 */
+.relative {
+  position: relative;
+}
+
+.custom-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 180px; /* 配合 label 寬度 */
+  right: 0;
+  background: white;
+  border: 1px solid #c0c4cc;
+  border-radius: 4px;
+  max-height: 200px; /* 約顯示 6 筆 */
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.custom-dropdown li {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: #606266;
+  font-size: 14px;
+}
+
+.custom-dropdown li:hover {
+  background-color: #f5f7fa;
+  color: #409eff;
+}
+
+/* [新增] 下拉選單切換圖示 */
+.toggle-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #c0c4cc;
+  font-size: 12px;
+  transition: color 0.3s;
+  padding: 5px; /* 增加點擊範圍 */
+}
+
+.toggle-icon:hover {
+  color: #409eff;
+}
+</style>
+</file>
+
+<file path="frontend/src/components/rec/RecRentUserOrder.vue">
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+import { useMemberAuthStore } from '@/stores/memberAuth'
+
+// --- Computed properties from store ---
+// --- Props ---
+const props = defineProps({
+  spotId: {
+    type: String,
+    required: true,
+  },
+})
+
+// --- Pinia Store ---
+const memberAuthStore = useMemberAuthStore()
+const router = useRouter()
+
+// --- Computed properties from store ---
+const isLoggedIn = computed(() => memberAuthStore.isLogin && !!memberAuthStore.member?.memId)
+const memberId = computed(() => memberAuthStore.member?.memId)
+const memberName = computed(() => memberAuthStore.member?.memName || '訪客')
+const memberUserName = computed(() => memberAuthStore.member?.memUsername || '訪客')
+console.log(isLoggedIn.value)
+
+// --- 狀態定義 ---
+const spotInfo = ref(null) // 儲存傳入 spotId 的站點資訊
+const seats = ref([])
+const selectedSeat = ref(null)
+const isLoading = ref({
+  spot: false,
+  seats: false,
+  rent: false,
+})
+const errorMessage = ref('')
+
+// 對話框狀態
+const showTermsModal = ref(false)
+const agreedToTerms = ref(false)
+// --- Lifecycle ---
+onMounted(async () => {
+  // 如果進入頁面時發現是登入狀態但沒有 ID，導回登入頁
+  if (memberAuthStore.isLogin && !memberId.value) {
+    console.warn('訂單頁面偵測到資料遺失，自動導向登入頁')
+    memberAuthStore.clearMemberLogin() // 確保清除異常狀態
+    router.push('/login')
+    return
+  }
+
+  // 檢查是否有未完成的訂單 (recStatus === '租借中')
+  if (memberAuthStore.isLogin && memberId.value) {
+    try {
+      const res = await axios.get(`http://localhost:8080/rec-rent?memId=${memberId.value}`)
+      const hasActiveRent = res.data.some(
+        (rent) => rent.recStatus === '租借中' || rent.recStatus === '未付款',
+      )
+
+      if (hasActiveRent) {
+        alert('您尚有未完成的租借訂單。\n請先完成歸還或洽詢客服人員。')
+        router.push({ name: 'rec-rent-user', params: { action: 'record' } })
+      }
+    } catch (error) {
+      console.error('檢查租借狀態失敗:', error)
+    }
+  }
+})
+// --- API 呼叫 ---
+
+const loadSpotInfo = async (spotId) => {
+  if (!spotId) return
+  isLoading.value.spot = true
+  spotInfo.value = null // 重置舊資料
+  try {
+    // API 端點 `/spot/{id}`
+    const response = await axios.get(`/spot/${spotId}`)
+    spotInfo.value = response.data
+  } catch (error) {
+    console.error(`載入站點 ${spotId} 資訊失敗:`, error)
+    errorMessage.value = '無法載入站點資料。'
+  } finally {
+    isLoading.value.spot = false
+  }
+}
+
+const loadSeats = async (spotId) => {
+  if (!spotId) return
+  isLoading.value.seats = true
+  seats.value = []
+  selectedSeat.value = null
+  try {
+    const response = await axios.get(`http://localhost:8080/seats/search?spotId=${spotId}`)
+    // 根據需求，只顯示狀態為"啟用"的座位
+    seats.value = response.data.filter((seat) => seat.seatsStatus === '啟用')
+  } catch (error) {
+    console.error(`載入 ${spotId} 的座位失敗:`, error)
+    errorMessage.value = '無法載入該站點的座位資訊。'
+  } finally {
+    isLoading.value.seats = false
+  }
+}
+
+// --- 核心邏輯 ---
+
+const openTermsModal = () => {
+  if (isReadyToRent.value) {
+    showTermsModal.value = true
+  }
+}
+
+const closeModal = () => {
+  showTermsModal.value = false
+  agreedToTerms.value = false // 關閉時重置勾選
+}
+
+const proceedWithRent = async () => {
+  // 檢查是否同意條款
+  if (!agreedToTerms.value) {
+    alert('請同意使用條款。')
+    return
+  }
+  // 檢查所有步驟是否完成
+  if (!isReadyToRent.value) {
+    alert('請完成所有租借步驟。')
+    return
+  }
+
+  // 防呆檢查：確保會員 ID 存在 (防止登入狀態異常導致 memId 為空)
+  if (!memberAuthStore.member?.memId) {
+    console.warn('無法獲取會員資訊(memId遺失)，自動導向登入頁')
+    memberAuthStore.clearMemberLogin()
+    router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+    return
+  }
+
+  //Date()轉換LocalDateTime()
+  const d = new Date()
+  const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, -1)
+  // 根據使用者要求組合新的訂單資料
+  const newOrderData = {
+    memId: memberAuthStore.member.memId, // 直接從 Pinia Store 獲取 USERID
+    seatsId: selectedSeat.value.seatsId,
+    spotIdRent: parseInt(props.spotId), // 從 props 取得 spotId
+    recRentDT2: localDate, // 紀錄當下時間 (ISO 8601 格式)
+    recStatus: '租借中',
+    recPrice: 0, // 價格或費率可由後端根據座位類型和站點決定
+    recRequestPay: 0, // 因為無需確認付款，所以請求付款金額為 0
+    recPayment: 0, // 同上，實際付款為 0
+    recPayBy: '尚未付款', //
+    recInvoice: '', // 歸還時生成發票號碼
+    recCarrier: memberAuthStore.member.memInvoice,
+    recViolatInt: 0, //
+  }
+
+  isLoading.value.rent = true
+  errorMessage.value = '' // 清除舊的錯誤訊息
+
+  try {
+    const response = await axios.post('http://localhost:8080/rec-rent/new', newOrderData)
+
+    if (response.status === 201 || response.status === 200) {
+      console.log('訂單成功產生:', response.data)
+      alert(
+        `租借成功！\n訂單ID：${response.data.recSeqId}\n站點：${spotInfo.value.spotName}\n座位：${selectedSeat.value.seatsId}`,
+      )
+      // 重置流程，也許導航到使用者訂單頁面
+      selectedSeat.value = null
+      agreedToTerms.value = false
+      router.push({ name: 'rec-rent-user', params: { action: 'record' } })
+    } else {
+      errorMessage.value = `租借失敗，伺服器回應狀態碼: ${response.status}`
+    }
+  } catch (error) {
+    console.error('租借請求失敗:', error)
+    const apiError = error.response?.data?.message || error.message
+    errorMessage.value = `租借請求失敗: ${apiError}`
+    alert(`租借失敗: ${apiError}`) // 直接彈出錯誤給使用者
+  } finally {
+    isLoading.value.rent = false
+    closeModal() // 無論成功失敗都關閉對話框
+  }
+}
+
+// --- (翌帆2026-1-31新增 客服回報用)【新增】處理問題回報：導向 /support/report 並帶入 query 參數 ---
+const handleReportIssue = () => {
+  const spotId = null //
+  const seatId = null // 地圖頁目前沒有特定 seatId，可依需求擴充
+  const recId = null // 地圖頁目前沒有 recId
+
+  const query = {}
+  if (spotId) query.spotId = spotId
+  if (seatId) query.seatId = seatId
+  if (recId) query.recId = recId
+
+  router.push({ path: '/support/report', query })
+}
+
+// --- Computed ---
+
+const isStep1Completed = computed(() => !!selectedSeat.value)
+const step1Class = computed(() => (isStep1Completed.value ? 'status-completed' : 'status-pending'))
+
+const isReadyToRent = computed(() => isStep1Completed.value && isLoggedIn.value)
+
+// --- Watchers & Lifecycle ---
+watch(
+  () => props.spotId,
+  (newSpotId) => {
+    if (newSpotId) {
+      errorMessage.value = ''
+      loadSpotInfo(newSpotId)
+      loadSeats(newSpotId)
+    }
+  },
+  { immediate: true },
+)
+</script>
+
+<template>
+  <div class="user-order-container">
+    <div class="card">
+      <h1 class="card-header">即時座位租借</h1>
+
+      <!-- 會員資訊顯示區塊 -->
+      <div class="card-body user-info-section">
+        <div v-if="isLoggedIn">
+          <h5><i class="fas fa-user-check"></i> 會員資訊</h5>
+          <h5 class="mb-0">
+            歡迎， <strong>{{ memberName }}</strong> (UID:
+            {{ memberUserName }})，請確認您的租借資訊:<br /><br />
+          </h5>
+        </div>
+        <div v-else class="alert alert-warning">
+          <h5><i class="fas fa-exclamation-triangle"></i></h5>
+          <p class="mb-0">請先登入以進行租借。</p>
+        </div>
+      </div>
+
+      <div v-if="errorMessage" class="alert alert-danger m-3">{{ errorMessage }}</div>
+
+      <!-- 站點資訊-->
+      <div class="card-body">
+        <h2><i class="fas fa-store"></i> 租借站點</h2>
+        <div v-if="isLoading.spot" class="text-center">
+          <span class="spinner-border spinner-border-sm"></span> 正在載入站點資訊...
+        </div>
+        <div v-else-if="spotInfo">
+          <h4>{{ spotInfo.spotName }}</h4>
+          <p class="text-muted">{{ spotInfo.spotAddress }}</p>
+        </div>
+      </div>
+
+      <!-- 步驟一: 選擇座位 -->
+      <div class="card-body" :class="step1Class">
+        <fieldset :disabled="!isLoggedIn || !spotInfo">
+          <h2><i class="fas fa-chair"></i> 請選擇座椅</h2>
+          <div v-if="isLoading.seats" class="text-center">
+            <span class="spinner-border spinner-border-sm"></span> 正在載入座位...
+          </div>
+          <div v-else-if="seats.length > 0" class="form-group">
+            <label for="seat-select">請選擇座椅：</label>
+            <select id="seat-select" class="form-control" v-model="selectedSeat">
+              <option :value="null" disabled>-- 請選擇一個座椅 --</option>
+              <option v-for="seat in seats" :key="seat.seatsId" :value="seat">
+                座椅編號: {{ seat.seatsId }} &nbsp;&nbsp;&nbsp; 類型: {{ seat.seatsName }}
+              </option>
+            </select>
+          </div>
+          <div v-else-if="spotInfo" class="alert alert-warning">
+            此站點目前無可用座位。
+            <br />
+            <router-link to="/SearchSpot" class="btn btn-primary mt-2"
+              >返回地圖重新選擇</router-link
+            >
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- 步驟二: 確認租借 -->
+      <div class="card-body">
+        <fieldset :disabled="!isStep1Completed || !isLoggedIn">
+          <h2><i class="fas fa-check-circle"></i> 確認使用條款後租借</h2>
+          <p>請確認您的選擇，點擊下方按鈕以同意使用條款並完成租借。</p>
+          <h4>
+            費率說明:<br />
+            前半小時 45 NTD，半小時後 30 NTD / 30 min
+          </h4>
+          <br />
+          <div class="d-flex justify-content-between align-items-center">
+            <button
+              @click="openTermsModal"
+              class="btn btn-success btn-lg"
+              :disabled="!isReadyToRent"
+            >
+              {{ isReadyToRent ? '閱讀使用條款後租借' : '請先完成前置步驟' }}
+            </button>
+            <button class="btn btn-warning fw-bold" @click="handleReportIssue">
+              <i class="fas fa-exclamation-circle"></i> 我有訂單問題!
+            </button>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- 使用條款 Modal -->
+    <div v-if="showTermsModal" class="modal-backdrop fade show" style="width: 600px"></div>
+    <div
+      class="modal fade"
+      :class="{ show: showTermsModal }"
+      :style="{ display: showTermsModal ? 'block' : 'none' }"
+      tabindex="-1"
+      role="dialog"
+    >
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">【重要租借告知】</h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
+          </div>
+          <div class="modal-body">
+            <span>在您點擊租借前，請先確認以下租借及使用注意事項：</span><br /><br />
+            <span style="font-weight: bolder">計費方式：</span>
+            <span>前 30 分鐘 NT$45，之後每 30 分鐘 NT$30</span><br />
+            <span>(不足 30 分鐘以 30 分鐘計)。 </span><br />
+            <span style="font-weight: bolder">安全承諾：</span>
+            <span style="color: red">座椅載重上限為 85kg，僅供椅坐，禁止危險動作或超載。</span
+            ><br />
+            <span>超過限制或不當使用導致之損害由使用者自負。</span><br />
+            <span style="font-weight: bolder">檢查設備：</span>
+            <span>使用前請檢查結構，如有異常請於 10分鐘內回報。</span><br />
+            <span style="font-weight: bolder">正確歸還：</span>
+            <span>務必確認App顯示「租借結束訂單」，否則將持續計費。</span><br />
+            <span style="font-weight: bolder">賠償責任： </span>
+            <span>若設備遺失或人為損毀，最高需負擔賠償金 NT$1500。</span><br />
+            <span style="font-weight: bolder">服務細則： </span>
+            <span>閱讀並同意上述條款視同接受我們的詳細服務細則。</span>
+            <hr />
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="terms-agree"
+                v-model="agreedToTerms"
+              />
+              <label class="form-check-label" for="terms-agree">
+                我已閱讀並同意以上使用條款。
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closeModal">取消</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="!agreedToTerms || isLoading.rent"
+              @click="proceedWithRent"
+            >
+              <span v-if="isLoading.rent" class="spinner-border spinner-border-sm"></span>
+              確認租借
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+.user-order-container {
+  padding: 0px;
+  max-width: 600px;
+  margin: auto;
+  font-family: 'Microsoft JhengHei', sans-serif;
+}
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: background-color 0.5s ease;
+}
+.card-header {
+  background-color: #007bff;
+  color: rgb(0, 0, 0);
+  padding: 15px 20px;
+  margin: 0;
+  text-align: center;
+}
+.card-body {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.3s ease-in-out;
+}
+.card-body:last-child {
+  border-bottom: none;
+}
+.user-info-section {
+  background-color: #e9ecef;
+}
+
+.status-pending {
+  color: black;
+  background-color: #ffffff;
+}
+.status-completed {
+  background-color: #c1ffbe;
+}
+
+fieldset:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+h2 {
+  color: #333;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.btn {
+  font-size: 1rem;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border: none;
+}
+.btn-primary {
+  color: #fff;
+  background-color: #007bff;
+}
+.btn-success {
+  color: #fff;
+  background-color: #28a745;
+}
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.btn-lg {
+  padding: 15px 25px;
+  font-size: 1.25rem;
+}
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+.alert-info {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+}
+.alert-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+}
+.m-3 {
+  margin: 1rem;
+}
+.mt-3 {
+  margin-top: 1rem;
+}
+.text-muted {
+  color: #6c757d !important;
+}
+.text-center {
+  text-align: center;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.2em;
+}
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  -webkit-animation: spinner-border 0.75s linear infinite;
+  animation: spinner-border 0.75s linear infinite;
+}
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Modal styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  opacity: 0.5;
+}
+.modal.show {
+  display: block;
+}
+.modal {
+  z-index: 1055;
+}
+</style>
+</file>
+
+<file path="frontend/src/components/rec/RecRentUserComplete.vue">
+<script setup>
+import { ref, onMounted, computed, watch } from 'vue'
+import axios from 'axios'
+import { useRouter, useRoute } from 'vue-router'
+import { useMemberAuthStore } from '@/stores/memberAuth'
+
+// --- Pinia Store ---
+const memberAuthStore = useMemberAuthStore()
+const router = useRouter()
+const route = useRoute()
+
+// --- Computed properties from store ---
+const isLoggedIn = computed(() => memberAuthStore.isLogin && !!memberAuthStore.member?.memId)
+const memberId = computed(() => memberAuthStore.member?.memId)
+const memberName = computed(() => memberAuthStore.member?.memName || '訪客')
+const memberUserName = computed(() => memberAuthStore.member?.memUsername || '訪客')
+
+// --- 狀態定義 ---
+const seats = ref([])
+const selectedSpot = ref(null)
+const activeRent = ref(null) // [新增] 儲存目前進行中的訂單
+const selectedSeat = ref(null)
+const isLoading = ref({
+  spot: false,
+  seats: false,
+  rent: false,
+})
+const errorMessage = ref('')
+
+// 對話框狀態
+const showTermsModal = ref(false)
+const agreedToTerms = ref(false)
+
+// --- API 呼叫 ---
+const loadSpotInfo = async (spotId) => {
+  if (!spotId) return
+  isLoading.value.spot = true
+  try {
+    const response = await axios.get(`http://localhost:8080/spot/${spotId}`)
+    selectedSpot.value = response.data
+  } catch (error) {
+    console.error(`載入站點 ${spotId} 失敗:`, error)
+    errorMessage.value = '無法載入站點資料。'
+  } finally {
+    isLoading.value.spot = false
+  }
+}
+
+// --- 核心邏輯 ---
+const goToSearchSpot = () => {
+  router.push('/SearchSpot')
+}
+
+// [步驟二] 導向至 ECpay 付款頁面
+// Note: 這個方法應該在後端訂單資料更新後 (recStatus設為'未付款') 才被呼叫
+const goToPayment = () => {
+  if (!isReadyToRent.value) return
+
+  const recId = activeRent.value?.recId
+  if (!recId) {
+    errorMessage.value = '無法找到訂單ID，無法進行付款。'
+    console.error('訂單物件缺少 recId:', activeRent.value)
+    return
+  }
+
+  router.push({
+    name: 'payment-order',
+    returnSpotId: selectedSpot.value?.spotId,
+    query: {
+      recId: recId,
+      total: rentCalculation.value.totalFee,
+    },
+  })
+}
+
+const openTermsModal = () => {
+  if (isReadyToRent.value) {
+    showTermsModal.value = true
+  }
+}
+const closeModal = () => {
+  showTermsModal.value = false
+  agreedToTerms.value = false // 關閉時重置勾選
+}
+
+// --- 問題回報處理 ---
+const handleReport = () => {
+  const rent = activeRent.value
+  // 準備攜帶至回報頁面的資料
+  const reportData = {
+    orderId: rent?.recSeqId, // 訂單 ID
+    memberId: memberAuthStore.member?.memId, // 使用者 ID
+    spotId: selectedSpot.value?.spotId || rent?.spotIdRent, // 站點 ID
+  }
+  // TODO: REPORT - 暫時以 Alert 代替實際路由跳轉
+  alert(
+    `TODO: REPORT\n準備前往問題回報頁面\n訂單ID: ${reportData.orderId}\n會員ID: ${reportData.memberId}\n站點ID: ${reportData.spotId}`,
+  )
+}
+
+// [步驟一] 點擊付款後，先更新後端訂單資料
+// 將歸還站點(spotIdReturn)與費用(recPayment)寫入，並將狀態更新為'未付款'
+// 成功後才會導向至付款頁面
+const proceedWithRent = async () => {
+  // 防呆檢查：確保會員 ID 存在
+  if (!memberAuthStore.member?.memId) {
+    console.warn('無法獲取會員資訊(memId遺失)，自動導向登入頁')
+    memberAuthStore.clearMemberLogin()
+    router.push({
+      name: 'login',
+      query: { redirect: router.currentRoute.value.fullPath },
+    })
+    return
+  }
+
+  // 準備更新資料：先將歸還資訊寫入，狀態設為「未付款」
+  // 這樣後端 PaymentApiController 在付款成功後，才能讀取到 spotIdReturn 並執行座位更新
+  const rentalData = {
+    recStatus: '未付款', // 標記狀態，等待金流更新為「已完成」
+    recInvoice: generateInvoiceNumber(), // [修正] 預設發票號碼
+    spotIdReturn: selectedSpot.value?.spotId, // [修正] 使用 Optional Chaining 避免報錯
+    recPayment: rentCalculation.value.totalFee,
+  }
+
+  // [新增] 防呆檢查：如果沒有抓到站點 ID，禁止送出並報錯
+  console.log('準備送出歸還更新資料:', rentalData)
+  if (!rentalData.spotIdReturn) {
+    alert('系統錯誤：無法讀取歸還站點 ID (spotIdReturn)，請重新選擇站點或聯繫管理員。')
+    console.error('錯誤：selectedSpot 物件內容:', selectedSpot.value)
+    return
+  }
+
+  isLoading.value.rent = true
+  try {
+    // [修正] 使用 PUT 方法呼叫 /rec-rent/{recId} 進行更新
+    const recId = activeRent.value.recId
+    if (!recId) throw new Error('找不到訂單編號')
+
+    // [修正] 將 spotIdReturn 同時放在 URL Query String 中，確保後端一定能收到
+    const response = await axios.put(
+      `http://localhost:8080/rec-rent/${recId}?spotIdReturn=${rentalData.spotIdReturn}`,
+      rentalData,
+    )
+
+    if (response.status === 200) {
+      // 資料更新成功後，呼叫 goToPayment 進入付款流程
+      // 注意：這裡不需要再 router.push，因為 goToPayment 會處理
+      activeRent.value = response.data // 更新本地資料
+      goToPayment()
+    } else {
+      errorMessage.value = '歸還失敗，請稍後再試。'
+    }
+  } catch (error) {
+    console.error('歸還請求失敗:', error)
+    errorMessage.value = `歸還失敗: ${error.response?.data?.message || error.message}`
+  } finally {
+    isLoading.value.rent = false
+    closeModal()
+  }
+}
+
+// --- Computed ---
+
+const isStep1Completed = computed(() => !!selectedSpot.value)
+
+const step1Class = computed(() => (isStep1Completed.value ? 'status-completed' : 'status-pending'))
+
+const isReadyToRent = computed(() => isStep1Completed.value && isLoggedIn.value)
+
+// --- [新增] 費用與時間計算 ---
+const rentCalculation = computed(() => {
+  if (!activeRent.value) {
+    return { rentTime: '-', returnTime: '-', duration: 0, totalFee: 0 }
+  }
+
+  // 1. 取得時間
+  const rentDate = new Date(activeRent.value.recRentDT || activeRent.value.recRentDT2)
+  const returnDate = new Date() // 當下時間
+
+  // 2. 計算使用時間 (分鐘)
+  const diffMs = returnDate - rentDate
+  const durationMinutes = Math.floor(diffMs / (1000 * 60))
+
+  // 3. 計算費用: 使用時間/30 取整後 + 20
+  // 註：若您的費率是 "每30分鐘30元"，公式應為 Math.floor(durationMinutes / 30) * 30 + 20
+  // 這裡依照您的指示 "使用時間/30 取整後+20" 實作
+  const totalFee = Math.floor(durationMinutes / 30) * 30 + 45
+
+  // 4. 格式化時間顯示 (YYYY/MM/DD HH:mm:ss)
+  const formatTime = (date) => {
+    return date.toLocaleString('zh-TW', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  }
+
+  return {
+    rentTime: formatTime(rentDate),
+    returnTime: formatTime(returnDate),
+    duration: durationMinutes,
+    totalFee: totalFee > 0 ? totalFee : 20, // 確保最低費用
+  }
+})
+// 生成發票號碼 (格式: 兩位大寫英文 - 八位數字)
+const generateInvoiceNumber = () => {
+  // 產生兩個隨機大寫英文字母 (ASCII 65-90)
+  const letters =
+    String.fromCharCode(65 + Math.floor(Math.random() * 26)) +
+    String.fromCharCode(65 + Math.floor(Math.random() * 26))
+  // 產生八位隨機數字，不足補零
+  const numbers = Math.floor(Math.random() * 100000000)
+    .toString()
+    .padStart(8, '0')
+  return `${letters}-${numbers}`
+}
+// --- 測試功能：快速歸還 --- 在訂單問題前的BTN
+// const handleQuickReturnTest = async () => {
+//   if (!activeRent.value) return
+//   if (!confirm(`[測試功能] 確定要強制歸還訂單 ${activeRent.value.recId} 嗎？`)) return
+//   //Date()轉換LocalDateTime()
+//   const d = new Date()
+//   const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, -1)
+//   try {
+//     const testReturnData = {
+//       memId: memberId.value,
+//       seatsId: activeRent.value.seatsId,
+//       spotIdRent: activeRent.value.spotIdRent,
+//       spotIdReturn: selectedSpot.value?.spotId, // 若未選站點則使用原站點
+//       recRentDT2: activeRent.value.recRentDT2 || activeRent.value.recRentDT,
+//       recReturnDT2: localDate, //轉換LocalDateTime()
+//       recUsageDT2: rentCalculation.value.duration,
+//       recStatus: '已完成',
+//       recPrice: rentCalculation.value.totalFee, // 價格或費率可由後端根據座位類型和站點決定
+//       recRequestPay: 0, // 因為無需確認付款，所以請求付款金額為 0
+//       recPayment: 0, // 同上，實際付款為 0
+//       recPayBy: '信用卡', //
+//       recInvoice: generateInvoiceNumber(), // 歸還時生成發票號碼
+//       recCarrier: memberAuthStore.member.memInvoice,
+//       recViolatInt: 0, //
+//     }
+//     // [修改] 增加訂單ID的回退(fallback)機制與防呆，避免產生 undefined 的 API 請求
+//     const updateId = activeRent.value.recId //|| activeRent.value.recId
+//     if (!updateId) {
+//       alert('錯誤：無法找到訂單 ID，無法完成測試歸還。')
+//       console.error('訂單物件:', activeRent.value)
+//       return
+//     }
+//     await axios.put(`http://localhost:8080/rec-rent/${updateId}`, testReturnData)
+//     alert('測試歸還成功，將導向紀錄頁面。')
+//     router.push({ name: 'rec-rent-user', params: { action: 'record' } })
+//   } catch (error) {
+//     console.error('測試歸還失敗:', error)
+//     alert('測試歸還失敗，請檢查後端或網路。')
+//   }
+// }
+
+// --- (翌帆2026-1-31新增 客服回報用)【新增】處理問題回報：導向 /support/report 並帶入 query 參數 ---
+const handleReportIssue = () => {
+  const spotId = null //
+  const seatId = null // 地圖頁目前沒有特定 seatId，可依需求擴充
+  const recId = null // 地圖頁目前沒有 recId
+
+  const query = {}
+  if (spotId) query.spotId = spotId
+  if (seatId) query.seatId = seatId
+  if (recId) query.recId = recId
+
+  router.push({ path: '/support/report', query })
+}
+// --- Watchers ---
+watch(selectedSpot, (newSpot) => {
+  if (newSpot) {
+    // 歸還時可能不需要重載座位，或者需要載入正在使用的座位
+    // loadSeats(newSpot.spotId);
+  } else {
+    seats.value = []
+    selectedSeat.value = null
+  }
+})
+
+var recId="";
+
+onMounted(async () => {
+  // Debug: 確認進入頁面時的狀態
+  console.log('會員ID:', memberId.value, '登入狀態:', memberAuthStore.isLogin)
+
+  // 如果進入頁面時發現是登入狀態但沒有 ID，導回登入頁
+  if (memberAuthStore.isLogin && !memberId.value) {
+    console.warn('歸還頁面偵測到資料遺失，自動導向登入頁')
+    memberAuthStore.clearMemberLogin() // 確保清除異常狀態
+    router.push({
+      name: 'login',
+      query: { redirect: router.currentRoute.value.fullPath },
+    })
+    return
+  }
+
+  // 檢查是否有進行中的訂單 (recStatus === '租借中')
+  if (memberAuthStore.isLogin && memberId.value) {
+    try {
+      const res = await axios.get(`http://localhost:8080/rec-rent?memId=${memberId.value}`)
+      // [修改] 找到該筆訂單並存入 activeRent
+      const foundRent = res.data.find(
+        (rent) => rent.recStatus === '租借中' || rent.recStatus === '未付款',
+      )
+
+      if (!foundRent) {
+        alert('您目前沒有租借中的訂單，無法進行歸還。\n將為您導向至租借紀錄頁面。')
+        router.push({ name: 'rec-rent-user', params: { action: 'record' } })
+        return
+      } else {
+        // // --- DEBUG --- 印出找到的訂單物件，以確認 recSeqId 屬性是否存在及其值
+        // console.log('訂單Id 為:', foundRent?.recId)
+        // console.log('seatsId 為:', foundRent?.seatsId)
+        // console.log('spotReturnId 為:', memberAuthStore.selectedSpotId)
+        activeRent.value = foundRent
+        recId=activeRent.value.recId;
+  
+      }
+    } catch (error) {
+      console.error('檢查租借狀態失敗:', error)
+    }
+  }
+
+  // 載入指定的站點資訊 (從 Pinia 或 URL 參數)
+  const spotId = memberAuthStore.selectedSpotId || route.query.spotId
+  if (spotId) {
+    loadSpotInfo(spotId)
+  }
+})
+</script>
+
+<template>
+  <div class="user-order-container">
+    <div class="card">
+      <h2 class="card-header">歸還座位並結算</h2>
+
+      <!-- 會員資訊顯示區塊 -->
+      <div class="card-body user-info-section">
+        <div v-if="isLoggedIn">
+          <h5 class="mb-0">
+            您好: <strong>{{ memberName }}</strong> (UID: {{ memberUserName }})，請確認您的歸還資訊:<br><br>
+          <strong>訂單編號: {{ recId }}</strong>
+          </h5>
+        </div>
+        <div v-else class="alert alert-warning">
+          <h5><i class="fas fa-exclamation-triangle"></i> 訪客你好</h5>
+          <p class="mb-0">請先登入以進行歸還結算。</p>
+        </div>
+      </div>
+
+      <div v-if="errorMessage" class="alert alert-danger m-3">{{ errorMessage }}</div>
+
+      <!-- 步驟一: 選擇歸還站點 -->
+      <div class="card-body" :class="step1Class">
+        <h2><i class="fas fa-store"></i> 步驟一：確認歸還站點</h2>
+        <fieldset :disabled="!isLoggedIn">
+          <div v-if="isLoading.spot" class="text-center">
+            <span class="spinner-border spinner-border-sm"></span> 正在載入站點資訊...
+          </div>
+          <div v-else-if="selectedSpot" class="d-flex justify-content-between align-items-center">
+            <div>
+              <h4 class="mb-1">{{ selectedSpot.spotName }}</h4>
+              <p class="text-muted mb-0">
+                <i class="fas fa-map-marker-alt"></i> {{ selectedSpot.spotAddress }}
+              </p>
+            </div>
+            <button class="btn btn-primary fw-bold" @click="goToSearchSpot">
+              <i class="fas fa-exchange-alt"></i> 重新選擇站點
+            </button>
+          </div>
+          <div v-else class="alert alert-warning d-flex justify-content-between align-items-center">
+            <span>尚未選擇歸還站點，請先至地圖選擇。</span>
+            <button class="btn btn-primary" @click="goToSearchSpot">前往地圖</button>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- 步驟2: 確認費用與付款 -->
+      <div class="card-body">
+        <fieldset :disabled="!isStep1Completed || !isLoggedIn">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0"><i class="fas fa-credit-card"></i> 步驟二：確認使用資訊</h2>
+          </div>
+          <h5>租借時間: {{ rentCalculation.rentTime }}</h5>
+          <h5>歸還時間: {{ rentCalculation.returnTime }}</h5>
+          <h5>使用時間: {{ rentCalculation.duration }} 分鐘</h5>
+          <h5>費率:前半小時 45 NTD，半小時後 30 NTD / 30 min</h5>
+          <hr />
+          <h3>費用總計: {{ rentCalculation.totalFee }} NTD</h3>
+          <div class="d-flex justify-content-between align-items-center">
+            <button
+              @click="proceedWithRent"
+              class="btn btn-success btn-lg"
+              :disabled="!isReadyToRent"
+            >
+              {{ isReadyToRent ? '前往付款' : '請完成歸還步驟' }}
+            </button>
+            <div>
+              <!-- <button class="btn btn-outline-danger fw-bold me-2" @click="handleQuickReturnTest">
+                <i class="fas fa-bug"></i> 測試歸還
+              </button> -->
+              <button class="btn btn-warning fw-bold" @click="handleReportIssue">
+                <i class="fas fa-exclamation-circle"></i> 我有訂單問題!
+              </button>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+</template>
+<style scoped>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+.user-order-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+  font-family: 'Microsoft JhengHei', sans-serif;
+}
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: background-color 0.5s ease;
+}
+.card-header {
+  background-color: #28a745;
+  color: white;
+  padding: 15px 20px;
+  margin: 0;
+  text-align: center;
+}
+.card-body {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.3s ease-in-out;
+}
+.user-info-section {
+  background-color: #e9ecef;
+}
+.card-body:last-child {
+  border-bottom: none;
+}
+
+.status-pending {
+  color: black;
+  background-color: #ffffff;
+}
+.status-completed {
+  background-color: #c1ffbe;
+}
+
+fieldset:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+h2 {
+  color: #333;
+  border-bottom: 2px solid #28a745;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+}
+.btn {
+  font-size: 1rem;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border: none;
+}
+.btn-primary {
+  color: #fff;
+  background-color: #007bff;
+}
+.btn-success {
+  color: #fff;
+  background-color: #28a745;
+}
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.btn-lg {
+  padding: 15px 25px;
+  font-size: 1.25rem;
+}
+.alert {
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+.alert-info {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+}
+.alert-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+}
+.m-3 {
+  margin: 1rem;
+}
+.mt-3 {
+  margin-top: 1rem;
+}
+.text-muted {
+  color: #6c757d !important;
+}
+.text-center {
+  text-align: center;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.2em;
+}
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  -webkit-animation: spinner-border 0.75s linear infinite;
+  animation: spinner-border 0.75s linear infinite;
+}
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Modal styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  opacity: 0.5;
+}
+.modal.show {
+  display: block;
+}
+.modal {
+  z-index: 1055;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/rec/RecRentMgnChartPage.vue">
+<script setup>
+// --- 0. Import ---
+import { ref, onMounted, shallowRef } from 'vue'
+import * as echarts from 'echarts'
+import {
+  getDailyOrderStats,
+  getHourlyOrderStats,
+  getOrderStatusStats,
+  getRentalDurationStats,
+} from '@/api/modules/rec'
+import { ElMessage } from 'element-plus'
+
+// --- 1. 狀態定義 ---
+
+// 圖表實例，使用 shallowRef 避免不必要的深度響應
+const dailyChartInstance = shallowRef(null)
+const pieChartInstance = shallowRef(null)
+const durationChartInstance = shallowRef(null)
+const hourlyChartInstance = shallowRef(null)
+
+// 圖表容器的 DOM 引用
+const dailyChartContainer = ref(null)
+const pieChartContainer = ref(null)
+const durationChartContainer = ref(null)
+const hourlyChartContainer = ref(null)
+
+// 預設日期範圍 (最近六個月)
+const defaultEndDate = new Date()
+const defaultStartDate = new Date()
+defaultStartDate.setMonth(defaultStartDate.getMonth() - 6)
+
+// 用於日期選擇器的響應式變數
+const startDate = ref(defaultStartDate)
+const endDate = ref(defaultEndDate)
+
+// --- 2. 核心邏輯 ---
+
+/**
+ * 格式化日期為 YYYY-MM-DD
+ */
+const formatDate = (date) => {
+  if (!date) return ''
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
+ * 繪製每日訂單與累計趨勢圖
+ */
+const drawDailyOrdersChart = async (start, end) => {
+  const response = await getDailyOrderStats(start, end)
+  const chartData = response.data
+
+  // 準備每日數據
+  const dailyLabels = chartData.map((item) => item.date)
+  const dailyValues = chartData.map((item) => item.count)
+
+  // 計算累計數據
+  const cumulativeValues = dailyValues.reduce((acc, val) => {
+    acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + val)
+    return acc
+  }, [])
+
+  const options = {
+    title: { text: '每日訂單數量與累計趨勢', left: 'center', top: '1', padding: '' },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'line' },
+    },
+    grid: { left: '1%', right: '1%', bottom: '9%', containLabel: true },
+    legend: { data: ['日訂單', '累計訂單'], top: 'bottom' },
+    xAxis: [{ type: 'category', data: dailyLabels, axisTick: { alignWithLabel: true } }],
+    yAxis: [
+      {
+        type: 'value',
+        name: '每日',
+        axisLabel: { color: '#E0583A', formatter: '{value} 筆' },
+        max: '50',
+        nameTextStyle: { align: 'right', color: '#E0583A' },
+      },
+      {
+        type: 'value',
+        name: '累計',
+        axisLabel: { color: '#188df0', formatter: '{value} 筆' },
+        nameTextStyle: { align: 'left', color: '#188df0' },
+      },
+    ],
+    series: [
+      {
+        name: '日訂單',
+        type: 'line',
+        color: '#E0583A',
+        yAxisIndex: 0,
+        data: dailyValues,
+        smooth: false,
+        // 直接在圖上顯示標籤
+        label: {
+          show: true,
+          position: 'top',
+        },
+      },
+      {
+        name: '累計訂單',
+        type: 'bar',
+        yAxisIndex: 1,
+        data: cumulativeValues,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 1, color: '#83bff6' },
+            { offset: 0, color: '#188df0' },
+          ]),
+        },
+
+        // 直接在圖上顯示標籤
+        label: {
+          show: true,
+          position: 'top',
+        },
+      },
+    ],
+    dataZoom: [{ show: 'true', type: 'inside', start: 0, end: 100 }],
+  }
+
+  if (!dailyChartInstance.value) {
+    dailyChartInstance.value = echarts.init(dailyChartContainer.value)
+  }
+  dailyChartInstance.value.setOption(options)
+}
+
+/**
+ * 繪製每小時訂單分佈圖
+ */
+const drawHourlyOrdersChart = async (start, end) => {
+  const response = await getHourlyOrderStats(start, end)
+  const chartData = response.data
+
+  // 初始化24小時數據
+  const hourlyData = Array(24).fill(0)
+  chartData.forEach((item) => {
+    hourlyData[item.hour] = item.count
+  })
+  const hourlyLabels = Array.from({ length: 24 }, (_, i) => `${i}:00`)
+
+  const options = {
+    title: { text: '訂單時段分佈 (0-23點)', left: 'center', top: '0' },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+    xAxis: [{ type: 'category', data: hourlyLabels, name: '小時' }],
+    yAxis: [{ type: 'value', name: '訂單數量' }],
+    series: [
+      {
+        name: '訂單數',
+        type: 'bar',
+        data: hourlyData,
+        itemStyle: {
+          color: '#3ba272',
+        },
+        // 直接在圖上顯示標籤
+        label: {
+          show: true,
+          position: 'top',
+        },
+      },
+    ],
+    dataZoom: [{ type: 'inside', start: 0, end: 100 }],
+  }
+
+  if (!hourlyChartInstance.value) {
+    hourlyChartInstance.value = echarts.init(hourlyChartContainer.value)
+  }
+  hourlyChartInstance.value.setOption(options)
+}
+
+/**
+ * 繪製訂單狀態圓餅圖
+ */
+const drawOrderStatusPieChart = async (start, end) => {
+  const response = await getOrderStatusStats(start, end)
+  const chartData = response.data.map((item) => ({
+    name: item.status,
+    value: item.count,
+  }))
+
+  const options = {
+    title: { text: '訂單狀態比例', left: 'center', top: '0' },
+    tooltip: { trigger: 'item', formatter: '{a} <br/>{b} : {c} ({d}%)' },
+    legend: { orient: 'vertical', left: 'left', data: chartData.map((item) => item.name) },
+    series: [
+      {
+        name: '訂單狀態',
+        type: 'pie',
+        radius: '75%',
+        center: ['50%', '55%'],
+        data: chartData,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)',
+          },
+        },
+        // 直接在圖上顯示標籤
+        label: {
+          show: true,
+          formatter: '{b} {c}筆: {d}% ', // 格式: 名稱: 百分比%
+          position: 'outside',
+        },
+        labelLine: {
+          show: true,
+        },
+      },
+    ],
+  }
+
+  if (!pieChartInstance.value) {
+    pieChartInstance.value = echarts.init(pieChartContainer.value)
+  }
+  pieChartInstance.value.setOption(options)
+}
+
+/**
+ * 繪製租借時長分佈長條圖
+ */
+const drawRentalDurationChart = async (start, end) => {
+  const response = await getRentalDurationStats(start, end)
+  const chartData = response.data
+
+  // 處理數據
+  const durationLabels = chartData.map((item) => {
+    const lower = item.intervalGroup * 0.5
+    const upper = (item.intervalGroup + 1) * 0.5
+    return `${lower}~${upper} hr`
+  })
+  const durationValues = chartData.map((item) => item.count)
+
+  const options = {
+    title: { text: '訂單租借時長分佈 (半小時區間)', left: 'center', top: '0' },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'line' },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true,
+      splitLine: { interval: 'auto' },
+    },
+    xAxis: { type: 'category', data: durationLabels, name: '租借時長' },
+    yAxis: { type: 'value', name: '訂單數量' },
+    series: [
+      {
+        name: '訂單數',
+        data: durationValues,
+        type: 'bar',
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 1, color: '#83bff6' },
+            { offset: 0, color: '#188df0' },
+          ]),
+        },
+        // 直接在圖上顯示標籤
+        label: {
+          show: true,
+          position: 'top',
+        },
+      },
+    ],
+    dataZoom: [{ type: 'inside', start: 0, end: 100 }],
+  }
+
+  if (!durationChartInstance.value) {
+    durationChartInstance.value = echarts.init(durationChartContainer.value)
+  }
+  durationChartInstance.value.setOption(options)
+}
+
+/**
+ * 獲取後端數據並繪製所有圖表
+ */
+const fetchAllCharts = async () => {
+  if (!startDate.value || !endDate.value) {
+    ElMessage.warning('請選擇開始與結束日期')
+    return
+  }
+
+  const loading = ElMessage({ message: '正在載入圖表數據...', type: 'info', duration: 0 })
+  const formattedStart = formatDate(startDate.value)
+  const formattedEnd = formatDate(endDate.value)
+
+  try {
+    // 並行獲取所有圖表數據
+    await Promise.all([
+      drawOrderStatusPieChart(formattedStart, formattedEnd),
+      drawRentalDurationChart(formattedStart, formattedEnd),
+      drawDailyOrdersChart(formattedStart, formattedEnd),
+      drawHourlyOrdersChart(formattedStart, formattedEnd),
+    ])
+  } catch (error) {
+    console.error('獲取圖表數據失敗:', error)
+    ElMessage.error('載入圖表數據失敗，請稍後再試')
+  } finally {
+    loading.close()
+  }
+}
+
+/**
+ * 快速設定日期範圍並自動查詢
+ * @param {number} months - 往前推算的月份數
+ */
+const setQuickDateRange = (months) => {
+  const end = new Date()
+  const start = new Date()
+  start.setMonth(start.getMonth() - months)
+  startDate.value = start
+  endDate.value = end
+  fetchAllCharts()
+}
+
+// --- 3. 生命週期 & 事件監聽 ---
+
+// 組件掛載後，自動載入預設範圍的圖表
+onMounted(() => {
+  fetchAllCharts()
+})
+
+// 監聽窗口大小變化，重置圖表
+window.addEventListener('resize', () => {
+  ;[dailyChartInstance, hourlyChartInstance, pieChartInstance, durationChartInstance].forEach(
+    (instance) => {
+      if (instance.value) {
+        instance.value.resize()
+      }
+    },
+  )
+})
+</script>
+
+<template>
+  <div class="chart-page">
+    <h3 style="text-align: center">訂單統計圖表</h3>
+    <!-- 頂部控制項 -->
+    <el-card class="box-card">
+      <div class="controls-container">
+        <el-form :inline="true" :model="{ startDate, endDate }">
+          <el-form-item>
+            <el-button-group>
+              <el-button @click="setQuickDateRange(12)">近1年</el-button>
+              <el-button @click="setQuickDateRange(36)">近3年</el-button>
+              <el-button @click="setQuickDateRange(60)">近5年</el-button>
+            </el-button-group>
+            
+          </el-form-item>
+          <el-form-item label="選擇開始日期">
+            <el-date-picker
+              v-model="startDate"
+              type="date"
+              placeholder="選擇開始日期"
+              style="width: 150px"
+            />
+          </el-form-item>
+          <el-form-item label="選擇結束日期">
+            <el-date-picker
+              v-model="endDate"
+              type="date"
+              placeholder="選擇結束日期"
+              style="width: 150px"
+            /> </el-form-item
+          ><el-form-item>
+            <el-button type="primary" @click="fetchAllCharts" >查詢</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-card>
+
+    <!-- 圖表容器 -->
+    <el-row :gutter="20">
+      <!-- 每日訂單與累計趨勢圖 -->
+      <el-col :span="12">
+        <el-card class="box-card chart-container-card">
+          <div ref="dailyChartContainer" style="width: 100%; height: 300px"></div>
+        </el-card>
+      </el-col>
+      <!-- 每小時訂單分佈圖 -->
+      <el-col :span="12">
+        <el-card class="box-card chart-container-card">
+          <div ref="hourlyChartContainer" style="width: 100%; height: 300px"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20">
+      <!-- 訂單狀態比例圖 -->
+      <el-col :span="12">
+        <el-card class="box-card chart-container-card">
+          <div ref="pieChartContainer" style="width: 100%; height: 300px"></div>
+        </el-card>
+      </el-col>
+      <!-- 租借時長分佈圖 -->
+      <el-col :span="12">
+        <el-card class="box-card chart-container-card">
+          <div ref="durationChartContainer" style="width: 100%; height: 300px"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+
+<style scoped>
+.chart-page {
+  padding: 10px;
+}
+.box-card {
+  margin-bottom: 10px;
+}
+.controls-container {
+  /* 使用 Flexbox 排版 */
+  display: flex;
+  /* 水平置中表單 */
+  justify-content: center;
+  /* 允許內容換行 */
+  flex-wrap: wrap;padding-top: 10px;
+}
+</style>
+</file>
+
+<file path="frontend/src/components/rec/RecRentSearch.vue">
+<script setup>
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+const API_URL = 'http://localhost:8080/rec-rent'
+
+const rentList = ref([])
+const searchCriteria = reactive({
+  recSeqId: '',
+
+  recId: '',
+  memId: '',
+  memName: '',
+  recStatus: '',
+  spotId: '',
+  spotName: '',
+  startDate: '',
+  endDate: '',
+  recPayment: '',
+  recNote: '',
+  serialNumber: '',
+})
+
+// 分頁相關狀態
+const currentPage = ref(1)
+const pageSize = ref(25)
+
+// 計算總頁數
+const totalPages = computed(() => {
+  return Math.ceil(rentList.value.length / pageSize.value) || 1
+})
+
+// 計算當前頁面顯示的資料
+const paginatedList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return rentList.value.slice(start, end)
+})
+
+// 監聽列表變更，重置回第一頁
+watch(rentList, () => {
+  currentPage.value = 1
+})
+
+// 監聽每頁筆數變更，重置回第一頁
+watch(pageSize, () => {
+  currentPage.value = 1
+})
+
+const emit = defineEmits(['edit-rent', 'delete-rent'])
+
+const loadRents = async () => {
+  try {
+    const params = new URLSearchParams()
+    if (searchCriteria.recSeqId) params.append('recSeqId', searchCriteria.recSeqId)
+    if (searchCriteria.recId) params.append('recId', searchCriteria.recId)
+    if (searchCriteria.memId) params.append('memId', searchCriteria.memId)
+    if (searchCriteria.memName) params.append('memName', searchCriteria.memName)
+    if (searchCriteria.recStatus) params.append('recStatus', searchCriteria.recStatus)
+    if (searchCriteria.spotId) params.append('spotId', searchCriteria.spotId)
+    if (searchCriteria.spotName) params.append('spotName', searchCriteria.spotName)
+    if (searchCriteria.startDate) params.append('startDate', searchCriteria.startDate)
+    if (searchCriteria.endDate) params.append('endDate', searchCriteria.endDate)
+    if (searchCriteria.recVio) params.append('recPayment', searchCriteria.recPayment)
+    if (searchCriteria.recPayment) params.append('recPayment', searchCriteria.recPayment)
+    if (searchCriteria.recNote) params.append('recNote', searchCriteria.recNote)
+    if (searchCriteria.serialNumber) params.append('serialNumber', searchCriteria.serialNumber)
+
+    const queryString = params.toString()
+    const requestUrl = queryString ? `${API_URL}?${queryString}` : API_URL
+
+    const res = await axios.get(requestUrl)
+    // 將搜尋結果依照 recId 由大到小排序 (最新到最舊)
+    rentList.value = res.data
+  } catch (err) {
+    console.error('載入失敗:', err)
+    alert('無法載入資料，請確認後端伺服器是否已啟動.\n錯誤: ' + err.message)
+  }
+}
+
+const clearSearch = () => {
+  for (const key in searchCriteria) {
+    searchCriteria[key] = ''
+  }
+  loadRents()
+}
+
+const editRent = (rent) => {
+  emit('edit-rent', rent)
+}
+
+const deleteRent = (id) => {
+  emit('delete-rent', id)
+}
+
+// 切換頁面
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+onMounted(loadRents)
+
+// 匯出 CSV 格式
+const exportToCsv = () => {
+  if (rentList.value.length === 0) {
+    alert('沒有可匯出的資料。')
+    return
+  }
+
+  // 定義 CSV 檔案的表頭
+  const headers = [
+    '訂單狀態',    '訂單編號',    '會員編號',    '會員姓名',
+    '座椅編號',    '租借點編號',    '租借點名稱',    '歸還點編號',
+    '歸還點名稱',    '租借時間',    '歸還時間',    '費用',    '備註',
+  ]
+  // 將每一筆訂單資料轉換為 CSV 的一列
+  const rows = rentList.value.map((rent) =>
+    [
+      `"${rent.recStatus || ''}"`,
+      `"${rent.recId || ''}"`,
+      `"${rent.memId || ''}"`,
+      `"${rent.memName || ''}"`,
+      `"${rent.seatsId || ''}"`,
+      `"${rent.spotIdRent || ''}"`,
+      `"${rent.rentSpotName || ''}"`,
+      `"${rent.spotIdReturn || ''}"`,
+      `"${rent.returnSpotName || ''}"`,
+      `"${rent.recRentDT2 ? rent.recRentDT2.replace('T', ' ') : ''}"`,
+      `"${rent.recReturnDT2 ? rent.recReturnDT2.replace('T', ' ') : ''}"`,
+      `"${rent.recPayment || ''}"`,
+      `"${rent.recNote || ''}"`,
+    ].join(','),
+  )
+
+  // 組合表頭和所有列，並添加 BOM 以確保 Excel 能正確讀取 UTF-8
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.setAttribute('download', 'rent_data.csv')
+  document.body.appendChild(link)
+  // 模擬點擊以下載檔案
+  link.click()
+  // 釋放記憶體
+  document.body.removeChild(link)
+  URL.revokeObjectURL(link.href)
+}
+
+// 匯出 JSON 格式
+const exportToJson = () => {
+  if (rentList.value.length === 0) {
+    alert('沒有可匯出的資料。')
+    return
+  }
+
+  // 將資料轉換為格式化的 JSON 字串
+  const jsonContent = JSON.stringify(rentList.value, null, 2)
+  const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = 'rent_data.json'
+  // 模擬點擊以下載檔案
+  link.click()
+  // 釋放記憶體
+  URL.revokeObjectURL(link.href)
+}
+
+// Expose the loadRents method to the parent component
+defineExpose({
+  loadRents,
+})
+
+// [新增] 顯示完整備註的彈窗函式
+const showFullNote = (note) => {
+  Swal.fire({
+    title: '備註-詳細內容',
+    text: note,
+    confirmButtonText: '點擊任意處或點此關閉',
+    confirmButtonColor: '#409eff',
+    allowOutsideClick: true, // 允許點擊遮罩層(外部)關閉
+  })
+}
+</script>
+
+<template>
+  <div class="rec-rent-search-wrapper">
+    <!-- 搜尋表單 -->
+    <div class="search-form-container">
+      <div class="search-form">
+        <div class="form-group-search">
+          <label>訂單編號:</label>
+          <input
+            v-model="searchCriteria.recId"
+            type="text"
+            placeholder="依訂單編號"
+            @keyup.enter="loadRents"
+          />
+        </div>
+        <div class="form-group-search">
+          <label>會員編號:</label>
+          <input
+            v-model="searchCriteria.memId"
+            type="text"
+            placeholder="依會員編號"
+            @keyup.enter="loadRents"
+          />
+        </div>
+        <div class="form-group-search">
+          <label>會員姓名:</label>
+          <input
+            v-model="searchCriteria.memName"
+            type="text"
+            placeholder="依會員姓名(模糊)"
+            @keyup.enter="loadRents"
+          />
+        </div>
+        <div class="form-group-search">
+          <label>訂單狀態:</label>
+          <select v-model="searchCriteria.recStatus" @keyup.enter="loadRents">
+            <option value="">所有狀態</option>
+            <option value="租借中">租借中</option>
+            <option value="已完成">已完成</option>
+            <option value="未歸還">未歸還</option>
+            <option value="已取消">已取消</option>
+          </select>
+        </div>
+        <div class="form-group-search">
+          <label>站點編號:</label>
+          <input
+            v-model="searchCriteria.spotId"
+            type="text"
+            placeholder="依站點編號"
+            @keyup.enter="loadRents"
+          />
+        </div>
+        <div class="form-group-search">
+          <label>站點名稱:</label>
+          <input
+            v-model="searchCriteria.spotName"
+            type="text"
+            placeholder="依站點名稱(模糊)"
+            @keyup.enter="loadRents"
+          />
+        </div>
+        <div class="form-group-search">
+        <label>開始日期:</label>
+        <input v-model="searchCriteria.startDate" type="date" />
+      </div>
+      <div class="form-group-search">
+        <label>結束日期:</label>
+        <input v-model="searchCriteria.endDate" type="date" />
+      </div>
+      </div>
+    </div>
+    <div class="view-section active">
+      <div class="search-actions">
+        <button class="btn-primary" @click="loadRents" style="min-width: 135px; margin: 0 0 0 10px">
+          搜尋
+        </button>
+        <button class="btn-secondary" @click="clearSearch">清除</button>
+        <button class="btn-success" @click="loadRents">更新</button>
+        <select v-model="pageSize" class="page-size-select">
+          <option :value="25">每頁顯示筆數</option>
+          <option :value="25">25 筆/頁</option>
+          <option :value="50">50 筆/頁</option>
+          <option :value="100">100 筆/頁</option>
+          <option :value="200">200 筆/頁</option>
+        </select>
+        <!-- 匯出按鈕 -->
+        <button class="btn-info" @click="exportToCsv" style="margin-left: auto">匯出 CSV</button>
+        <button class="btn-info" @click="exportToJson">匯出 JSON</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>訂單狀態</th>
+            <th>訂單編號</th>
+            <th>會員編號</th>
+            <th>會員姓名</th>
+            <th>座椅編號</th>
+            <th>租借點名稱</th>
+            <th>-編號</th>
+            <th>租借時間</th>
+            <th>歸還點名稱</th>
+            <th>-編號</th>
+            <th>歸還時間</th>
+            <th>費用</th>
+            <th>備註</th>
+            <th width="150">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(rent, index) in paginatedList" :key="rent.recId || index">
+            <td>{{ rent.recStatus }}</td>
+            <td>
+              <span v-if="rent.recId">{{ rent.recId }}</span>
+              <span v-else style="color: gray">處理中...</span>
+            </td>
+            <td>{{ rent.memId }}</td>
+            <td>{{ rent.memName }}</td>
+            <td>SN-20260{{ rent.seatsId ? String(rent.seatsId).padStart(4, '0') : '' }}</td>
+            <td>{{ rent.rentSpotName }}</td>
+            <td>{{ rent.spotIdRent }}</td>
+            <td>{{ rent.recRentDT2 ? rent.recRentDT2.replace('T', ' ') : '' }}</td>
+            <td>{{ rent.returnSpotName }}</td>
+            <td>{{ rent.spotIdReturn }}</td>
+            <td>{{ rent.recReturnDT2 ? rent.recReturnDT2.replace('T', ' ') : '' }}</td>
+            <td>{{ rent.recPayment }}</td>
+            <td>
+              <!-- [修改] 判斷備註長度，若超過 5 字元則截斷並顯示可點擊的 ... -->
+              <span v-if="rent.recNote && rent.recNote.length > 5">
+                {{ rent.recNote.substring(0, 5)
+                }}<span class="note-more" @click="showFullNote(rent.recNote)" title="點擊查看完整內容"
+                  >...</span
+                >
+              </span>
+              <span v-else>{{ rent.recNote }}</span>
+            </td>
+            <td>
+              <button class="btn-warning" @click="editRent(rent)">編輯</button><span>/</span>
+              <button class="btn-danger ml-1" @click="deleteRent(rent.recId)">刪除</button>
+            </td>
+          </tr>
+          <tr v-if="rentList.length === 0">
+            <td colspan="12" class="text-center">暫無資料或查無結果</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 分頁資訊列 (保留在底部) -->
+      <div class="pagination-info-bar" v-if="rentList.length > 0">
+        <span>第</span>
+        <select v-model="currentPage" class="page-select">
+          <option v-for="p in totalPages" :key="p" :value="p">{{ p }}</option>
+        </select>
+        <span>頁 / 共 {{ totalPages }} 頁 (共 {{ rentList.length }} 筆)</span>
+      </div>
+
+      <!-- 懸浮導航按鈕 (固定在視窗兩側) -->
+      <Teleport to="body">
+        <div class="floating-nav left" v-if="rentList.length > 0">
+          <button class="btn-float" :disabled="currentPage === 1" @click="goToPage(1)">首頁</button>
+          <button class="btn-float" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+            上頁
+          </button>
+        </div>
+
+        <div class="floating-nav right" v-if="rentList.length > 0">
+          <button
+            class="btn-float"
+            :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)"
+          >
+            下頁
+          </button>
+          <button
+            class="btn-float"
+            :disabled="currentPage === totalPages"
+            @click="goToPage(totalPages)"
+          >
+            末頁
+          </button>
+        </div>
+      </Teleport>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* ========== 搜尋表單區 - 淺色風格 ========== */
+.search-form-container {
+  background: #f5f7fa;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 5px;
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.form-group-search {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group-search label {
+  font-weight: 500;
+  margin-bottom: 3px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.form-group-search input,
+.form-group-search select {
+  padding: 3px 10px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.form-group-search input:focus,
+.form-group-search select:focus {
+  border-color: #c0c4cc;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.08);
+  outline: none;
+}
+
+.form-group-search input::placeholder {
+  color: #c0c4cc;
+}
+
+.search-actions {
+  display: flex;
+  padding: 0px;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* [新增] 設定操作區按鈕的最小寬度，讓按鈕整齊一致 */
+.search-actions button {
+  min-width: 65px;
+}
+
+.page-size-select {
+  padding: 5px 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #606266;
+  cursor: pointer;
+}
+
+/* ========== 表格 - 淺色風格 ========== */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 8px;
+  background: rgb(255, 255, 255);
+  font-size: 15px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border-right: 1px solid #000000;
+}
+
+th,
+td {
+  border-bottom: 1px solid #ffffff;
+  border-left: 1px solid #000000;
+  padding: 4px 2px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+th {
+  background: #f5f7fa;
+  color: #606266;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #e4e4e4;
+}
+
+tbody tr:nth-child(even):hover {
+  background-color: #cccccc;
+}
+
+.text-center {
+  text-align: center;
+  color: #909399;
+  padding: 40px !important;
+}
+
+.view-section.active {
+  color: #000000;
+  padding: 0;
+  display: block;
+}
+
+/* ========== 按鈕樣式 ========== */
+button {
+  padding: 5px 8px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 17px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: #409eff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #66b1ff;
+}
+
+.btn-secondary {
+  background: #909399;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #a6a9ad;
+}
+
+/* [新增] 補上 btn-success (綠色按鈕) 的樣式 */
+.btn-success {
+  background: #67c23a;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #85ce61;
+}
+
+.btn-info {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-info:hover {
+  background: #1ab5cf;
+}
+
+/* ========== 圓形操作按鈕 ========== */
+.btn-danger {
+  width: auto;
+  height: auto;
+  padding: 2px 8px;
+  background: #f56c6c;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-danger:hover {
+  background: #f89898;
+  transform: scale(1.1);
+}
+
+.btn-warning {
+  width: auto;
+  height: auto;
+  padding: 2px 8px;
+  background: #409eff;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-warning:hover {
+  background: #66b1ff;
+  transform: scale(1.1);
+}
+
+.ml-1 {
+  margin-left: 1px;
+}
+
+/* ========== 標題樣式 ========== */
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 10px;
+}
+
+h2 button {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* ========== 分頁樣式 ========== */
+.pagination-info-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  padding: 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  color: #606266;
+  gap: 8px;
+}
+
+.page-select {
+  padding: 4px 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: white;
+}
+
+/* 懸浮按鈕容器 */
+.floating-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  transition: left 0.3s ease-in-out;
+  /* 配合側邊欄動畫平滑移動 */
+}
+
+.floating-nav.left {
+  left: 253px;
+}
+
+.floating-nav.right {
+  right: 2px;
+}
+
+/* 針對 AdminLTE 側邊欄的響應式調整 (Desktop) */
+@media (min-width: 992px) {
+  /* 當側邊欄展開時 (預設) - 避開 250px 的側邊欄 */
+  :global(body:not(.sidebar-collapse)) .floating-nav.left {
+    left: 255px;
+  }
+
+  /* 當側邊欄收合時 (sidebar-collapse) - 避開約 73px 的小側邊欄 */
+  :global(body.sidebar-collapse) .floating-nav.left {
+    left: 80px;
+  }
+}
+
+/* 懸浮按鈕本體 */
+.btn-float {
+  padding: 3px 7px;
+  background: rgba(64, 158, 255, 0.9);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-float:hover:not(:disabled) {
+  background: #66b1ff;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.btn-float:disabled {
+  background: #c0c4cc;
+  color: #c0c4cc;
+  color: #fff;
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* [新增] 點擊查看更多的樣式 */
+.note-more {
+  color: #409eff;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 2px;
+}
+.note-more:hover {
+  text-decoration: underline;
+}
+</style>
+</file>
+
+<file path="frontend/src/components/rec/RecRentUserRecord.vue">
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
+import { useMemberAuthStore } from '@/stores/memberAuth'
+import { useRouter } from 'vue-router' // 【新增】引入 router
+
+// --- Pinia Store ---
+const memberAuthStore = useMemberAuthStore()
+
+// --- Router ---
+const router = useRouter() // 【新增】初始化 router
+
+// --- 狀態定義 ---
+const rents = ref([])
+const isLoading = ref(false)
+const errorMessage = ref('')
+
+// --- 分頁狀態 ---
+const currentPage = ref(1)
+const itemsPerPage = 10 // 每頁顯示10筆
+
+// --- Computed Properties ---
+const totalPages = computed(() => {
+  if (!rents.value) return 1
+  return Math.ceil(rents.value.length / itemsPerPage)
+})
+
+const paginatedRents = computed(() => {
+  if (!rents.value) return []
+  const startIndex = (currentPage.value - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  return rents.value.slice(startIndex, endIndex)
+})
+
+// --- 核心邏輯 ---
+const loadUserRents = async () => {
+  const memId = memberAuthStore.member?.memId
+
+  // 防呆：未登入不執行查詢
+  if (!memId) {
+    errorMessage.value = '請先登入會員以查看紀錄'
+    return
+  }
+
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    // 呼叫後端 API 查詢該會員的訂單 (假設後端支援 memId 參數過濾)
+    const response = await axios.get(`http://localhost:8080/rec-rent?memId=${memId}`)
+    let data = response.data
+
+    // --- 排序邏輯 ---
+    // 1. recStatus = "租借中" 的紀錄排在最上面
+    // 2. 其餘紀錄依照租借時間 (recRentDT2) 倒序排列 (新的在前)
+    data.sort((a, b) => {
+      const isActiveA = a.recStatus === '租借中'
+      const isActiveB = b.recStatus === '租借中'
+
+      if (isActiveA && !isActiveB) return -1 // a 排前
+      if (!isActiveA && isActiveB) return 1 // b 排前
+
+      // 若狀態權重相同，比較時間 (倒序)
+      const dateA = new Date(a.recRentDT2).getTime()
+      const dateB = new Date(b.recRentDT2).getTime()
+      return dateB - dateA
+    })
+
+    rents.value = data
+    currentPage.value = 1 // 載入新資料時，重置回第一頁
+  } catch (error) {
+    console.error('載入租借紀錄失敗:', error)
+    errorMessage.value = '無法載入租借紀錄，請確認網路連線或稍後再試。'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// --- 【修改】問題回報處理：導向 /support/report 並帶入 query 參數 ---
+const handleReport = (rent) => {
+  const query = {}
+  if (rent.recSeqId) query.recId = rent.recSeqId // 訂單 ID
+  if (rent.spotIdRent) query.spotId = rent.spotIdRent // 站點 ID
+  if (rent.seatsId) query.seatId = rent.seatsId // 座位 ID
+
+  router.push({ path: '/support/report', query })
+}
+
+// --- 分頁方法 ---
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+// --- Helper Functions ---
+const getStatusClass = (status) => {
+  // 根據訂單狀態回傳對應的 BS class
+  if (status === '租借中') {
+    return 'bg-success'
+  }
+  if (status === '未付款') {
+    return 'bg-warning'
+  }
+  return 'bg-secondary'
+}
+
+// --- (翌帆2026-1-31新增 客服回報用)【新增】處理問題回報：導向 /support/report 並帶入 query 參數 ---
+const handleReportIssue = () => {
+  const spotId = null //
+  const seatId = null // 地圖頁目前沒有特定 seatId，可依需求擴充
+  const recId = null // 地圖頁目前沒有 recId
+
+  const query = {}
+  if (spotId) query.spotId = spotId
+  if (seatId) query.seatId = seatId
+  if (recId) query.recId = recId
+
+  router.push({ path: '/support/report', query })
+}
+
+// --- Lifecycle ---
+onMounted(() => {
+  if (memberAuthStore.isLogin) {
+    loadUserRents()
+  }
+})
+</script>
+
+<template>
+  <div class="record-container">
+    <h2 class="section-title"><i class="fas fa-history"></i> 我的租借紀錄</h2>
+
+    <!-- 載入中 -->
+    <div v-if="isLoading" class="text-center my-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">載入中...</p>
+    </div>
+
+    <!-- 錯誤訊息 -->
+    <div v-else-if="errorMessage" class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+
+    <!-- 無資料 -->
+    <div v-else-if="rents.length === 0" class="alert alert-info">目前沒有租借紀錄。</div>
+
+    <!-- 列表顯示 -->
+    <div v-else>
+      <div class="list-group">
+        <div
+          v-for="rent in paginatedRents"
+          :key="rent.recSeqId"
+          class="list-group-item mb-3 shadow-sm"
+          :class="{ 'border-active': rent.recStatus === '租借中' || rent.recStatus === '未付款' }"
+        >
+          <div class="d-flex w-100 justify-content-between align-items-center header-row">
+            <h5 class="mb-1">
+              <span class="badge" :class="getStatusClass(rent.recStatus)">
+                {{ rent.recStatus }}
+              </span>
+              <span class="ms-2 title-text">訂單編號: {{ rent.recId || rent.recSeqId }}</span>
+            </h5>
+            <span style="margin: 0 60px"> </span>
+           
+            <span></span> <span style="margin: 0 40px"> </span>
+            <h5 class="mb-0 text-primary fw-bold">
+              <button class="btn btn-sm btn-outline-warning" @click="handleReportIssue">
+                <i class="fas fa-exclamation-circle"></i> 問題回報
+              </button>
+            </h5>
+          </div>
+
+          <div class="row mt-2">
+             <span class="ms-2 title-text"> </span>
+            <div class="col-md-6">
+              <p class="mb-1">
+                <strong>發票號碼:</strong> {{ rent.recInvoice  }}
+              </p>
+              <p class="mb-1">
+                <strong>租借站點:</strong> {{ rent.rentSpotName || rent.spotIdRent }}
+              </p>
+              <p class="mb-1">
+                <strong>歸還站點:</strong> {{ rent.returnSpotName || rent.spotIdReturn || '-' }}
+              </p>
+            </div>
+            <div class="col-md-6">
+              <p class="mb-1">
+                <strong>座椅編號:</strong> SN-2026{{ rent.seatsId || '-' }}
+              </p>
+              <p class="mb-1">
+                <strong>租借時間:</strong> {{ rent.recRentDT2?.replace('T', ' ') || '-' }}
+              </p>
+              <p class="mb-1">
+                <strong>歸還時間:</strong> {{ rent.recReturnDT2?.replace('T', ' ') || '-' }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <nav v-if="totalPages > 1" aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center flex-wrap">
+          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+            <a class="page-link" href="#" @click.prevent="prevPage">&laquo;</a>
+          </li>
+          <li
+            v-for="page in totalPages"
+            :key="page"
+            class="page-item"
+            :class="{ active: currentPage === page }"
+          >
+            <a class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
+          </li>
+          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+            <a class="page-link" href="#" @click.prevent="nextPage">&raquo;</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.record-container {
+  padding: 10px;
+  max-width: max-content;
+  margin: 0 auto;
+}
+.section-title {
+  color: #333;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+.list-group-item {
+  border: 1px solid #ddd;
+  border-radius: 8px !important;
+  transition: transform 0.2s;
+}
+.list-group-item:hover {
+  transform: translateY(-2px);
+}
+/* 租借中狀態的特殊樣式 (左側綠色邊條) */
+.border-active {
+  border-left: 5px solid #28a745 !important;
+  background-color: #f9fff9;
+}
+.badge {
+  padding: 0.5em 0.7em;
+  border-radius: 0.25rem;
+  color: white;
+}
+.bg-success {
+  background-color: #28a745;
+}
+.bg-secondary {
+  background-color: #6c757d;
+}
+.bg-warning {
+  background-color: #ffc107;
+  color: #212529; /* 深色文字以確保可讀性 */
+}
+.text-primary {
+  color: #007bff !important;
+}
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* Pagination Styles */
+.page-item .page-link {
+  color: #007bff;
+  margin: 0 2px; /* 增加按鈕間距 */
+  border-radius: 4px; /* 圓角 */
+}
+.page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+  z-index: 2;
+}
+.page-item.disabled .page-link {
+  color: #6c757d;
+  background-color: #fff;
+  border-color: #dee2e6;
+}
+.pagination {
+  padding-left: 0;
+  list-style: none;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/rec/RecRentUserSearchPage.vue">
+<script setup>
+import { ref, onMounted, nextTick, computed } from 'vue'
+import { LocationFilled, Camera, Aim } from '@element-plus/icons-vue'
+import { Html5Qrcode } from 'html5-qrcode'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+import { useMemberAuthStore } from '@/stores/memberAuth'
+import { useAdminAuthStore } from '@/stores/adminAuth'
+
+// --- Computed properties from store ---
+// --- Props ---
+const props = defineProps({
+  spotId: {
+    type: String,
+    required: false,
+    default: '',
+  },
+})
+
+// --- Pinia Store ---
+const memberAuthStore = useMemberAuthStore()
+const adminAuthStore = useAdminAuthStore()
+
+// --- Computed properties from store ---
+const isLoggedIn = computed(() => memberAuthStore.isLogin && !!memberAuthStore.member?.memId)
+const memberId = computed(() => memberAuthStore.member?.memId)
+const memberName = computed(() => memberAuthStore.member?.memName || '訪客')
+
+// --- 路由與狀態管理 ---
+const router = useRouter()
+
+// --- 1. 組態設定 ---
+const center = ref({ lat: 24.973875, lng: 121.382025 })
+const zoom = ref(10)
+const backendApiUrl = 'http://localhost:8080/spot/list'
+// 地圖選項設定 (啟用 Google Maps 的完整 UI 控制項)
+const mapOptions = {
+  zoomControl: true,
+  mapTypeControl: true,
+  streetViewControl: true,
+  fullscreenControl: true,
+  rotateControl: true,
+}
+
+// --- 2. 狀態定義 ---
+const spots = ref([])
+const error = ref(null)
+// 用於存放搜尋結果的地圖標記位置
+const searchResultMarker = ref(null)
+// 用於雙向綁定搜尋框的輸入文字
+const searchQuery = ref('')
+const infoWindow = ref({
+  position: null,
+  opened: false,
+  isSearchResult: false,
+  isLoadingCounts: false, // 新增：用於追蹤數量是否載入中
+  spot: null,
+  title: '',
+})
+
+// --- QR Code 掃描相關邏輯 ---
+const isScanning = ref(false)
+let html5QrCode = null
+
+const startScan = () => {
+  isScanning.value = true
+  nextTick(() => {
+    // 確保 DOM 元素已渲染
+    html5QrCode = new Html5Qrcode('reader')
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } }
+
+    // 優先使用後置鏡頭
+    html5QrCode
+      .start({ facingMode: 'environment' }, config, onScanSuccess, (errorMessage) => {
+        // 掃描過程中的錯誤通常忽略，避免 log 洗版
+      })
+      .catch((err) => {
+        console.error('啟動鏡頭失敗', err)
+        alert('無法啟動鏡頭，請確認您使用的是 HTTPS 連線並已授權相機權限。')
+        isScanning.value = false
+      })
+  })
+}
+
+const onScanSuccess = (decodedText, decodedResult) => {
+  console.log(`掃描成功: ${decodedText}`, decodedResult)
+  searchQuery.value = decodedText // 將結果填入搜尋框
+  stopScan()
+  performSearch() // 自動執行搜尋
+}
+
+const stopScan = () => {
+  if (html5QrCode) {
+    html5QrCode
+      .stop()
+      .then(() => {
+        html5QrCode.clear()
+        isScanning.value = false
+      })
+      .catch((err) => console.error('停止掃描失敗', err))
+  } else {
+    isScanning.value = false
+  }
+}
+
+// --- 3. 核心邏輯 ---
+
+// 根據站點狀態生成帶有顏色的地圖圖示
+const getMarkerIcon = (status) => {
+  const color = status === '營運中' ? 'green' : 'gray'
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" fill="${color}" class="bi bi-lightbulb-fill" viewBox="0 0 16 16">
+  <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5"/>
+</svg>
+ `
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    scaledSize: { width: 32, height: 32 },
+  }
+}
+
+// 統一的地圖更新函式，用於聚焦與縮放
+const updateMapLocation = (location) => {
+  if (!location) return
+  center.value = {
+    lat: location.lat(),
+    lng: location.lng(),
+  }
+  zoom.value = 15
+}
+
+// // 定位使用者位置 (高精準度)
+// const locateUser = () => {
+//   if (navigator.geolocation) {
+//     navigator.geolocation.getCurrentPosition(
+//       (position) => {
+//         center.value = {
+//           lat: position.coords.latitude,
+//           lng: position.coords.longitude,
+//         }
+//         zoom.value = 15 // 定位成功後放大
+//       },
+//       (err) => {
+//         console.warn(`無使用者地理位置: ${err.message}`)
+//         // 可以選擇顯示錯誤提示，例如使用 Element Plus 的 ElMessage
+//         alert('無法取得您的位置，請確認瀏覽器權限或 GPS 設定。')
+//       },
+//       {
+//         enableHighAccuracy: true, // 要求高精準度 (GPS)
+//         timeout: 5000, // 超時時間
+//         maximumAge: 0, // 不使用快取
+//       },
+//     )
+//   } else {
+//     alert('此瀏覽器不支援地理位置功能。')
+//   }
+// }
+
+// 處理從 GMapAutocomplete 選擇一個地點
+const onPlaceChanged = (place) => {
+  if (place && place.geometry && place.geometry.location) {
+    const location = place.geometry.location
+    updateMapLocation(location)
+    searchResultMarker.value = location.toJSON()
+    searchQuery.value = place.formatted_address // 將選擇的地點地址同步回輸入框
+
+    infoWindow.value.opened = false
+    nextTick(() => {
+      infoWindow.value = {
+        position: location.toJSON(),
+        opened: true,
+        isSearchResult: true,
+        spot: null,
+        title: place.formatted_address,
+      }
+    })
+  }
+}
+
+// 執行地理編碼搜尋 (將地址文字轉換為座標)
+const performSearch = () => {
+  const query = searchQuery.value // 直接從狀態獲取查詢字串
+  if (!query) return
+
+  const geocoder = new google.maps.Geocoder()
+  geocoder.geocode({ address: query }, (results, status) => {
+    if (status === 'OK' && results[0]) {
+      const place = results[0]
+      const location = place.geometry.location
+      updateMapLocation(location)
+      searchResultMarker.value = location.toJSON()
+
+      infoWindow.value.opened = false
+      nextTick(() => {
+        infoWindow.value = {
+          position: location.toJSON(),
+          opened: true,
+          isSearchResult: true,
+          spot: null,
+          title: place.formatted_address,
+        }
+      })
+    } else {
+      console.warn(`Geocode 失敗，原因: ${status}`)
+      alert('找不到指定的地點，請嘗試輸入更詳細的地址。')
+    }
+  })
+}
+
+// 從後端 API 獲取所有站點資料
+const fetchSpots = async () => {
+  try {
+    const response = await axios.get(backendApiUrl)
+    // 將後端資料轉換為地圖標記所需的格式
+    const spotsData = response.data.map((spot) => ({
+      id: spot.spotId,
+      name: spot.spotName,
+      status: spot.spotStatus,
+      position: {
+        lat: parseFloat(spot.latitude),
+        lng: parseFloat(spot.longitude),
+      },
+      // 注意：seatCount 和 returnCount 在這裡不再預先載入
+    }))
+    spots.value = spotsData
+  } catch (err) {
+    console.error('無法獲取租借站點資料:', err)
+    error.value = '無法載入租借站點資料，請稍後再試。'
+  }
+}
+
+// 開啟一個站點的資訊視窗，並動態獲取數量
+const openInfoWindowForSpot = async (spot) => {
+  searchResultMarker.value = null // 清除搜尋結果的標記
+  infoWindow.value.opened = false
+
+  // 立即顯示基本資訊
+  await nextTick()
+  infoWindow.value = {
+    position: spot.position,
+    opened: true,
+    isSearchResult: false,
+    spot: { ...spot, seatCount: null, returnCount: null }, // 初始設定為 null
+    title: spot.name,
+    isLoadingCounts: true, // 開始載入
+  }
+
+  // 如果站點不在營運中，則不查詢數量
+  if (spot.status !== '營運中') {
+    infoWindow.value.spot.seatCount = 0
+    infoWindow.value.spot.returnCount = 0 // 假設非營運中就沒有可還
+    infoWindow.value.isLoadingCounts = false
+    return
+  }
+
+  // 動態獲取可租借數量
+  try {
+    const countResponse = await axios.get(
+      `http://localhost:8080/seats/count-by-spot?spotId=${spot.id}`,
+    )
+    const seatCount = countResponse.data
+    // 更新 infoWindow 中的 spot 物件
+    if (infoWindow.value.spot && infoWindow.value.spot.id === spot.id) {
+      infoWindow.value.spot.seatCount = seatCount
+      infoWindow.value.spot.returnCount = 20 - seatCount // 假設總數為 20
+    }
+  } catch (err) {
+    console.error(`無法獲取站點 ${spot.id} 的座位數:`, err)
+    if (infoWindow.value.spot && infoWindow.value.spot.id === spot.id) {
+      infoWindow.value.spot.seatCount = 'N/A' // 發生錯誤時顯示 N/A
+      infoWindow.value.spot.returnCount = 'N/A'
+    }
+  } finally {
+    if (infoWindow.value.spot && infoWindow.value.spot.id === spot.id) {
+      infoWindow.value.isLoadingCounts = false // 載入完成
+    }
+  }
+}
+
+// 關閉資訊視窗
+const closeInfoWindow = () => {
+  infoWindow.value.opened = false
+  searchResultMarker.value = null // 同時清除搜尋結果的標記
+}
+
+// 處理導航至租借或歸還頁面
+const handleNavigation = (action) => {
+  const spotId = infoWindow.value.spot?.id
+  let routeParams = { name: 'rec-rent-user', params: { action } }
+
+  if (action === 'order' && spotId) {
+    routeParams.query = { spotId }
+  }
+
+  // --- [新增] 將站點 ID 寫入 Pinia，確保切換頁面時能讀取 ---
+  if (spotId) {
+    memberAuthStore.setSpotId(spotId)
+  }
+
+  // --- 統一導航邏輯 ---
+  // 1. 檢查是否處於「假登入」狀態 (isLogin=true 但 memId 遺失)
+  if (memberAuthStore.isLogin && !memberAuthStore.member?.memId) {
+    console.warn('偵測到登入狀態異常(無會員ID)，執行強制登出並重導向')
+    memberAuthStore.clearMemberLogin()
+    const redirectPath = router.resolve(routeParams).path
+    router.push({ name: 'login', query: { redirect: redirectPath } })
+    return
+  }
+
+  // 2. 正常狀態判斷
+  if (memberAuthStore.isLogin || adminAuthStore.isLogin) {
+    console.log('準備導向 Store 中的會員ID:', memberAuthStore.member?.memId)
+    router.push(routeParams)
+  } else {
+    const redirectPath = router.resolve(routeParams).path
+    router.push({ name: 'login', query: { redirect: redirectPath } })
+  }
+}
+
+// --- (翌帆2026-1-31新增 客服回報用)【新增】處理問題回報：導向 /support/report 並帶入 query 參數 ---
+const handleReportIssue = () => {
+  const spotId = infoWindow.value.spot?.id
+  const seatId = null // 地圖頁目前沒有特定 seatId，可依需求擴充
+  const recId = null // 地圖頁目前沒有 recId
+
+  const query = {}
+  if (spotId) query.spotId = spotId
+  if (seatId) query.seatId = seatId
+  if (recId) query.recId = recId
+
+  router.push({ path: '/support/report', query })
+}
+
+// Vue 組件掛載時執行的初始化
+onMounted(() => {
+  fetchSpots()
+  fetchSpots()
+  //locateUser() // 初始化時嘗試定位
+})
+</script>
+
+<template>
+  <div class="map-container-wrapper">
+    <!-- 地點搜尋列 -->
+    <!-- <button class="search-button scan-btn" @click="startScan" title="掃描 QR Code">
+      <el-icon :size="20"><Camera /></el-icon>
+    </button> -->
+    <div class="search-bar-container">
+      <GMapAutocomplete
+        @place_changed="onPlaceChanged"
+        :options="{
+          fields: ['geometry', 'formatted_address', 'name'],
+          componentRestrictions: { country: 'tw' },
+        }"
+      >
+        <input
+          type="text"
+          class="search-input"
+          placeholder="搜尋地點..."
+          v-model="searchQuery"
+          @keyup.enter="performSearch"
+        />
+      </GMapAutocomplete>
+
+      <button class="search-button" @click="performSearch" title="搜尋">
+        <el-icon :size="20"><LocationFilled /></el-icon>
+      </button>
+
+      <!-- [新增] 定位按鈕
+      <button class="search-button locate-btn" @click="locateUser" title="定位我的位置">
+        <el-icon :size="20"><Aim /></el-icon>
+      </button> -->
+    </div>
+
+    <div v-if="error" class="error-message">{{ error }}</div>
+
+    <GMapMap
+      v-if="!error"
+      :center="center"
+      :zoom="zoom"
+      :options="mapOptions"
+      class="map"
+      map-id="d2fc83863651fe9c90d73c8a"
+    >
+      <!-- 渲染站點標記 -->
+      <GMapMarker
+        v-for="spot in spots"
+        :key="spot.id"
+        :position="spot.position"
+        :title="spot.name"
+        :clickable="true"
+        :icon="getMarkerIcon(spot.status)"
+        @click="openInfoWindowForSpot(spot)"
+      />
+      <!-- 渲染搜尋結果標記 -->
+      <GMapMarker v-if="searchResultMarker" :key="'search-result'" :position="searchResultMarker" />
+
+      <GMapInfoWindow
+        :opened="infoWindow.opened"
+        :position="infoWindow.position"
+        :options="{ pixelOffset: { width: 0, height: -35 }, headerDisabled: true }"
+        @closeclick="closeInfoWindow"
+      >
+        <div class="info-window-content">
+          <!-- 顯示站點資訊 -->
+          <div v-if="infoWindow.spot">
+            <span
+              ><h5>{{ infoWindow.title }}</h5></span
+            >
+            <!-- <strong>ID:</strong> {{ infoWindow.spot.id }}-->
+            <strong>狀態: {{ infoWindow.spot.status }}</strong>
+
+            <!-- 當數量載入中時顯示讀取訊息 -->
+            <div v-if="infoWindow.isLoadingCounts" class="loading-text">查詢中...</div>
+            <!-- 載入完成後顯示數量與按鈕 -->
+            <div v-else style="font-size: 15 px">
+              <span style="color: darkgreen">
+                <strong>可租借數量:</strong> {{ infoWindow.spot.seatCount }}</span
+              >
+              <span> | </span>
+              <span style="color: darkblue"
+                ><strong>可歸還數量:</strong> {{ infoWindow.spot.returnCount }}</span
+              >
+              <div class="button-group">
+                <button
+                  @click="handleNavigation('order')"
+                  class="btn btn-success"
+                  :disabled="infoWindow.spot.status !== '營運中' || infoWindow.spot.seatCount <= 0"
+                  :class="{
+                    'btn-disabled':
+                      infoWindow.spot.status !== '營運中' || infoWindow.spot.seatCount <= 0,
+                  }"
+                >
+                  租借
+                </button>
+                <button
+                  @click="handleNavigation('complete')"
+                  class="btn btn-primary"
+                  :disabled="
+                    infoWindow.spot.status !== '營運中' || infoWindow.spot.returnCount <= 0
+                  "
+                  :class="{
+                    'btn-disabled':
+                      infoWindow.spot.status !== '營運中' || infoWindow.spot.returnCount <= 0,
+                  }"
+                >
+                  歸還
+                </button>
+                <button @click="handleReportIssue" class="btn btn-issue">
+                  回報 <br />
+                  問題
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- 顯示搜尋結果 -->
+          <div v-else-if="infoWindow.isSearchResult">
+            <h4>{{ infoWindow.title }}</h4>
+            <a
+              v-if="infoWindow.position"
+              :href="`https://www.google.com/maps/search/?api=1&query=${infoWindow.position.lat},${infoWindow.position.lng}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="map-link"
+            >
+              在 Google 地圖中查看
+            </a>
+          </div>
+        </div>
+      </GMapInfoWindow>
+    </GMapMap>
+
+    <!-- QR Code 掃描遮罩層 -->
+    <div v-if="isScanning" class="scanner-overlay">
+      <div class="scanner-container">
+        <div id="reader" width="100%"></div>
+        <button class="btn btn-primary close-scan-btn" @click="stopScan">關閉掃描</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.map-container-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.map {
+  width: 100%;
+  height: 100%;
+}
+.error-message {
+  color: red;
+  padding: 20px;
+  text-align: center;
+}
+.info-window-content {
+  padding: 0px;
+  min-height: 50px;
+  min-width: 150px;
+  /* overflow: unset; */
+}
+.info-window-content h4,
+.info-window-content p {
+  margin: 1px 0;
+}
+
+/* 在 Google 地圖中查看的連結樣式 */
+.info-window-content .map-link {
+  display: block;
+  margin-top: 3px;
+  font-weight: 400;
+  text-decoration: none;
+  color: #007bff;
+}
+.info-window-content .map-link:hover {
+  text-decoration: underline;
+}
+.loading-text {
+  padding: 10px;
+  text-align: center;
+  color: #666;
+}
+.button-group {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-around;
+}
+.btn {
+  display: inline-block;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  border: 1px solid transparent;
+  margin: 0.3rem;
+  padding: 0.15rem 0.45rem;
+  font-size: 1.5rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  text-decoration: none; /* Add this to make router-link look like a button */
+}
+.btn-success {
+  color: #fff;
+  background-color: #28a745;
+  border-color: #28a745;
+}
+.btn-primary {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}
+.btn-issue {
+  font-size: medium;
+  color: #fff;
+  background-color: #cf820e;
+  border-color: #cf820e;
+}
+
+/* 當按鈕被禁用時的樣式 */
+.btn-disabled {
+  background-color: #6b6b6b;
+  border-color: #6b6b6b;
+  cursor: not-allowed;
+}
+
+/* --- 新增/修改的搜尋列樣式 --- */
+.search-bar-container {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 275px;
+  height: 45px;
+  z-index: 10;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.search-bar-container :deep(.search-input) {
+  flex-grow: 12;
+  width: 130%;
+  height: 68px;
+  border: none;
+  outline: none;
+  font-size: 2.2rem;
+  background-color: transparent;
+}
+
+/* 這是 GMapAutocomplete 元件的包裝器，我們讓它填滿空間 */
+:deep(.pac-container) {
+  z-index: 1051 !important; /* 確保建議清單顯示在其他元素之上 */
+}
+
+.search-button {
+  height: 33px;
+  margin-left: 8px;
+  padding: 8px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 1.9rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.scan-btn {
+  background-color: #6c757d; /* 灰色區分 */
+  margin-left: 5px;
+}
+
+/* [新增] 定位按鈕樣式 */
+.locate-btn {
+  background-color: #28a745; /* 綠色 */
+}
+.locate-btn:hover {
+  background-color: #218838;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+/* 掃描介面樣式 */
+.scanner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scanner-container {
+  width: 90%;
+  max-width: 500px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.close-scan-btn {
+  margin-top: 15px;
+  width: 100%;
+  font-size: 1.2rem;
+}
+</style>
+</file>
+
+<file path="frontend/src/router/index.js">
+import { createRouter, createWebHistory } from 'vue-router'
+import Swal from 'sweetalert2'
+
+/**
+ * ==========================================
+ * 1. 靜態導入元件 (Static Imports)
+ * ==========================================
+ */
+import LoginView from '@/views/member/LoginView.vue' // 登入頁
+import AdminLayout from '@/layouts/AdminLayout.vue' // 後臺主框架 (包含側邊欄與 Header)
+import AdminHomeView from '@/views/member/AdminHomeView.vue' // 後臺首頁(儀表板)
+import MemberListView from '@/views/member/MemberListView.vue' // 會員列表
+import MemberEditView from '@/views/member/MemberEditView.vue' // 會員編輯
+import MemberCreateView from '@/views/member/MemberCreateView.vue' // 會員新增
+import PaymentView from '@/views/ecpay/PaymentView.vue' // 綠界付款頁
+import AdminListView from '@/views/member/AdminListView.vue' // 管理員列表
+import AdminCreateView from '@/views/member/AdminCreateView.vue' // 管理員新增
+import AdminEditView from '@/views/member/AdminEditView.vue' // 管理員編輯
+import MemberLayout from '@/layouts/MemberLayout.vue' // 會員主框架
+import MemberProfileView from '@/views/member/MemberProfileView.vue' // 會員個人資料頁
+import AuthLayout from '@/layouts/AuthLayout.vue' // 認證相關頁面框架
+import MainLayout from '@/layouts/MainLayout.vue' // 前台主框架
+import HomeView from '@/views/HomeView.vue' // 前台首頁
+
+/**
+ * ==========================================
+ * 2. 懶加載導入 (Dynamic Imports)
+ * ==========================================
+ */
+const MerchantList = () => import('@/views/merchantAndCoupon/MerchantList.vue') // 商家列表
+const DiscountList = () => import('@/views/merchantAndCoupon/DiscountList.vue') // 優惠券列表
+const RedemptionLogList = () => import('@/views/merchantAndCoupon/RedemptionLogList.vue') // 新增：後台紀錄
+const CouponMall = () => import('@/views/merchantAndCoupon/CouponMallView.vue') // 新增：前台商城
+const SnakeGame = () => import('@/views/game/SnakeGame.vue') // 貪食蛇遊戲
+
+// 定義路由表
+const routes = [
+  // --- 登入頁面 ---
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+  },
+
+  // ==========================================
+  // [新增] 前台使用者頁面 (不套用後台側邊欄)
+  // ==========================================
+  {
+    path: '/',
+    name: 'entrance',
+    component: MainLayout,
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: HomeView,
+      },
+
+      // 會員頁面
+      {
+        path: 'profile',
+        name: 'member-profile',
+        component: MemberProfileView,
+      },
+
+      // 租借頁面
+      {
+        path: 'rent/:action?',
+        name: 'rec-rent-user',
+        component: () => import('@/views/rec/RecRentUserPage.vue'),
+      },
+      {
+        path: 'SearchSpot',
+        name: 'SearchSpot',
+        component: () => import('@/views/rec/RecRentUserSearchPage.vue'),
+      },
+      {
+        path: 'VisitSiteReommand',
+        name: 'VisitSiteReommand',
+        component: () => import('@/views/rec/VisitSiteReommandPage.vue'),
+      },
+
+      // 將 'rec-rent-record' 路由重定向至帶有 action 參數的標準租借路由
+      {
+        path: 'recordRoute',
+        name: 'rec-rent-record',
+        redirect: { name: 'rec-rent-user', params: { action: 'record' } },
+      },
+
+      {
+        path: 'payment/order',
+        name: 'payment-order',
+        component: () => import('@/views/ecpay/PaymentViewOrder.vue'),
+      },
+      {
+        path: 'claims',
+        name: 'claims',
+        component: () => import('@/views/rec/RightsClaimPage.vue'),
+      },
+
+      // --- 新增：優惠券商城 ---
+      {
+        path: '/mall',
+        name: 'coupon-mall',
+        component: CouponMall,
+      },
+
+      // --- 新增：前台貪食蛇遊戲 ---
+      {
+        path: '/snake',
+        name: 'snake-game',
+        component: SnakeGame,
+      },
+      {
+        path: '/redemption-history',
+        name: 'redemption-history',
+        component: () => import('@/views/merchantAndCoupon/RedemptionHistory.vue'),
+      },
+      {
+        path: '/sponsor',
+        name: 'sponsor',
+        component: () => import('@/views/ecpay/SponsorView.vue'),
+      },
+      {
+        path: '/payment-success',
+        name: 'payment-success',
+        component: () => import('@/views/ecpay/PaymentSuccessView.vue'),
+      },
+
+      // 訂單確認與付款頁
+      {
+        path: '/payment-checkout/:recId',
+        name: 'payment-checkout',
+        component: () => import('@/views/ecpay/PaymentView.vue'),
+      },
+
+      // ==========================================
+      // (翌帆2026-1-31)【新增】客服支援模組 (Support)
+      // ==========================================
+      {
+        path: '/support',
+        name: 'support-center',
+        component: () => import('@/views/support/SupportCenterView.vue'),
+      },
+      {
+        path: '/support/report',
+        name: 'support-report-entry',
+        component: () => import('@/views/support/ReportEntryView.vue'),
+      },
+      {
+        path: '/support/report/damage',
+        name: 'support-report-damage',
+        component: () => import('@/views/support/ReportDamageView.vue'),
+      },
+      {
+        path: '/support/report/manual',
+        name: 'support-report-manual',
+        component: () => import('@/views/support/ReportManualView.vue'),
+      },
+    ],
+  },
+
+  // 註冊會員
+  {
+    path: '/register',
+    component: AuthLayout,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/member/Register.vue'),
+      },
+    ],
+  },
+
+  /**
+   * ==========================================
+   * 3. 管理後臺嵌套路由 (Nested Routes)
+   * 網址前綴統一為 /admin
+   * ==========================================
+   */
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      // 管理後臺首頁
+      {
+        path: '',
+        name: 'admin-home',
+        component: AdminHomeView,
+      },
+
+      // 據點與座位管理 (Spot & Seat)
+      {
+        path: 'spot/list',
+        name: 'spot-list',
+        component: () => import('@/views/spot/SpotList.vue'),
+      },
+
+      // 據點新增與編輯共用同一個元件
+      {
+        path: 'spot/add',
+        name: 'spot-add',
+        component: () => import('@/views/spot/SpotForm.vue'),
+      },
+
+      // 據點編輯
+      {
+        path: 'spot/edit/:id',
+        name: 'spot-edit',
+        component: () => import('@/views/spot/SpotForm.vue'),
+      },
+
+      // 據點詳細資訊
+      {
+        path: 'spot/view/:id', // 網址: /admin/spot/view/1
+        name: 'spot-view',
+        component: () => import('@/views/spot/SpotOne.vue'),
+      },
+      // 據點統計儀表板
+      {
+        path: 'spot/analyze',
+        name: 'spot-analyze',
+        component: () => import('@/views/spot/SpotAnalyze.vue'),
+      },
+      {
+        path: 'spot/monitor',
+        name: 'dispatch-monitor',
+        component: () => import('@/views/spot/DispatchMonitor.vue'),
+      },
+      // ==========================================
+      // [整合] 座位管理模組 (Seat)
+      // ==========================================
+      // 座位管理
+
+      {
+        path: 'seat/list',
+        name: 'seat-list',
+        component: () => import('@/views/spot/SeatList.vue'),
+      },
+
+      // 座位新增與編輯共用同一個元件
+      {
+        path: 'seat/insert',
+        name: 'seat-insert',
+        component: () => import('@/views/spot/SeatForm.vue'),
+      },
+
+      // 座位編輯
+      {
+        path: 'seat/edit/:id',
+        name: 'seat-edit',
+        component: () => import('@/views/spot/SeatForm.vue'),
+      },
+
+      // 座位詳細資訊
+      {
+        path: 'seat/view/:id',
+        name: 'seat-view',
+        component: () => import('@/views/spot/SeatOne.vue'),
+      },
+
+      // [核心功能] 商家與優惠券管理
+      {
+        path: 'merchants',
+        name: 'merchants',
+        component: MerchantList,
+      },
+
+      // 優惠券管理
+      {
+        path: 'discounts',
+        name: 'discounts',
+        component: DiscountList,
+        alias: 'coupons',
+      },
+      // --- 新增：兌換紀錄報表 ---
+      {
+        path: 'redemption-logs',
+        name: 'admin-redemption-logs',
+        component: RedemptionLogList,
+      },
+
+      // [新增] 後台貪食蛇遊戲
+      {
+        path: 'snake-game',
+        name: 'admin-snake-game',
+        component: SnakeGame,
+      },
+      {
+        path: 'sponsors',
+        name: 'admin-sponsors',
+        component: () => import('@/views/ecpay/SponsorLog.vue'),
+      },
+
+      // [核心功能] 會員管理
+      {
+        path: 'members',
+        name: 'member-list',
+        component: MemberListView,
+      },
+
+      // 會員編輯
+      {
+        path: 'members/edit/:id',
+        name: 'member-edit',
+        component: MemberEditView,
+      },
+
+      // 會員新增
+      {
+        path: 'members/create',
+        name: 'member-create',
+        component: MemberCreateView,
+      },
+
+      // [核心功能] 管理員管理
+      {
+        path: 'admins',
+        name: 'admin-list',
+        component: AdminListView,
+      },
+
+      // 管理員新增
+      {
+        path: 'admins/create',
+        name: 'admin-create',
+        component: AdminCreateView,
+      },
+
+      // 管理員編輯
+      {
+        path: 'admins/edit/:id',
+        name: 'admin-edit',
+        component: AdminEditView,
+      },
+
+      // [功能] 租借訂單管理
+      {
+        path: 'rec-rent',
+        name: 'rec-rent',
+        component: () => import('@/views/rec/RecRentMgnPage.vue'),
+      },
+      {
+        path: 'rec-chart',
+        name: 'rec-chart',
+        component: () => import('@/views/rec/RecRentMgnChartPage.vue'),
+      },
+
+      // [功能] 維修管理 (Maintenance)
+      {
+        path: 'staff-list',
+        name: 'staff-list',
+        component: () => import('@/views/maintenance/MaintenanceStaffList.vue'),
+      },
+
+      // 維修人員表單 (新增/編輯)
+      {
+        path: 'staff-form/:id?',
+        name: 'staff-form',
+        component: () => import('@/views/maintenance/MaintenanceStaffForm.vue'),
+      },
+
+      // 維修人員歷史紀錄
+      {
+        path: 'staff-history',
+        name: 'staff-history',
+        component: () => import('@/views/maintenance/MaintenanceStaffHistory.vue'),
+      },
+
+      // 維修工單列表與表單
+      {
+        path: 'mtif-list',
+        name: 'mtif-list',
+        component: () => import('@/views/maintenance/MtifList.vue'),
+        props: { historyMode: false },
+      },
+
+      // 維修工單歷史紀錄
+      {
+        path: 'mtif-history',
+        name: 'mtif-history',
+        component: () => import('@/views/maintenance/MtifList.vue'),
+        props: { historyMode: true },
+      },
+
+      // 維修工單表單 (新增/編輯)
+      {
+        path: 'mtif-form/:id?',
+        name: 'mtif-form',
+        component: () => import('@/views/maintenance/MtifForm.vue'),
+      },
+
+      // --- Schedule (排程) ---
+      {
+        path: 'maintenance/schedule',
+        name: 'schedule-list',
+        component: () => import('@/views/maintenance/ScheduleList.vue'),
+      },
+
+      // 排程表單 (新增/編輯)
+      {
+        path: 'maintenance/schedule/create',
+        name: 'schedule-create',
+        component: () => import('@/views/maintenance/ScheduleForm.vue'),
+      },
+
+      // 排程編輯
+      {
+        path: 'maintenance/schedule/edit/:id',
+        name: 'schedule-edit',
+        component: () => import('@/views/maintenance/ScheduleForm.vue'),
+      },
+    ],
+  },
+
+  // ==========================================
+  // 4. 路由守衛與轉址 (Redirects)
+  // ==========================================
+
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
+]
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+})
+
+/**
+ * ==========================================
+ * 全域路由守衛：後台登入驗證（統一 localStorage）
+ * ==========================================
+ */
+router.beforeEach((to, from, next) => {
+  // 1. 如果不是去後台，直接放行
+  if (!to.path.startsWith('/admin')) {
+    next()
+    return
+  }
+
+  // 2. 取得 localStorage 資料
+  const token = localStorage.getItem('token')
+  const adminJson = localStorage.getItem('admin')
+
+  // Debug 用：如果進不去，請按 F12 看 Console
+  console.log('路由守衛檢查:', { path: to.path, hasToken: !!token, hasAdmin: !!adminJson })
+
+  // 3. 判斷是否有管理員身分
+  if (adminJson) {
+    // 只要有 admin 資料就讓它進去 (Token 視後端攔截器而定)
+    next()
+  } else {
+    // 沒資料才跳警告
+    Swal.fire({
+      icon: 'warning',
+      title: '請先登入',
+      text: '管理員帳號已過期或尚未登入。',
+      confirmButtonText: '去登入',
+      allowOutsideClick: false,
+    }).then(() => {
+      next('/login')
+    })
+  }
+})
+
+export default router
+</file>
+
+</files>

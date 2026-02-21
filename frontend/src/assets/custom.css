@@ -1,0 +1,60 @@
+@charset "UTF-8";
+
+/* 重置基礎樣式 */
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  font-size: 15px;
+}
+
+/* ✅ 關鍵：強制解開 Vue 的寬度限制 */
+body {
+  display: block !important;
+}
+#app {
+  display: block !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100%;
+}
+
+.wrapper {
+  min-height: 100vh;
+}
+
+/* 表格與標籤樣式 (保留你原本喜歡的米色風格) */
+.jy-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fffdf5;
+  margin-bottom: 1rem;
+}
+.jy-table th {
+  background-color: #f4e3c1;
+  color: #2b2114;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px 8px;
+  border: 1px solid #c8b79b;
+  white-space: nowrap;
+}
+.jy-table td {
+  border: 1px solid #dcdcdc;
+  padding: 8px;
+  vertical-align: middle;
+}
+.jy-table tbody tr:nth-child(even) {
+  background-color: #fff9f0;
+}
+.jy-table tbody tr:hover {
+  background-color: #fff1d0;
+}
+.small-box .inner h3 {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+}

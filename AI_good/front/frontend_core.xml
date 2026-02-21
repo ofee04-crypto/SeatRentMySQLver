@@ -1,0 +1,1106 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: frontend/package.json, frontend/vite.config.js, frontend/index.html, frontend/src/main.js, frontend/src/App.vue, frontend/src/router/**, frontend/src/stores/**, frontend/src/utils/**
+- Files matching these patterns are excluded: **/*.map, **/*.min.js, **/*.min.css, **/node_modules/**, **/dist/**, **/target/**, **/vendor/**, **/public/vendor/**, **/logs/**, **/*.log, **/*.svg, **/*.png, **/*.jpg, **/*.ico, AI_good/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+frontend/index.html
+frontend/package.json
+frontend/src/App.vue
+frontend/src/main.js
+frontend/src/router/index.js
+frontend/src/stores/adminAuth.js
+frontend/src/stores/auth.js
+frontend/src/stores/memberAuth.js
+frontend/vite.config.js
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="frontend/src/App.vue">
+<script setup>
+import { onMounted } from 'vue';
+import { RouterView } from 'vue-router';
+import { useMemberAuthStore } from '@/stores/memberAuth';
+import { useAdminAuthStore } from '@/stores/adminAuth';
+import axios from 'axios';
+
+/**
+ * App.vue：整個前端的「根容器」
+ *
+ * [核心邏輯] 應用程式狀態恢復 (Rehydration)
+ * 此處的 onMounted 會在整個應用程式啟動時執行一次。
+ * 它的任務是檢查 localStorage 中是否儲存了上次的登入資訊，
+ * 如果有，就將其恢復到 Pinia store 中。
+ * 這可以確保用戶在重新整理頁面後，登入狀態得以保持。
+ */
+onMounted(async() => {
+  const memberAuthStore = useMemberAuthStore();
+  const adminAuthStore = useAdminAuthStore();
+
+  // 不論本地是否有舊資料，只要後端有 Session，就以 Google 的為準
+  try {
+    const res = await axios.get('http://localhost:8080/api/auth/me', { withCredentials: true });
+    
+    if (res.data) {
+      // 找到 Google 登入資訊，直接寫入並覆蓋 localStorage
+      memberAuthStore.setMemberLogin(res.data);
+      localStorage.setItem('member_user', JSON.stringify(res.data));
+      localStorage.setItem('token', 'google-session-ok'); // 給予暫時 token
+      
+      // Google 登入時通常需確保管理員狀態是清空的，避免權限衝突
+      adminAuthStore.clearAdmin(); 
+      localStorage.removeItem('admin');
+      
+      console.log('App.vue: 已同步最新的 Google 會員資訊並覆蓋舊狀態。');
+      return; // 同步成功，直接結束邏輯
+    }
+  } catch (err) {
+    // 沒抓到 Google Session (例如 401)，才往下執行原本的恢復邏輯
+    console.log('App.vue: 無 Google Session，檢查本地儲存。');
+  }
+
+  // 1. 恢復一般會員的登入狀態
+  if (!memberAuthStore.isLogin) {
+    const storedUser = localStorage.getItem('member_user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        memberAuthStore.setMemberLogin(userData);
+        console.log('App.vue: 會員登入狀態已從 localStorage 恢復。');
+      } catch (e) {
+        console.error('恢復會員狀態失敗:', e);
+        // 如果解析失敗，清除損壞的資料
+        localStorage.removeItem('member_user');
+      }
+    }
+  }
+
+  // 2. 恢復管理員的登入狀態
+  if (!adminAuthStore.isLogin) {
+    const storedAdmin = localStorage.getItem('admin');
+    if (storedAdmin) {
+      try {
+        const adminData = JSON.parse(storedAdmin);
+        adminAuthStore.setAdmin(adminData);
+        console.log('admin login');
+      } catch (e) {
+        console.error('恢復管理員狀態失敗:', e);
+        localStorage.removeItem('admin');
+      }
+    }
+  }
+});
+</script>
+
+<template>
+  <RouterView />
+</template>
+
+<style>
+/* * 這裡只留全域通用的設定
+ * AdminLTE 的具體樣式已經移交給 index.html 和 AdminLayout 處理
+ */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
+
+html,
+body,
+#app {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+}
+
+/* 這是 Vue Router 自動加上的 class，用來做選單高亮 */
+</style>
+</file>
+
+<file path="frontend/src/stores/auth.js">
+import { defineStore } from 'pinia'
+
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    isLogin: false,
+    role: null, // 'member' | 'admin'
+    user: null, // { id, username, name ... }
+  }),
+
+  actions: {
+    login(user, role) {
+      this.isLogin = true
+      this.user = user
+      this.role = role
+    },
+
+    logout() {
+      this.isLogin = false
+      this.user = null
+      this.role = null
+    },
+  },
+})
+</file>
+
+<file path="frontend/src/stores/memberAuth.js">
+import { defineStore } from 'pinia'
+import axios from 'axios'
+
+export const useMemberAuthStore = defineStore('memberAuth', {
+  state: () => {
+    // ✅ 保留 HEAD：登入狀態還原
+    const savedMember = localStorage.getItem('member_user')
+    const savedLogin = localStorage.getItem('isLogin') === 'true'
+
+    return {
+      /* =====================
+       * 類型 1：登入狀態（核心）
+       * ===================== */
+      isLogin: savedLogin,
+
+      /* =====================
+       * 類型 2：會員業務資料（前台會用）
+       * ===================== */
+      member: savedMember
+        ? JSON.parse(savedMember)
+        : {
+            memId: null,
+            memUsername: '',
+            memName: '',
+            memPoints: 0,
+            memInvoice: '',
+          },
+
+      /* =====================
+       * 類型 3：使用者操作暫存（rec 需要）
+       * ===================== */
+      selectedSpotId: null,
+    }
+  },
+
+  actions: {
+    /* ========= 登入 ========= */
+    setMemberLogin(memberData) {
+      this.isLogin = true
+      this.member = {
+        memId: memberData.memId,
+        memUsername: memberData.memUsername,
+        memName: memberData.memName,
+        memPoints: memberData.memPoints,
+        memInvoice: memberData.memInvoice,
+      }
+
+      localStorage.setItem('member_user', JSON.stringify(this.member))
+      localStorage.setItem('isLogin', 'true')
+    },
+
+    /* ========= 點數同步========= */
+    async refreshPoints() {
+      if (!this.member.memId) return
+
+      try {
+        const res = await axios.get('http://localhost:8080/api/members/find', {
+          params: { memId: this.member.memId },
+        })
+
+        if (res.data) {
+          this.member = {
+            ...this.member,
+            memPoints: res.data.memPoints,
+            memName: res.data.memName || this.member.memName,
+          }
+
+          localStorage.setItem('member_user', JSON.stringify(this.member))
+        }
+      } catch (err) {
+        console.warn('點數同步失敗', err)
+      }
+    },
+
+    /* ========= 登出 ========= */
+    async clearMemberLogin() {
+      try {
+        await axios.post('http://localhost:8080/api/auth/logout', {}, { withCredentials: true })
+      } catch (_) {}
+
+      this.isLogin = false
+      this.member = {
+        memId: null,
+        memUsername: '',
+        memName: '',
+        memPoints: 0,
+        memInvoice: '',
+      }
+      this.selectedSpotId = null
+
+      localStorage.removeItem('member_user')
+      localStorage.removeItem('isLogin')
+      localStorage.removeItem('token')
+    },
+
+    /* ========= rec 專用 ========= */
+    setSpotId(spotId) {
+      this.selectedSpotId = spotId
+    },
+    clearSpotId() {
+      this.selectedSpotId = null
+    },
+  },
+})
+</file>
+
+<file path="frontend/index.html">
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <script src="/config.js"></script>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>維修管理系統</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/vendor/adminlte/plugins/fontawesome-free/css/all.min.css" />
+    <link
+      rel="stylesheet"
+      href="/vendor/adminlte/plugins/overlayScrollbars/css/OverlayScrollbars.min.css"
+    />
+    <link rel="stylesheet" href="/vendor/adminlte/dist/css/adminlte.min.css" />
+  </head>
+
+  <body class="hold-transition sidebar-mini layout-fixed">
+    <div id="app"></div>
+
+    <script src="/vendor/adminlte/plugins/jquery/jquery.min.js"></script>
+    <script src="/vendor/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/vendor/adminlte/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+    <script src="/vendor/adminlte/dist/js/adminlte.min.js"></script>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+</file>
+
+<file path="frontend/src/stores/adminAuth.js">
+import { defineStore } from 'pinia'
+
+export const useAdminAuthStore = defineStore('adminAuth', {
+  state: () => ({
+    isLogin: false,
+    admin: {
+      username: '',
+      name: '',
+      role: null,
+      admId: null,
+      admUsername: '',
+      admName: '',
+      admEmail: '',
+      admRole: null,
+      createdAt: null
+    },
+  }),
+  actions: {
+    setAdmin(admin) {
+      this.isLogin = true
+      this.admin = admin
+    },
+    clearAdmin() {
+      this.isLogin= false
+      this.admin = {
+        username: '',
+        name: '',
+        role: null,
+        admId: null,
+        admUsername: '',
+        admName: '',
+        admEmail: '',
+        admRole: null,
+        createdAt: null
+      }
+    },
+  },
+})
+</file>
+
+<file path="frontend/src/main.js">
+import './assets/custom.css'
+
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import axios from 'axios'
+
+// Element Plus
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+
+// --- [ADD] 引入 vue-google-maps ---
+import VueGoogleMaps from '@fawmi/vue-google-maps'
+// Particles.js（Vue 3 版）
+import Particles from '@tsparticles/vue3'
+import { loadSlim } from '@tsparticles/slim'
+
+import VueApexCharts from 'vue3-apexcharts'
+
+import App from './App.vue'
+import router from './router'
+
+import { ElMessageBox } from 'element-plus'
+
+// Axios request interceptor
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  },
+)
+
+let isAuthExpiredDialogShowing = false
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status
+    const url = error.config?.url || ''
+    const currentPath = window.location.hash || window.location.pathname // 取得當前路徑
+
+    // 修改邏輯：
+    // 1. 排除登入相關請求
+    // 2. 只有在「非首頁」且「非登入頁」發生 401 時才強行踢出
+    // 3. 增加對 /member/profile 的容錯，避免剛進首頁就噴錯
+    if (
+      status === 401 &&
+      !url.includes('/login') &&
+      !url.includes('/oauth2') &&
+      !url.includes('/api/auth/me') &&
+      !isAuthExpiredDialogShowing
+    ) {
+      // 如果是在首頁 (#/)，通常是靜態展示，我們就默默清理掉過期資訊就好，不跳彈窗
+      if (currentPath === '#/' || currentPath === '/') {
+        localStorage.removeItem('token')
+        localStorage.removeItem('admin')
+        localStorage.removeItem('member_user')
+        return Promise.reject(error)
+      }
+
+      // 只有在試圖進入「管理後台」或「個人設定」等深層頁面時，才跳出警示
+      isAuthExpiredDialogShowing = true
+
+      ElMessageBox.alert('登入已過期或權限不足，請重新登入', '存取受限', {
+        confirmButtonText: '確認',
+        type: 'warning',
+        showClose: false,
+        closeOnClickModal: false,
+      }).then(() => {
+        isAuthExpiredDialogShowing = false
+        // 清理所有身分緩存
+        localStorage.clear()
+        router.push('/login')
+      })
+    }
+
+    return Promise.reject(error)
+  },
+)
+
+const app = createApp(App)
+
+app.use(createPinia())
+app.use(router)
+
+// Element Plus
+app.use(ElementPlus)
+
+// ApexCharts
+app.use(VueApexCharts)
+
+// --- 啟用 vue-google-maps 並設定 API 金鑰 ---
+app.use(VueGoogleMaps, {
+  load: {
+    key: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: ['marker', 'places'], // 載入 marker 和 places 函式庫
+    v: 'quarterly', // 指定載入穩定的 API 版本
+  },
+})
+
+// --- [NEW] 4. 自動註冊所有圖示 (解決方塊亂碼問題) ---
+// Element Plus Icons
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
+
+// 初始化 Particles（只做一次）
+app.use(Particles, {
+  init: async (engine) => {
+    await loadSlim(engine)
+  },
+})
+
+app.mount('#app')
+</file>
+
+<file path="frontend/vite.config.js">
+import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueDevTools from 'vite-plugin-vue-devtools'
+
+export default defineConfig({
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          //所有以 gmpx- 開頭的標籤都是 Web Components
+          isCustomElement: (tag) => tag.startsWith('gmpx-'),
+        },
+      },
+    }),
+    vueDevTools(),
+  ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  // ==================== 2026-02-01: 已改用 Coze OpenAPI，不再需要 WebSDK ====================
+  // 保留 exclude/external 以防任何殘留 import 造成編譯錯誤
+  optimizeDeps: {
+    exclude: ['@coze/chat-sdk'],
+  },
+  build: {
+    rollupOptions: {
+      external: ['@coze/chat-sdk'],
+    },
+  },
+  // ==================== 結束 ====================
+  server: {
+    //允許cloudflare和localhost進入
+    host: true,
+    allowedHosts: ['.trycloudflare.com', 'localhost'],
+    proxy: {
+      // ⚠️ 重點修正 1：針對「據點 (Spot)」的特殊處理
+      // 前端呼叫 /api/spot -> Vite 幫忙去掉 /api -> 後端收到 /spot
+      '/api/spot': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+
+      // ⚠️ 重點修正 2：針對「座位 (Seat)」的特殊處理
+      // 前端呼叫 /api/seat -> Vite 幫忙去掉 /api -> 後端收到 /seat
+      '/api/seat': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+
+      // 3. 維修模組 (保留 /api)
+      // 因為你的 MaintenanceController 是真的有寫 @RequestMapping("/api/maintenance")
+      // 所以這個規則要放在後面，讓上面兩個特定規則先被抓到
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+
+      // 4. 圖片資源
+      '/images': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+
+      // 5. 座位與據點的備用規則 (預防他們前端改用 /seat 開頭)
+      '/seat': { target: 'http://localhost:8080', changeOrigin: true },
+      '/spot': { target: 'http://localhost:8080', changeOrigin: true },
+    },
+  },
+})
+</file>
+
+<file path="frontend/package.json">
+{
+  "name": "frontend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build",
+    "lint": "eslint . --fix --cache",
+    "format": "prettier --write --experimental-cli src/",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@coze/chat-sdk": "^0.1.11-beta.19",
+    "@element-plus/icons-vue": "^2.3.2",
+    "@fawmi/vue-google-maps": "^0.9.79",
+    "@googlemaps/extended-component-library": "^0.6.14",
+    "@tsparticles/slim": "^3.9.1",
+    "@tsparticles/vue3": "^3.0.1",
+    "apexcharts": "^5.3.6",
+    "axios": "^1.13.2",
+    "chart.js": "^4.5.1",
+    "echarts": "^6.0.0",
+    "element-plus": "^2.13.1",
+    "flatpickr": "^4.6.13",
+    "fullcalendar": "^6.1.20",
+    "html5-qrcode": "^2.3.8",
+    "pinia": "^3.0.4",
+    "sweetalert2": "^11.26.17",
+    "vue": "^3.5.25",
+    "vue-chartjs": "^5.3.3",
+    "vue-router": "^4.6.3",
+    "vue3-apexcharts": "^1.10.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tsconfig/node24": "^24.0.3",
+    "@types/node": "^24.10.1",
+    "@vitejs/plugin-vue": "^6.0.2",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.6.0",
+    "@vue/test-utils": "^2.4.6",
+    "@vue/tsconfig": "^0.8.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-vue": "~10.5.1",
+    "jiti": "^2.6.1",
+    "jsdom": "^24.1.0",
+    "npm-run-all2": "^8.0.4",
+    "prettier": "3.6.2",
+    "sass-embedded": "^1.97.3",
+    "typescript": "~5.9.0",
+    "vite": "^7.2.4",
+    "vite-plugin-vue-devtools": "^8.0.5",
+    "vitest": "^4.0.16",
+    "vue-tsc": "^3.1.5"
+  }
+}
+</file>
+
+<file path="frontend/src/router/index.js">
+import { createRouter, createWebHistory } from 'vue-router'
+import Swal from 'sweetalert2'
+
+/**
+ * ==========================================
+ * 1. 靜態導入元件 (Static Imports)
+ * ==========================================
+ */
+import LoginView from '@/views/member/LoginView.vue' // 登入頁
+import AdminLayout from '@/layouts/AdminLayout.vue' // 後臺主框架 (包含側邊欄與 Header)
+import AdminHomeView from '@/views/member/AdminHomeView.vue' // 後臺首頁(儀表板)
+import MemberListView from '@/views/member/MemberListView.vue' // 會員列表
+import MemberEditView from '@/views/member/MemberEditView.vue' // 會員編輯
+import MemberCreateView from '@/views/member/MemberCreateView.vue' // 會員新增
+import PaymentView from '@/views/ecpay/PaymentView.vue' // 綠界付款頁
+import AdminListView from '@/views/member/AdminListView.vue' // 管理員列表
+import AdminCreateView from '@/views/member/AdminCreateView.vue' // 管理員新增
+import AdminEditView from '@/views/member/AdminEditView.vue' // 管理員編輯
+import MemberLayout from '@/layouts/MemberLayout.vue' // 會員主框架
+import MemberProfileView from '@/views/member/MemberProfileView.vue' // 會員個人資料頁
+import AuthLayout from '@/layouts/AuthLayout.vue' // 認證相關頁面框架
+import MainLayout from '@/layouts/MainLayout.vue' // 前台主框架
+import HomeView from '@/views/HomeView.vue' // 前台首頁
+
+/**
+ * ==========================================
+ * 2. 懶加載導入 (Dynamic Imports)
+ * ==========================================
+ */
+const MerchantList = () => import('@/views/merchantAndCoupon/MerchantList.vue') // 商家列表
+const DiscountList = () => import('@/views/merchantAndCoupon/DiscountList.vue') // 優惠券列表
+const RedemptionLogList = () => import('@/views/merchantAndCoupon/RedemptionLogList.vue') // 新增：後台紀錄
+const CouponMall = () => import('@/views/merchantAndCoupon/CouponMallView.vue') // 新增：前台商城
+const SnakeGame = () => import('@/views/game/SnakeGame.vue') // 貪食蛇遊戲
+
+// 定義路由表
+const routes = [
+  // --- 登入頁面 ---
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+  },
+
+  // ==========================================
+  // [新增] 前台使用者頁面 (不套用後台側邊欄)
+  // ==========================================
+  {
+    path: '/',
+    name: 'entrance',
+    component: MainLayout,
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: HomeView,
+      },
+
+      // 會員頁面
+      {
+        path: 'profile',
+        name: 'member-profile',
+        component: MemberProfileView,
+      },
+
+      // 租借頁面
+      {
+        path: 'rent/:action?',
+        name: 'rec-rent-user',
+        component: () => import('@/views/rec/RecRentUserPage.vue'),
+      },
+      {
+        path: 'SearchSpot',
+        name: 'SearchSpot',
+        component: () => import('@/views/rec/RecRentUserSearchPage.vue'),
+      },
+      {
+        path: 'VisitSiteReommand',
+        name: 'VisitSiteReommand',
+        component: () => import('@/views/rec/VisitSiteReommandPage.vue'),
+      },
+
+      // 將 'rec-rent-record' 路由重定向至帶有 action 參數的標準租借路由
+      {
+        path: 'recordRoute',
+        name: 'rec-rent-record',
+        redirect: { name: 'rec-rent-user', params: { action: 'record' } },
+      },
+
+      {
+        path: 'payment/order',
+        name: 'payment-order',
+        component: () => import('@/views/ecpay/PaymentViewOrder.vue'),
+      },
+      {
+        path: 'claims',
+        name: 'claims',
+        component: () => import('@/views/rec/RightsClaimPage.vue'),
+      },
+
+      // --- 新增：優惠券商城 ---
+      {
+        path: '/mall',
+        name: 'coupon-mall',
+        component: CouponMall,
+      },
+
+      // --- 新增：前台貪食蛇遊戲 ---
+      {
+        path: '/snake',
+        name: 'snake-game',
+        component: SnakeGame,
+      },
+      {
+        path: '/redemption-history',
+        name: 'redemption-history',
+        component: () => import('@/views/merchantAndCoupon/RedemptionHistory.vue'),
+      },
+      {
+        path: '/sponsor',
+        name: 'sponsor',
+        component: () => import('@/views/ecpay/SponsorView.vue'),
+      },
+      {
+        path: '/payment-success',
+        name: 'payment-success',
+        component: () => import('@/views/ecpay/PaymentSuccessView.vue'),
+      },
+
+      // 訂單確認與付款頁
+      {
+        path: '/payment-checkout/:recId',
+        name: 'payment-checkout',
+        component: () => import('@/views/ecpay/PaymentView.vue'),
+      },
+
+      // ==========================================
+      // (翌帆2026-1-31)【新增】客服支援模組 (Support)
+      // ==========================================
+      {
+        path: '/support',
+        name: 'support-center',
+        component: () => import('@/views/support/SupportCenterView.vue'),
+      },
+      {
+        path: '/support/report',
+        name: 'support-report-entry',
+        component: () => import('@/views/support/ReportEntryView.vue'),
+      },
+      {
+        path: '/support/report/damage',
+        name: 'support-report-damage',
+        component: () => import('@/views/support/ReportDamageView.vue'),
+      },
+      {
+        path: '/support/report/manual',
+        name: 'support-report-manual',
+        component: () => import('@/views/support/ReportManualView.vue'),
+      },
+    ],
+  },
+
+  // 註冊會員
+  {
+    path: '/register',
+    component: AuthLayout,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/member/Register.vue'),
+      },
+    ],
+  },
+
+  /**
+   * ==========================================
+   * 3. 管理後臺嵌套路由 (Nested Routes)
+   * 網址前綴統一為 /admin
+   * ==========================================
+   */
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      // 管理後臺首頁
+      {
+        path: '',
+        name: 'admin-home',
+        component: AdminHomeView,
+      },
+
+      // 據點與座位管理 (Spot & Seat)
+      {
+        path: 'spot/list',
+        name: 'spot-list',
+        component: () => import('@/views/spot/SpotList.vue'),
+      },
+
+      // 據點新增與編輯共用同一個元件
+      {
+        path: 'spot/add',
+        name: 'spot-add',
+        component: () => import('@/views/spot/SpotForm.vue'),
+      },
+
+      // 據點編輯
+      {
+        path: 'spot/edit/:id',
+        name: 'spot-edit',
+        component: () => import('@/views/spot/SpotForm.vue'),
+      },
+
+      // 據點詳細資訊
+      {
+        path: 'spot/view/:id', // 網址: /admin/spot/view/1
+        name: 'spot-view',
+        component: () => import('@/views/spot/SpotOne.vue'),
+      },
+      // 據點統計儀表板
+      {
+        path: 'spot/analyze',
+        name: 'spot-analyze',
+        component: () => import('@/views/spot/SpotAnalyze.vue'),
+      },
+      {
+        path: 'spot/monitor',
+        name: 'dispatch-monitor',
+        component: () => import('@/views/spot/DispatchMonitor.vue'),
+      },
+      // ==========================================
+      // [整合] 座位管理模組 (Seat)
+      // ==========================================
+      // 座位管理
+
+      {
+        path: 'seat/list',
+        name: 'seat-list',
+        component: () => import('@/views/spot/SeatList.vue'),
+      },
+
+      // 座位新增與編輯共用同一個元件
+      {
+        path: 'seat/insert',
+        name: 'seat-insert',
+        component: () => import('@/views/spot/SeatForm.vue'),
+      },
+
+      // 座位編輯
+      {
+        path: 'seat/edit/:id',
+        name: 'seat-edit',
+        component: () => import('@/views/spot/SeatForm.vue'),
+      },
+
+      // 座位詳細資訊
+      {
+        path: 'seat/view/:id',
+        name: 'seat-view',
+        component: () => import('@/views/spot/SeatOne.vue'),
+      },
+
+      // [核心功能] 商家與優惠券管理
+      {
+        path: 'merchants',
+        name: 'merchants',
+        component: MerchantList,
+      },
+
+      // 優惠券管理
+      {
+        path: 'discounts',
+        name: 'discounts',
+        component: DiscountList,
+        alias: 'coupons',
+      },
+      // --- 新增：兌換紀錄報表 ---
+      {
+        path: 'redemption-logs',
+        name: 'admin-redemption-logs',
+        component: RedemptionLogList,
+      },
+
+      // [新增] 後台貪食蛇遊戲
+      {
+        path: 'snake-game',
+        name: 'admin-snake-game',
+        component: SnakeGame,
+      },
+      {
+        path: 'sponsors',
+        name: 'admin-sponsors',
+        component: () => import('@/views/ecpay/SponsorLog.vue'),
+      },
+
+      // [核心功能] 會員管理
+      {
+        path: 'members',
+        name: 'member-list',
+        component: MemberListView,
+      },
+
+      // 會員編輯
+      {
+        path: 'members/edit/:id',
+        name: 'member-edit',
+        component: MemberEditView,
+      },
+
+      // 會員新增
+      {
+        path: 'members/create',
+        name: 'member-create',
+        component: MemberCreateView,
+      },
+
+      // [核心功能] 管理員管理
+      {
+        path: 'admins',
+        name: 'admin-list',
+        component: AdminListView,
+      },
+
+      // 管理員新增
+      {
+        path: 'admins/create',
+        name: 'admin-create',
+        component: AdminCreateView,
+      },
+
+      // 管理員編輯
+      {
+        path: 'admins/edit/:id',
+        name: 'admin-edit',
+        component: AdminEditView,
+      },
+
+      // [功能] 租借訂單管理
+      {
+        path: 'rec-rent',
+        name: 'rec-rent',
+        component: () => import('@/views/rec/RecRentMgnPage.vue'),
+      },
+      {
+        path: 'rec-chart',
+        name: 'rec-chart',
+        component: () => import('@/views/rec/RecRentMgnChartPage.vue'),
+      },
+
+      // [功能] 維修管理 (Maintenance)
+      {
+        path: 'staff-list',
+        name: 'staff-list',
+        component: () => import('@/views/maintenance/MaintenanceStaffList.vue'),
+      },
+
+      // 維修人員表單 (新增/編輯)
+      {
+        path: 'staff-form/:id?',
+        name: 'staff-form',
+        component: () => import('@/views/maintenance/MaintenanceStaffForm.vue'),
+      },
+
+      // 維修人員歷史紀錄
+      {
+        path: 'staff-history',
+        name: 'staff-history',
+        component: () => import('@/views/maintenance/MaintenanceStaffHistory.vue'),
+      },
+
+      // 維修工單列表與表單
+      {
+        path: 'mtif-list',
+        name: 'mtif-list',
+        component: () => import('@/views/maintenance/MtifList.vue'),
+        props: { historyMode: false },
+      },
+
+      // 維修工單歷史紀錄
+      {
+        path: 'mtif-history',
+        name: 'mtif-history',
+        component: () => import('@/views/maintenance/MtifList.vue'),
+        props: { historyMode: true },
+      },
+
+      // 維修工單表單 (新增/編輯)
+      {
+        path: 'mtif-form/:id?',
+        name: 'mtif-form',
+        component: () => import('@/views/maintenance/MtifForm.vue'),
+      },
+
+      // --- Schedule (排程) ---
+      {
+        path: 'maintenance/schedule',
+        name: 'schedule-list',
+        component: () => import('@/views/maintenance/ScheduleList.vue'),
+      },
+
+      // 排程表單 (新增/編輯)
+      {
+        path: 'maintenance/schedule/create',
+        name: 'schedule-create',
+        component: () => import('@/views/maintenance/ScheduleForm.vue'),
+      },
+
+      // 排程編輯
+      {
+        path: 'maintenance/schedule/edit/:id',
+        name: 'schedule-edit',
+        component: () => import('@/views/maintenance/ScheduleForm.vue'),
+      },
+    ],
+  },
+
+  // ==========================================
+  // 4. 路由守衛與轉址 (Redirects)
+  // ==========================================
+
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
+]
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+})
+
+/**
+ * ==========================================
+ * 全域路由守衛：後台登入驗證（統一 localStorage）
+ * ==========================================
+ */
+router.beforeEach((to, from, next) => {
+  // 1. 如果不是去後台，直接放行
+  if (!to.path.startsWith('/admin')) {
+    next()
+    return
+  }
+
+  // 2. 取得 localStorage 資料
+  const token = localStorage.getItem('token')
+  const adminJson = localStorage.getItem('admin')
+
+  // Debug 用：如果進不去，請按 F12 看 Console
+  console.log('路由守衛檢查:', { path: to.path, hasToken: !!token, hasAdmin: !!adminJson })
+
+  // 3. 判斷是否有管理員身分
+  if (adminJson) {
+    // 只要有 admin 資料就讓它進去 (Token 視後端攔截器而定)
+    next()
+  } else {
+    // 沒資料才跳警告
+    Swal.fire({
+      icon: 'warning',
+      title: '請先登入',
+      text: '管理員帳號已過期或尚未登入。',
+      confirmButtonText: '去登入',
+      allowOutsideClick: false,
+    }).then(() => {
+      next('/login')
+    })
+  }
+})
+
+export default router
+</file>
+
+</files>

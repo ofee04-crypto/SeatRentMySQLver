@@ -1,0 +1,3599 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: backend/**/*rec*, backend/**/*recommend*, backend/**/model/**, backend/**/entity/**, backend/**/repository/**, backend/**/dto/**, backend/pom.xml
+- Files matching these patterns are excluded: **/*.map, **/*.min.js, **/*.min.css, **/node_modules/**, **/dist/**, **/target/**, **/vendor/**, **/public/vendor/**, **/logs/**, **/*.log, **/*.svg, **/*.png, **/*.jpg, **/*.ico, AI_good/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+backend/pom.xml
+backend/src/main/java/com/example/backend/dto/maintenance/AssetStatsResponseDto.java
+backend/src/main/java/com/example/backend/dto/maintenance/AttachmentResponseDto.java
+backend/src/main/java/com/example/backend/dto/maintenance/MaintenanceLogResponseDto.java
+backend/src/main/java/com/example/backend/dto/maintenance/MaintenanceScheduleResponseDto.java
+backend/src/main/java/com/example/backend/dto/maintenance/MaintenanceStaffResponseDto.java
+backend/src/main/java/com/example/backend/dto/maintenance/SpotOptionDto.java
+backend/src/main/java/com/example/backend/dto/rec/DailyOrderCountDTO.java
+backend/src/main/java/com/example/backend/dto/rec/HourlyOrderCountDTO.java
+backend/src/main/java/com/example/backend/dto/rec/MonthlyOrderCountDTO.java
+backend/src/main/java/com/example/backend/dto/rec/OrderStatusStatsDTO.java
+backend/src/main/java/com/example/backend/dto/rec/RentalDurationDTO.java
+backend/src/main/java/com/example/backend/dto/rec/RentalDurationStatsDTO.java
+backend/src/main/java/com/example/backend/dto/RedemptionLogDTO.java
+backend/src/main/java/com/example/backend/dto/spot/SeatUpdateRequest.java
+backend/src/main/java/com/example/backend/dto/spot/SpotUpdateRequest.java
+backend/src/main/java/com/example/backend/dto/support/CozeBootstrapResponseDto.java
+backend/src/main/java/com/example/backend/model/maintenance/MaintenanceInformation.java
+backend/src/main/java/com/example/backend/model/maintenance/MaintenanceLog.java
+backend/src/main/java/com/example/backend/model/maintenance/MaintenanceSchedule.java
+backend/src/main/java/com/example/backend/model/maintenance/MaintenanceStaff.java
+backend/src/main/java/com/example/backend/model/maintenance/MaintenanceTicketAttachment.java
+backend/src/main/java/com/example/backend/model/member/Admin.java
+backend/src/main/java/com/example/backend/model/member/Member.java
+backend/src/main/java/com/example/backend/model/merchantAndCoupon/DiscountBean.java
+backend/src/main/java/com/example/backend/model/merchantAndCoupon/MerchantBean.java
+backend/src/main/java/com/example/backend/model/merchantAndCoupon/RedemptionLog.java
+backend/src/main/java/com/example/backend/model/merchantAndCoupon/Result.java
+backend/src/main/java/com/example/backend/model/merchantAndCoupon/SponsorshipRecord.java
+backend/src/main/java/com/example/backend/model/rec/RecRent.java
+backend/src/main/java/com/example/backend/model/rec/RentDetails.java
+backend/src/main/java/com/example/backend/model/spot/RentalSpot.java
+backend/src/main/java/com/example/backend/model/spot/Seat.java
+backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceInformationRepository.java
+backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceLogRepository.java
+backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceScheduleRepository.java
+backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceStaffRepository.java
+backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceTicketAttachmentRepository.java
+backend/src/main/java/com/example/backend/repository/member/AdminRepository.java
+backend/src/main/java/com/example/backend/repository/member/CustomOAuth2UserService.java
+backend/src/main/java/com/example/backend/repository/member/MemberRepository.java
+backend/src/main/java/com/example/backend/repository/merchantAndCoupon/DiscountRepository.java
+backend/src/main/java/com/example/backend/repository/merchantAndCoupon/MerchantRepository.java
+backend/src/main/java/com/example/backend/repository/merchantAndCoupon/RedemptionLogRepository.java
+backend/src/main/java/com/example/backend/repository/merchantAndCoupon/SponsorshipRepository.java
+backend/src/main/java/com/example/backend/repository/projection/AnalyzeProjections.java
+backend/src/main/java/com/example/backend/repository/projection/readme.txt
+backend/src/main/java/com/example/backend/repository/rec/RecRentAnalyzeRepository.java
+backend/src/main/java/com/example/backend/repository/rec/RecRentRepository.java
+backend/src/main/java/com/example/backend/repository/rec/RentDetailsRepository.java
+backend/src/main/java/com/example/backend/repository/rec/RentDetailsSpecs.java
+backend/src/main/java/com/example/backend/repository/spot/RentalSpotRepository.java
+backend/src/main/java/com/example/backend/repository/spot/SeatRepository.java
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="backend/src/main/java/com/example/backend/dto/maintenance/AssetStatsResponseDto.java">
+package com.example.backend.dto.maintenance;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * 資產健康度統計 DTO
+ * 用於回傳機台(Spot)或椅子(Seat)在特定時間窗內的維修/保養統計指標
+ */
+public class AssetStatsResponseDto {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private String assetType;          // "SPOT" 或 "SEAT"
+    private Integer assetId;           // spotId 或 seatsId
+    private String assetName;          // 資產名稱
+
+    private Integer repairCount;       // 維修工單數（非保養）
+    private Integer maintainCount;     // 保養工單數
+    private Integer repairDoneCount;   // 維修已結案數
+    private Integer maintainDoneCount; // 保養已結案數
+    private Integer openCount;         // 未結案數
+
+    private Long downtimeMinutes;      // 停機分鐘數（時間窗內）
+    private Double availability;       // 妥善率 (0~1)
+    private Double failureRatePerDay;  // 故障率 (repairCount / 7)
+    private Double repairRate;         // 維修率 (repairDoneCount / repairCount)
+
+    private String windowFrom;         // 統計窗口起始時間
+    private String windowTo;           // 統計窗口結束時間
+
+    // ========== Constructors ==========
+
+    public AssetStatsResponseDto() {}
+
+    public AssetStatsResponseDto(
+            String assetType,
+            Integer assetId,
+            String assetName,
+            Integer repairCount,
+            Integer maintainCount,
+            Integer repairDoneCount,
+            Integer maintainDoneCount,
+            Integer openCount,
+            Long downtimeMinutes,
+            Double availability,
+            Double failureRatePerDay,
+            Double repairRate,
+            LocalDateTime windowFrom,
+            LocalDateTime windowTo
+    ) {
+        this.assetType = assetType;
+        this.assetId = assetId;
+        this.assetName = assetName;
+        this.repairCount = repairCount;
+        this.maintainCount = maintainCount;
+        this.repairDoneCount = repairDoneCount;
+        this.maintainDoneCount = maintainDoneCount;
+        this.openCount = openCount;
+        this.downtimeMinutes = downtimeMinutes;
+        this.availability = availability;
+        this.failureRatePerDay = failureRatePerDay;
+        this.repairRate = repairRate;
+        this.windowFrom = (windowFrom != null) ? windowFrom.format(DATE_FORMATTER) : null;
+        this.windowTo = (windowTo != null) ? windowTo.format(DATE_FORMATTER) : null;
+    }
+
+    // ========== Getters & Setters ==========
+
+    public String getAssetType() { return assetType; }
+    public void setAssetType(String assetType) { this.assetType = assetType; }
+
+    public Integer getAssetId() { return assetId; }
+    public void setAssetId(Integer assetId) { this.assetId = assetId; }
+
+    public String getAssetName() { return assetName; }
+    public void setAssetName(String assetName) { this.assetName = assetName; }
+
+    public Integer getRepairCount() { return repairCount; }
+    public void setRepairCount(Integer repairCount) { this.repairCount = repairCount; }
+
+    public Integer getMaintainCount() { return maintainCount; }
+    public void setMaintainCount(Integer maintainCount) { this.maintainCount = maintainCount; }
+
+    public Integer getRepairDoneCount() { return repairDoneCount; }
+    public void setRepairDoneCount(Integer repairDoneCount) { this.repairDoneCount = repairDoneCount; }
+
+    public Integer getMaintainDoneCount() { return maintainDoneCount; }
+    public void setMaintainDoneCount(Integer maintainDoneCount) { this.maintainDoneCount = maintainDoneCount; }
+
+    public Integer getOpenCount() { return openCount; }
+    public void setOpenCount(Integer openCount) { this.openCount = openCount; }
+
+    public Long getDowntimeMinutes() { return downtimeMinutes; }
+    public void setDowntimeMinutes(Long downtimeMinutes) { this.downtimeMinutes = downtimeMinutes; }
+
+    public Double getAvailability() { return availability; }
+    public void setAvailability(Double availability) { this.availability = availability; }
+
+    public Double getFailureRatePerDay() { return failureRatePerDay; }
+    public void setFailureRatePerDay(Double failureRatePerDay) { this.failureRatePerDay = failureRatePerDay; }
+
+    public Double getRepairRate() { return repairRate; }
+    public void setRepairRate(Double repairRate) { this.repairRate = repairRate; }
+
+    public String getWindowFrom() { return windowFrom; }
+    public void setWindowFrom(String windowFrom) { this.windowFrom = windowFrom; }
+
+    public String getWindowTo() { return windowTo; }
+    public void setWindowTo(String windowTo) { this.windowTo = windowTo; }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/maintenance/MaintenanceLogResponseDto.java">
+package com.example.backend.dto.maintenance;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * 維修歷程回應 DTO (防止 Entity 洩漏)
+ */
+public class MaintenanceLogResponseDto {
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    private Integer logId;
+    private String operator;   // 操作者
+    private String action;     // 動作代號 (CREATED, ASSIGNED, STARTED, RESOLVED, CANCELLED, URGENT)
+    private String comment;    // 備註說明
+    private String createdAt;  // 格式化後的時間字串 (yyyy-MM-dd HH:mm)
+
+    // ========== Constructors ==========
+
+    public MaintenanceLogResponseDto() {}
+
+    /**
+     * 從 Entity 轉換為 DTO
+     */
+    public MaintenanceLogResponseDto(Integer logId, String operator, String action, 
+                                     String comment, LocalDateTime createdAt) {
+        this.logId = logId;
+        this.operator = operator;
+        this.action = action;
+        this.comment = comment;
+        this.createdAt = (createdAt != null) ? createdAt.format(FORMATTER) : null;
+    }
+
+    // ========== Getters & Setters ==========
+
+    public Integer getLogId() {
+        return logId;
+    }
+
+    public void setLogId(Integer logId) {
+        this.logId = logId;
+    }
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public void setOperator(String operator) {
+        this.operator = operator;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/maintenance/MaintenanceScheduleResponseDto.java">
+package com.example.backend.dto.maintenance;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * 排程回應 DTO (含人員姓名)
+ */
+public class MaintenanceScheduleResponseDto {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+
+    private Integer scheduleId;
+    private String title;
+    private String targetType;
+    private Integer targetId;
+    private String scheduleType;
+    private Integer dayOfWeek;
+    private Integer dayOfMonth;
+    private String executeTime;
+    private String issueType;
+    private String issuePriority;
+    private Integer assignedStaffId;
+    private String assignedStaffName;
+    private Boolean isActive;
+    private String lastExecutedAt;
+    private String nextExecuteAt;
+    private String createdAt;
+    private String updatedAt;
+
+    // ========== Constructors ==========
+
+    public MaintenanceScheduleResponseDto() {}
+
+    /**
+     * 從 Entity 轉換的完整建構子 (含人員姓名)
+     */
+    public MaintenanceScheduleResponseDto(
+            Integer scheduleId,
+            String title,
+            String targetType,
+            Integer targetId,
+            String scheduleType,
+            Integer dayOfWeek,
+            Integer dayOfMonth,
+            LocalTime executeTime,
+            String issueType,
+            String issuePriority,
+            Integer assignedStaffId,
+            String assignedStaffName,
+            Boolean isActive,
+            LocalDateTime lastExecutedAt,
+            LocalDateTime nextExecuteAt,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        this.scheduleId = scheduleId;
+        this.title = title;
+        this.targetType = targetType;
+        this.targetId = targetId;
+        this.scheduleType = scheduleType;
+        this.dayOfWeek = dayOfWeek;
+        this.dayOfMonth = dayOfMonth;
+        this.executeTime = (executeTime != null) ? executeTime.format(TIME_FORMATTER) : null;
+        this.issueType = issueType;
+        this.issuePriority = issuePriority;
+        this.assignedStaffId = assignedStaffId;
+        this.assignedStaffName = assignedStaffName;
+        this.isActive = isActive;
+        this.lastExecutedAt = (lastExecutedAt != null) ? lastExecutedAt.format(DATE_FORMATTER) : null;
+        this.nextExecuteAt = (nextExecuteAt != null) ? nextExecuteAt.format(DATE_FORMATTER) : null;
+        this.createdAt = (createdAt != null) ? createdAt.format(DATE_FORMATTER) : null;
+        this.updatedAt = (updatedAt != null) ? updatedAt.format(DATE_FORMATTER) : null;
+    }
+
+    // ========== Getters & Setters ==========
+
+    public Integer getScheduleId() { return scheduleId; }
+    public void setScheduleId(Integer scheduleId) { this.scheduleId = scheduleId; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getTargetType() { return targetType; }
+    public void setTargetType(String targetType) { this.targetType = targetType; }
+
+    public Integer getTargetId() { return targetId; }
+    public void setTargetId(Integer targetId) { this.targetId = targetId; }
+
+    public String getScheduleType() { return scheduleType; }
+    public void setScheduleType(String scheduleType) { this.scheduleType = scheduleType; }
+
+    public Integer getDayOfWeek() { return dayOfWeek; }
+    public void setDayOfWeek(Integer dayOfWeek) { this.dayOfWeek = dayOfWeek; }
+
+    public Integer getDayOfMonth() { return dayOfMonth; }
+    public void setDayOfMonth(Integer dayOfMonth) { this.dayOfMonth = dayOfMonth; }
+
+    public String getExecuteTime() { return executeTime; }
+    public void setExecuteTime(String executeTime) { this.executeTime = executeTime; }
+
+    public String getIssueType() { return issueType; }
+    public void setIssueType(String issueType) { this.issueType = issueType; }
+
+    public String getIssuePriority() { return issuePriority; }
+    public void setIssuePriority(String issuePriority) { this.issuePriority = issuePriority; }
+
+    public Integer getAssignedStaffId() { return assignedStaffId; }
+    public void setAssignedStaffId(Integer assignedStaffId) { this.assignedStaffId = assignedStaffId; }
+
+    public String getAssignedStaffName() { return assignedStaffName; }
+    public void setAssignedStaffName(String assignedStaffName) { this.assignedStaffName = assignedStaffName; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public String getLastExecutedAt() { return lastExecutedAt; }
+    public void setLastExecutedAt(String lastExecutedAt) { this.lastExecutedAt = lastExecutedAt; }
+
+    public String getNextExecuteAt() { return nextExecuteAt; }
+    public void setNextExecuteAt(String nextExecuteAt) { this.nextExecuteAt = nextExecuteAt; }
+
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/maintenance/MaintenanceStaffResponseDto.java">
+package com.example.backend.dto.maintenance;
+
+import java.time.LocalDateTime;
+
+public class MaintenanceStaffResponseDto {
+
+    private Integer staffId;
+    private String staffName;
+    private String staffCompany;
+    private String staffEmail;
+    private String staffPhone;
+    private String staffNote;
+    private Boolean isActive;
+    private LocalDateTime createdAt;
+
+    public MaintenanceStaffResponseDto() {}
+
+    public MaintenanceStaffResponseDto(Integer staffId, String staffName, String staffCompany,
+                                       String staffEmail, String staffPhone, String staffNote,
+                                       Boolean isActive, LocalDateTime createdAt) {
+        this.staffId = staffId;
+        this.staffName = staffName;
+        this.staffCompany = staffCompany;
+        this.staffEmail = staffEmail;
+        this.staffPhone = staffPhone;
+        this.staffNote = staffNote;
+        this.isActive = isActive;
+        this.createdAt = createdAt;
+    }
+
+    public Integer getStaffId() { return staffId; }
+    public void setStaffId(Integer staffId) { this.staffId = staffId; }
+
+    public String getStaffName() { return staffName; }
+    public void setStaffName(String staffName) { this.staffName = staffName; }
+
+    public String getStaffCompany() { return staffCompany; }
+    public void setStaffCompany(String staffCompany) { this.staffCompany = staffCompany; }
+
+    public String getStaffEmail() { return staffEmail; }
+    public void setStaffEmail(String staffEmail) { this.staffEmail = staffEmail; }
+
+    public String getStaffPhone() { return staffPhone; }
+    public void setStaffPhone(String staffPhone) { this.staffPhone = staffPhone; }
+
+    public String getStaffNote() { return staffNote; }
+    public void setStaffNote(String staffNote) { this.staffNote = staffNote; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/RedemptionLogDTO.java">
+package com.example.backend.dto;
+
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class RedemptionLogDTO {
+    private Integer logId;
+    private Integer memId;
+    private Integer couponId;
+    private Integer pointsSpent;
+    private String couponName;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime redeemTime;
+    private String merchantName; // 這是前端要的欄位
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/maintenance/MaintenanceInformation.java">
+package com.example.backend.model.maintenance;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
+@Entity
+@Table(name = "maintenanceInformation")
+public class MaintenanceInformation {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ticketId")
+    private Integer ticketId;
+
+    @Column(name = "spotId")
+    private Integer spotId;
+
+    //新增對應資料庫 seatsId 欄位
+    @Column(name = "seatsId")
+    private Integer seatsId;
+
+    @Column(name = "issueType", nullable = false, length = 200)
+    private String issueType;
+
+    @Column(name = "issueDesc", length = 500)
+    private String issueDesc;
+
+    @Column(name = "issuePriority", nullable = false, length = 100)
+    private String issuePriority;
+
+    @Column(name = "issueStatus", nullable = false, length = 50)
+    private String issueStatus;
+
+    @Column(name = "assignedStaffId")
+    private Integer assignedStaffId;
+
+    // ★ 修正：insertable=false, updatable=false 代表這欄位只負責「讀資料」，寫入還是靠上面的 assignedStaffId
+    // ★ 修正：加上 @JsonIgnoreProperties 防止 JSON 序列化時無限迴圈
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "assignedStaffId", insertable = false, updatable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JsonIgnoreProperties({"maintenanceInformations", "hibernateLazyInitializer", "handler"})
+    private MaintenanceStaff assignedStaff;
+
+    // ================== Task 4: 新增站點與座位關聯 ==================
+    
+    // 關聯到據點資料，用於顯示站點名稱
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "spotId", insertable = false, updatable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private com.example.backend.model.spot.RentalSpot rentalSpot;
+
+    // 關聯到座位資料，用於顯示座位名稱
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "seatsId", insertable = false, updatable = false)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private com.example.backend.model.spot.Seat seat;
+
+
+
+
+    // DB DEFAULT SYSDATETIME()：建議由 DB 產生
+    @Column(name = "reportedAt", insertable = false, updatable = false)
+    private LocalDateTime reportedAt;
+
+    @Column(name = "startAt")
+    private LocalDateTime startAt;
+
+    @Column(name = "resolvedAt")
+    private LocalDateTime resolvedAt;
+
+    @Column(name = "resolveNote", length = 500)
+    private String resolveNote;
+
+    @Column(name = "resultType", length = 50)
+    private String resultType;
+
+    public MaintenanceInformation() {}
+
+    // getters/setters
+    public Integer getTicketId() { return ticketId; }
+    public void setTicketId(Integer ticketId) { this.ticketId = ticketId; }
+
+    public Integer getSpotId() { return spotId; }
+    public void setSpotId(Integer spotId) { this.spotId = spotId; }
+
+    public Integer getSeatsId() { return seatsId; }
+    public void setSeatsId(Integer seatsId) { this.seatsId = seatsId;}
+
+    public String getIssueType() { return issueType; }
+    public void setIssueType(String issueType) { this.issueType = issueType; }
+
+    public String getIssueDesc() { return issueDesc; }
+    public void setIssueDesc(String issueDesc) { this.issueDesc = issueDesc; }
+
+    public String getIssuePriority() { return issuePriority; }
+    public void setIssuePriority(String issuePriority) { this.issuePriority = issuePriority; }
+
+    public String getIssueStatus() { return issueStatus; }
+    public void setIssueStatus(String issueStatus) { this.issueStatus = issueStatus; }
+
+    public Integer getAssignedStaffId() { return assignedStaffId; }
+    public void setAssignedStaffId(Integer assignedStaffId) { this.assignedStaffId = assignedStaffId; }
+
+    public LocalDateTime getReportedAt() { return reportedAt; }
+    public void setReportedAt(LocalDateTime reportedAt) { this.reportedAt = reportedAt; }
+
+    public LocalDateTime getStartAt() { return startAt; }
+    public void setStartAt(LocalDateTime startAt) { this.startAt = startAt; }
+
+    public LocalDateTime getResolvedAt() { return resolvedAt; }
+    public void setResolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; }
+
+    public String getResolveNote() { return resolveNote; }
+    public void setResolveNote(String resolveNote) { this.resolveNote = resolveNote; }
+
+    public String getResultType() { return resultType; }
+    public void setResultType(String resultType) { this.resultType = resultType; }
+
+
+    // Getter & Setter
+    public MaintenanceStaff getAssignedStaff() {
+        return assignedStaff;
+    }
+
+    public void setAssignedStaff(MaintenanceStaff assignedStaff) {
+        this.assignedStaff = assignedStaff;
+    }
+
+    // ================== Task 4: 新增關聯的 Getter/Setter ==================
+    
+    public com.example.backend.model.spot.RentalSpot getRentalSpot() {
+        return rentalSpot;
+    }
+
+    public void setRentalSpot(com.example.backend.model.spot.RentalSpot rentalSpot) {
+        this.rentalSpot = rentalSpot;
+    }
+
+    public com.example.backend.model.spot.Seat getSeat() {
+        return seat;
+    }
+
+    public void setSeat(com.example.backend.model.spot.Seat seat) {
+        this.seat = seat;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/maintenance/MaintenanceLog.java">
+package com.example.backend.model.maintenance;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+/**
+ * 維修歷程記錄表 (Audit Log)
+ * 記錄工單的每一次狀態變更、操作記錄
+ */
+@Entity
+@Table(name = "maintenanceLog")
+public class MaintenanceLog {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "logId")
+    private Integer logId;
+
+    /**
+     * 關聯工單 (多對一)
+     * 使用 @JsonBackReference 防止序列化時發生無限迴圈
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ticketId", nullable = false)
+    @JsonBackReference
+    private MaintenanceInformation ticket;
+
+    @Column(name = "operator", nullable = false, length = 50)
+    private String operator; // 操作者 (支援中文)
+
+    @Column(name = "action", nullable = false, length = 50)
+    private String action; // 動作代號 (CREATED, ASSIGNED, STARTED, RESOLVED, CANCELLED)
+
+    @Column(name = "comment", length = 500)
+    private String comment; // 詳細說明 (可選)
+
+    /**
+     * 發生時間 (由 DB 自動產生)
+     * insertable = false, updatable = false 確保應用層不會覆蓋 DB 預設值
+     */
+    @Column(name = "createdAt", nullable = false, insertable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    // ========== Constructors ==========
+
+    public MaintenanceLog() {}
+
+    /**
+     * 快速建構子 (用於 Service 層建立 Log)
+     */
+    public MaintenanceLog(MaintenanceInformation ticket, String operator, String action, String comment) {
+        this.ticket = ticket;
+        this.operator = operator;
+        this.action = action;
+        this.comment = comment;
+    }
+
+    // ========== Getters & Setters ==========
+
+    public Integer getLogId() {
+        return logId;
+    }
+
+    public void setLogId(Integer logId) {
+        this.logId = logId;
+    }
+
+    public MaintenanceInformation getTicket() {
+        return ticket;
+    }
+
+    public void setTicket(MaintenanceInformation ticket) {
+        this.ticket = ticket;
+    }
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public void setOperator(String operator) {
+        this.operator = operator;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/maintenance/MaintenanceSchedule.java">
+package com.example.backend.model.maintenance;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+/**
+ * 定期維護排程 Entity
+ * 對應資料表 maintenanceSchedule
+ */
+@Data
+@Entity
+@Table(name = "maintenanceSchedule")
+public class MaintenanceSchedule {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "scheduleId")
+    private Integer scheduleId;
+
+    @Column(name = "title", nullable = false, length = 100)
+    private String title;
+
+    /**
+     * 目標類型：'SPOT' 或 'SEAT'
+     */
+    @Column(name = "targetType", nullable = false, length = 20)
+    private String targetType;
+
+    /**
+     * 目標 ID（對應 spotId 或 seatsId）
+     */
+    @Column(name = "targetId", nullable = false)
+    private Integer targetId;
+
+    /**
+     * 排程類型：'DAILY', 'WEEKLY', 'MONTHLY'
+     */
+    @Column(name = "scheduleType", nullable = false, length = 20)
+    private String scheduleType;
+
+    /**
+     * 星期幾 (1-7)，週排程時使用
+     */
+    @Column(name = "dayOfWeek")
+    private Integer dayOfWeek;
+
+    /**
+     * 每月幾號 (1-31)，月排程時使用
+     */
+    @Column(name = "dayOfMonth")
+    private Integer dayOfMonth;
+
+    /**
+     * 執行時間 (時:分:秒)
+     */
+    @Column(name = "executeTime", nullable = false)
+    private LocalTime executeTime;
+
+    /**
+     * 問題類型
+     */
+    @Column(name = "issueType", nullable = false, length = 200)
+    private String issueType;
+
+    /**
+     * 問題優先級：'LOW', 'NORMAL', 'HIGH', 'URGENT'
+     */
+    @Column(name = "issuePriority", nullable = false, length = 50)
+    private String issuePriority;
+
+    /**
+     * 指派的維護人員 ID
+     */
+    @Column(name = "assignedStaffId")
+    private Integer assignedStaffId;
+
+    /**
+     * 是否啟用
+     */
+    @Column(name = "isActive", nullable = false)
+    private Boolean isActive;
+
+    /**
+     * 上次執行時間
+     */
+    @Column(name = "lastExecutedAt")
+    private LocalDateTime lastExecutedAt;
+
+    /**
+     * 下次預計執行時間
+     */
+    @Column(name = "nextExecuteAt", nullable = false)
+    private LocalDateTime nextExecuteAt;
+
+    /**
+     * 建立時間（由 DB 自動產生）
+     */
+    @Column(name = "createdAt", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    /**
+     * 更新時間（由 DB 自動產生）
+     */
+    @Column(name = "updatedAt", insertable = false, updatable = false)
+    private LocalDateTime updatedAt;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/merchantAndCoupon/DiscountBean.java">
+package com.example.backend.model.merchantAndCoupon;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@Entity
+@Table(name = "discount")
+@Getter // 改用 Getter/Setter，比 @Data 安全
+@Setter
+@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class DiscountBean implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "couponId")
+    private Integer couponId;
+
+    @Column(name = "couponName")
+    private String couponName;
+
+    @Column(name = "couponDescription")
+    private String couponDescription;
+
+    @Column(name = "pointsRequired")
+    private Integer pointsRequired;
+
+    @Column(name = "startDate")
+    private LocalDate startDate;
+
+    @Column(name = "endDate")
+    private LocalDate endDate;
+
+    @Column(name = "merchantId")
+    private Integer merchantId;
+
+    @Column(name = "couponStatus")
+    private Integer couponStatus;
+
+    @Column(name = "couponImg")
+    private String couponImg;
+
+    @Column(name = "createdTime", insertable = false, updatable = false)
+    private LocalDateTime createdTime;
+
+    // 關聯商家 (加上 Lazy 載入，並防止序列化報錯)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "merchantId", insertable = false, updatable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    private MerchantBean merchant;
+
+    /**
+     * 這裡不是資料庫欄位，但轉 JSON 時會自動產生 "merchantName" 屬性。
+     * 前端 Vue 看到的 JSON 結構跟原本一模一樣，所以畫面不會壞。
+     */
+    @Transient
+    public String getMerchantName() {
+        return merchant != null ? merchant.getMerchantName() : null;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/merchantAndCoupon/MerchantBean.java">
+package com.example.backend.model.merchantAndCoupon;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "merchant")
+@Getter // 確保使用 Getter/Setter
+@Setter
+@NoArgsConstructor
+public class MerchantBean implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "merchantId")
+    private Integer merchantId;
+
+    @Column(name = "merchantName")
+    private String merchantName;
+
+    @Column(name = "merchantPhone")
+    private String merchantPhone;
+
+    @Column(name = "merchantEmail")
+    private String merchantEmail;
+
+    @Column(name = "merchantAddress")
+    private String merchantAddress;
+
+    @Column(name = "merchantStatus")
+    private int merchantStatus;
+
+    @Column(name = "createdTime", insertable = false, updatable = false)
+    private LocalDateTime createdTime;
+
+    @Override
+    public String toString() {
+        return "MerchantBean [merchantId=" + merchantId + ", merchantName=" + merchantName + "]";
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/merchantAndCoupon/RedemptionLog.java">
+package com.example.backend.model.merchantAndCoupon;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "redemption_log")
+@Data // 如果你沒用 Lombok，請手動產生 Getter/Setter
+public class RedemptionLog {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer logId;
+
+    // 關連會員 ID
+    @Column(name = "memId", nullable = false)
+    private Integer memId;
+
+    // 關連優惠券 ID
+    @Column(name = "couponId", nullable = false)
+    private Integer couponId;
+
+    // 記錄當下扣了多少點 (預防以後優惠券改價錢，紀錄要維持當初的點數)
+    @Column(name = "pointsSpent", nullable = false)
+    private Integer pointsSpent;
+
+    // 記錄核銷時的優惠券名稱 (存快照，避免原優惠券被刪除後找不到名稱)
+    @Column(name = "couponName", length = 100)
+    private String couponName;
+
+    @CreationTimestamp
+    @Column(name = "redeemTime", nullable = false, updatable = false)
+    private LocalDateTime redeemTime;
+
+    public RedemptionLog() {
+    }
+
+    // 方便用的建構子
+    public RedemptionLog(Integer memId, Integer couponId, Integer pointsSpent, String couponName) {
+        this.memId = memId;
+        this.couponId = couponId;
+        this.pointsSpent = pointsSpent;
+        this.couponName = couponName;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/merchantAndCoupon/Result.java">
+package com.example.backend.model.merchantAndCoupon;
+
+import lombok.Data;
+
+@Data
+public class Result<T> {
+    private Integer code;    // 200:成功, 500:失敗
+    private String message;  // 提示訊息
+    private T data;          // 實際資料內容
+
+    public static <T> Result<T> success(T data, String msg) {
+        Result<T> r = new Result<>();
+        r.code = 200;
+        r.data = data;
+        r.message = msg;
+        return r;
+    }
+
+    public static <T> Result<T> error(String msg) {
+        Result<T> r = new Result<>();
+        r.code = 500;
+        r.message = msg;
+        return r;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/rec/RentDetails.java">
+package com.example.backend.model.rec;
+
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.Immutable;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+
+@Getter
+@Entity
+@Immutable // 標記為唯讀，因為這是 View
+@Table(name = "V_RentDetails")
+public class RentDetails {
+
+    @Id
+    @Column(name = "recId")
+    private String recId;
+
+    @Column(name = "memId")
+    private Integer memId;
+
+    @Column(name = "memName")
+    private String memName;
+
+    @Column(name = "couponId")
+    private Integer couponId;
+
+    @Column(name = "couponDesc")
+    private String couponDesc;
+
+    @Column(name = "seatsId")
+    private String seatsId;
+
+    @Column(name = "spotIdRent")
+    private Integer spotIdRent;
+
+    @Column(name = "RentSpotName")
+    private String rentSpotName;
+
+    @Column(name = "spotIdReturn")
+    private Integer spotIdReturn;
+
+    @Column(name = "ReturnSpotName")
+    private String returnSpotName;
+
+    @Column(name = "recRentDT2")
+    private LocalDateTime recRentDT2;
+
+    @Column(name = "recReturnDT2")
+    private LocalDateTime recReturnDT2;
+
+    @Column(name = "recUsageDT2")
+    private Integer recUsageDT2;
+
+    @Column(name = "recPrice")
+    private Integer recPrice;
+
+    @Column(name = "recRequestPay")
+    private Integer recRequestPay;
+
+    @Column(name = "recPayment")
+    private Integer recPayment;
+
+    @Column(name = "recPayBy")
+    private String recPayBy;
+
+    @Column(name = "recInvoice")
+    private String recInvoice;
+
+    @Column(name = "recCarrier")
+    private String recCarrier;
+
+    @Column(name = "recViolatInt")
+    private Integer recViolatInt;
+
+    @Column(name = "recNote")
+    private String recNote;
+
+    @Column(name = "recStatus")
+    private String recStatus;
+
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceInformationRepository.java">
+package com.example.backend.repository.maintenance;
+
+import com.example.backend.model.maintenance.MaintenanceInformation;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface MaintenanceInformationRepository extends JpaRepository<MaintenanceInformation, Integer> {
+
+    List<MaintenanceInformation> findBySpotIdOrderByReportedAtDescTicketIdAsc(Integer spotId);
+
+    // 用於狀態查詢
+    List<MaintenanceInformation> findByIssueStatusOrderByReportedAtDescTicketIdAsc(String issueStatus);
+
+    // 用於 In List 查詢 (Active / History)
+    List<MaintenanceInformation> findByIssueStatusInOrderByReportedAtDescTicketIdAsc(List<String> issueStatusList);
+
+    // 查詢全部並排序 (解決 getAllTickets 沒排序的問題)
+    List<MaintenanceInformation> findAllByOrderByReportedAtDescTicketIdAsc();
+
+    //讓我們可以查某張椅子的所有工單
+    List<MaintenanceInformation> findBySeatsIdOrderByReportedAtDescTicketIdAsc(Integer seatsId);
+
+    //用於轉移工單
+    // 在 interface 裡面新增這行
+List<MaintenanceInformation> findByAssignedStaffIdAndIssueStatusIn(Integer assignedStaffId, List<String> issueStatuses);
+
+boolean existsByAssignedStaffIdAndIssueStatusIn(Integer assignedStaffId, List<String> statuses);
+
+    // ========== 新增：Task 2 歷史工單查詢支援 ==========
+    
+    /**
+     * 查詢指定人員的工單（依狀態篩選）
+     */
+    List<MaintenanceInformation> findByAssignedStaffIdOrderByReportedAtDescTicketIdAsc(Integer assignedStaffId);
+    
+    /**
+     * 查詢指定人員的特定狀態工單
+     */
+    List<MaintenanceInformation> findByAssignedStaffIdAndIssueStatusInOrderByReportedAtDescTicketIdAsc(Integer assignedStaffId, List<String> issueStatuses);
+
+    // ========== 防爆單檢查 (排程自動開單用) ==========
+    
+    /**
+     * 檢查某機台是否有未結案工單 (SPOT)
+     */
+    boolean existsBySpotIdAndSeatsIdIsNullAndIssueStatusIn(Integer spotId, List<String> statuses);
+
+    /**
+     * 檢查某椅子是否有未結案工單 (SEAT)
+     */
+    boolean existsBySeatsIdAndIssueStatusIn(Integer seatsId, List<String> statuses);
+
+    
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceLogRepository.java">
+package com.example.backend.repository.maintenance;
+
+import com.example.backend.model.maintenance.MaintenanceLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * 維修歷程 Repository
+ */
+@Repository
+public interface MaintenanceLogRepository extends JpaRepository<MaintenanceLog, Integer> {
+
+    /**
+     * 查詢指定工單的所有歷程記錄，按時間倒序排列 (最新的在前)
+     * 方法命名規則：findBy + 關聯物件 + 關聯物件欄位 + OrderBy + 排序欄位 + 排序方向
+     */
+    List<MaintenanceLog> findByTicketTicketIdOrderByCreatedAtDesc(Integer ticketId);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceScheduleRepository.java">
+package com.example.backend.repository.maintenance;
+
+import com.example.backend.model.maintenance.MaintenanceSchedule;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * 定期維護排程 Repository
+ */
+public interface MaintenanceScheduleRepository extends JpaRepository<MaintenanceSchedule, Integer> {
+
+    /**
+     * 查詢所有已到期且仍啟用的排程
+     * 用於定時任務：找出 nextExecuteAt < now 且 isActive = true 的排程
+     *
+     * @param now 當前時間
+     * @return 需要執行的排程清單
+     */
+    List<MaintenanceSchedule> findByNextExecuteAtBeforeAndIsActiveTrue(LocalDateTime now);
+
+    /**
+     * 依啟用狀態查詢排程
+     *
+     * @param isActive 是否啟用
+     * @return 排程清單
+     */
+    List<MaintenanceSchedule> findByIsActive(Boolean isActive);
+
+    /**
+     * 依目標類型和目標 ID 查詢排程
+     *
+     * @param targetType 目標類型 (SPOT/SEAT)
+     * @param targetId   目標 ID
+     * @return 排程清單
+     */
+    List<MaintenanceSchedule> findByTargetTypeAndTargetId(String targetType, Integer targetId);
+
+    /**
+     * 依指派人員查詢排程
+     *
+     * @param assignedStaffId 人員 ID
+     * @return 排程清單
+     */
+    List<MaintenanceSchedule> findByAssignedStaffId(Integer assignedStaffId);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceStaffRepository.java">
+package com.example.backend.repository.maintenance;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.backend.model.maintenance.MaintenanceStaff;
+
+public interface MaintenanceStaffRepository extends JpaRepository<MaintenanceStaff, Integer> {
+
+    // 檢查 email 是否存在 (忽略大小寫) - 用於 create
+    boolean existsByStaffEmailIgnoreCase(String staffEmail);
+
+    // 查詢 email (忽略大小寫) - 用於 update 檢查
+    MaintenanceStaff findByStaffEmailIgnoreCase(String staffEmail);
+
+    MaintenanceStaff findByStaffEmail(String staffEmail);
+
+    List<MaintenanceStaff> findByStaffCompany(String staffCompany);
+
+    // 修復：根據啟用狀態查詢人員
+    List<MaintenanceStaff> findByIsActive(Boolean isActive);
+
+    List<MaintenanceStaff> findByIsActiveTrueOrderByStaffIdAsc();
+
+    List<MaintenanceStaff> findByIsActiveFalseOrderByStaffIdAsc();
+    
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/member/CustomOAuth2UserService.java">
+package com.example.backend.repository.member;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+
+import com.example.backend.model.member.Member;
+
+@Service
+public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest);
+
+        String email = oAuth2User.getAttribute("email"); // 例如: alan123@gmail.com
+        String name = oAuth2User.getAttribute("name"); // 例如: 林小安
+
+        Optional<Member> memberOptional = memberRepository.findByMemEmail(email);
+
+        if (memberOptional.isEmpty()) {
+            Member newMember = new Member();
+            newMember.setMemEmail(email);
+            newMember.setMemName(name);
+
+            // --- 關鍵修改：截取 Gmail @ 前面的字串當作帳號 ---
+            if (email != null && email.contains("@")) {
+                String username = email.split("@")[0];
+                newMember.setMemUsername(username); // 設定為 alan123
+            } else {
+                newMember.setMemUsername(email); // 備案
+            }
+
+            // 處理資料庫 NOT NULL 限制
+            newMember.setMemPassword("OAUTH_USER_" + UUID.randomUUID().toString().substring(0, 8));
+            newMember.setMemPhone("未設定");
+
+            // 根據你資料表的預設值
+            newMember.setMemStatus(1);
+            newMember.setMemPoints(0);
+            newMember.setMemViolation(0);
+            newMember.setMemLevel(1);
+
+            memberRepository.save(newMember);
+        }
+
+        return oAuth2User;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/merchantAndCoupon/DiscountRepository.java">
+package com.example.backend.repository.merchantAndCoupon;
+
+import com.example.backend.model.merchantAndCoupon.DiscountBean;
+import org.springframework.data.jpa.repository.EntityGraph; // 必須有這個 import
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface DiscountRepository extends JpaRepository<DiscountBean, Integer> {
+
+        // [重點] 這裡一定要有 @EntityGraph，不然前端拿到資料會沒有 merchantName
+        @Override
+        @EntityGraph(attributePaths = "merchant")
+        List<DiscountBean> findAll();
+
+        @Override
+        @EntityGraph(attributePaths = "merchant")
+        Optional<DiscountBean> findById(Integer id);
+
+        @Modifying(clearAutomatically = true, flushAutomatically = true)
+        @Query(value = "UPDATE d SET d.couponStatus = CASE " +
+                        "WHEN m.merchantStatus = 0 THEN 3 " + // 商家停用優先權最高，強制下架
+                        "WHEN d.endDate < CAST(GETDATE() AS DATE) THEN 2 " +
+                        "WHEN d.startDate > CAST(GETDATE() AS DATE) THEN 0 " +
+                        "ELSE 1 END " +
+                        "FROM discount d " +
+                        "JOIN merchant m ON d.merchantId = m.merchantId " + // 關聯商家表
+                        "WHERE d.couponStatus != 3 OR m.merchantStatus = 0", nativeQuery = true)
+        int autoUpdateStatus();
+
+        // [重點] 這裡也要有
+        @EntityGraph(attributePaths = "merchant")
+        @Query("SELECT d FROM DiscountBean d LEFT JOIN d.merchant m " +
+                        "WHERE d.couponName LIKE %:keyword% " +
+                        "OR d.couponDescription LIKE %:keyword% " +
+                        "OR m.merchantName LIKE %:keyword%") // 加上商家名稱搜尋，更符合直覺
+        List<DiscountBean> findByKeyword(@Param("keyword") String keyword);
+
+        // [重點] 這裡也要有
+        @EntityGraph(attributePaths = "merchant")
+        List<DiscountBean> findByMerchantId(Integer merchantId);
+
+        @Modifying(clearAutomatically = true, flushAutomatically = true)
+        @Query("UPDATE DiscountBean d SET d.couponStatus = 3 WHERE d.merchantId = :merchantId AND d.couponStatus != 3")
+        void disableAllByMerchantId(@Param("merchantId") Integer merchantId);
+
+        @Modifying(clearAutomatically = true, flushAutomatically = true)
+        @Query(value = "UPDATE discount SET couponStatus = CASE " +
+                        "WHEN endDate < CAST(GETDATE() AS DATE) THEN 2 " +
+                        "WHEN startDate > CAST(GETDATE() AS DATE) THEN 0 " +
+                        "ELSE 1 END " +
+                        "WHERE merchantId = :merchantId AND couponStatus = 3", nativeQuery = true)
+        void relistAllByMerchantId(@Param("merchantId") Integer merchantId);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/merchantAndCoupon/MerchantRepository.java">
+package com.example.backend.repository.merchantAndCoupon;
+
+import com.example.backend.model.merchantAndCoupon.MerchantBean;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param; // 記得 import
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface MerchantRepository extends JpaRepository<MerchantBean, Integer> {
+
+    // [編譯安全] 加上 @Param
+    @Query("SELECT m FROM MerchantBean m WHERE m.merchantName LIKE %:keyword% OR m.merchantAddress LIKE %:keyword%")
+    List<MerchantBean> findByKeyword(@Param("keyword") String keyword);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/merchantAndCoupon/RedemptionLogRepository.java">
+package com.example.backend.repository.merchantAndCoupon;
+
+import com.example.backend.dto.RedemptionLogDTO;
+import com.example.backend.model.merchantAndCoupon.RedemptionLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface RedemptionLogRepository extends JpaRepository<RedemptionLog, Integer> {
+    // 之後可以用來查詢某位會員的兌換紀錄
+    List<RedemptionLog> findByMemIdOrderByRedeemTimeDesc(Integer memId);
+
+    List<RedemptionLog> findAllByOrderByRedeemTimeDesc();
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/projection/readme.txt">
+=============================================================================
+ Package: com.example.backend.repository.projection
+ 說明: Spring Data JPA Projections (投影介面) 存放區
+=============================================================================
+
+1. 用途 (Purpose)
+-----------------------------------------------------------------------------
+   此 Package 專門存放「介面 (Interface)」，用於接收 Repository 層中自定義 SQL 
+   (@Query) 的查詢結果。
+
+   當查詢結果是跨多個 Table 的統計數據、或是只選取部分欄位，無法直接對應到單一 
+   Entity (如 Member, RentingSpot) 時，就需要使用這裡的 Projection 介面來接收。
+
+2. 命名與對應規則 (Naming Convention)
+-----------------------------------------------------------------------------
+   Spring Data JPA 使用「別名對應 (Alias Mapping)」機制。
+   介面中的 Getter 方法名稱，必須與 SQL 查詢語句中的 AS 別名完全一致 (區分大小寫)。
+
+   [範例]
+   SQL: 
+     SELECT s.spot_name AS spotName, COUNT(*) AS totalCount FROM ...
+   
+   Projection Interface:
+     String getSpotName();   // 對應 AS spotName
+     Integer getTotalCount(); // 對應 AS totalCount
+
+3. 參考文件
+-----------------------------------------------------------------------------
+   Spring Data JPA - Projections
+   https://docs.spring.io/spring-data/jpa/reference/repositories/projections.html
+
+4. 自動檢查機制 (Validation)
+-----------------------------------------------------------------------------
+   由於 Native Query 的別名錯誤通常在執行時才會發現，本專案已配置啟動檢查器：
+   位置: com.example.backend.config.ProjectionValidationConfig
+   
+   在開發環境 (dev profile) 啟動時，系統會自動試跑 Dashboard 相關查詢。
+   若 SQL AS 別名與介面 Getter 不匹配，Console 會出現 ❌ [FAIL] 錯誤日誌。
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/rec/RecRentRepository.java">
+package com.example.backend.repository.rec;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.backend.model.rec.RecRent;
+
+@Repository
+public interface RecRentRepository extends JpaRepository<RecRent, Integer> {
+    // 新增紀錄
+    RecRent save(RecRent recRent); // 新增單筆
+
+    // 依據業務主鍵刪除
+    void deleteByRecId(String recId); // 刪除單筆
+
+    // 支援用業務主鍵 (Rxxxxxxxxx) 查詢
+    RecRent findByRecId(String recId); // 查詢單筆
+}
+</file>
+
+<file path="backend/pom.xml">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.9</version>
+    <relativePath/> </parent>
+  
+  <groupId>com.example</groupId>
+  <artifactId>backend</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>backend</name>
+  <description>Demo project for Spring Boot</description>
+  
+  <properties>
+    <java.version>17</java.version>
+  </properties>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-devtools</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.10.1</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-oauth2-client</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/maintenance/AttachmentResponseDto.java">
+package com.example.backend.dto.maintenance;
+
+import com.example.backend.model.maintenance.MaintenanceTicketAttachment;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * 附件回應 DTO
+ */
+public class AttachmentResponseDto {
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private Integer attachmentId;
+    private Integer ticketId;
+    private String originalName;
+    private String storedName;
+    private String contentType;
+    private Long fileSize;
+    private String publicUrl;
+    private Integer sortOrder;
+    private String note;
+    private String createdAt;
+
+    // ========== Constructors ==========
+
+    public AttachmentResponseDto() {}
+
+    /**
+     * 從 Entity 轉換為 DTO
+     */
+    public AttachmentResponseDto(MaintenanceTicketAttachment entity) {
+        this.attachmentId = entity.getAttachmentId();
+        this.ticketId = entity.getTicketId();
+        this.originalName = entity.getOriginalName();
+        this.storedName = entity.getStoredName();
+        this.contentType = entity.getContentType();
+        this.fileSize = entity.getFileSize();
+        this.publicUrl = entity.getPublicUrl();
+        this.sortOrder = entity.getSortOrder();
+        this.note = entity.getNote();
+        this.createdAt = entity.getCreatedAt() != null ? entity.getCreatedAt().format(FORMATTER) : null;
+    }
+
+    // ========== Getters & Setters ==========
+
+    public Integer getAttachmentId() {
+        return attachmentId;
+    }
+
+    public void setAttachmentId(Integer attachmentId) {
+        this.attachmentId = attachmentId;
+    }
+
+    public Integer getTicketId() {
+        return ticketId;
+    }
+
+    public void setTicketId(Integer ticketId) {
+        this.ticketId = ticketId;
+    }
+
+    public String getOriginalName() {
+        return originalName;
+    }
+
+    public void setOriginalName(String originalName) {
+        this.originalName = originalName;
+    }
+
+    public String getStoredName() {
+        return storedName;
+    }
+
+    public void setStoredName(String storedName) {
+        this.storedName = storedName;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public String getPublicUrl() {
+        return publicUrl;
+    }
+
+    public void setPublicUrl(String publicUrl) {
+        this.publicUrl = publicUrl;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/rec/DailyOrderCountDTO.java">
+package com.example.backend.dto.rec;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * 用於封裝每日訂單計數的數據傳輸物件 (DTO)。
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DailyOrderCountDTO {
+    // 日期 (格式: YYYY-MM-DD)
+    private String date;
+    // 該日期的訂單數量
+    private Long count;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/rec/HourlyOrderCountDTO.java">
+package com.example.backend.dto.rec;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * 用於封裝每小時訂單計數的數據傳輸物件 (DTO)。
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class HourlyOrderCountDTO {
+    // 小時 (0-23)
+    private Integer hour;
+    // 該小時內的訂單數量
+    private Long count;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/rec/MonthlyOrderCountDTO.java">
+package com.example.backend.dto.rec;
+
+// 定義一個數據傳輸對象(DTO)，用於封裝每月訂單數量的統計結果
+public class MonthlyOrderCountDTO {
+
+    // 儲存年份
+    private Integer year;
+    // 儲存月份
+    private Integer month;
+    // 儲存該月的訂單總數
+    private Long orderCount;
+
+    // 建構子，用於JPQL查詢直接映射結果。使用包裝類型(Integer, Long)以匹配JPQL函數返回的類型。
+    public MonthlyOrderCountDTO(Integer year, Integer month, Long orderCount) {
+        this.year = year;
+        this.month = month;
+        this.orderCount = orderCount;
+    }
+
+    // Year 的 Getter
+    public Integer getYear() {
+        return year;
+    }
+
+    // Year 的 Setter
+    public void setYear(Integer year) {
+        this.year = year;
+    }
+
+    // Month 的 Getter
+    public Integer getMonth() {
+        return month;
+    }
+
+    // Month 的 Setter
+    public void setMonth(Integer month) {
+        this.month = month;
+    }
+
+    // OrderCount 的 Getter
+    public Long getOrderCount() {
+        return orderCount;
+    }
+
+    // OrderCount 的 Setter
+    public void setOrderCount(Long orderCount) {
+        this.orderCount = orderCount;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/rec/OrderStatusStatsDTO.java">
+package com.example.backend.dto.rec;
+
+import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+// Lombok註解，自動生成getter, setter, toString, equals, hashCode
+@Data
+// 自動生成包含所有參數的建構函數
+@AllArgsConstructor
+// 自動生成無參數的建構函數
+@NoArgsConstructor
+public class OrderStatusStatsDTO {
+    // 訂單狀態
+    private String status;
+    // 該狀態的訂單數量
+    private long count;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/rec/RentalDurationDTO.java">
+package com.example.backend.dto.rec;
+
+import java.time.LocalDateTime;
+import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+// Lombok註解，自動生成getter, setter, toString, equals, hashCode
+@Data
+// 自動生成包含所有參數的建構函數
+@AllArgsConstructor
+// 自動生成無參數的建構函數
+@NoArgsConstructor
+public class RentalDurationDTO {
+    // 訂單的唯一識別碼
+    private String recId;
+    // 租借開始時間
+    private LocalDateTime rentTime;
+    // 租借總時長（分鐘）
+    private long durationInMinutes;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/rec/RentalDurationStatsDTO.java">
+package com.example.backend.dto.rec;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * 用於封裝租借時長統計數據的數據傳輸物件 (DTO)。
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class RentalDurationStatsDTO {
+    // 租借時長的分組 (例如，以30分鐘為一個單位)
+    private Integer intervalGroup;
+    // 該分組內的訂單數量
+    private Long count;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/spot/SeatUpdateRequest.java">
+package com.example.backend.dto.spot;
+
+import lombok.Data;
+
+// DTO: 專門用來接收前端 "更新座位" 請求的資料載體
+@Data
+public class SeatUpdateRequest {
+
+    private Integer seatsId;
+    private String seatsName;
+    private String seatsType;
+    private String seatsStatus;
+    private Integer spotId;
+    private String serialNumber;
+
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/spot/SpotUpdateRequest.java">
+package com.example.backend.dto.spot;
+
+import java.math.BigDecimal;
+
+import lombok.Data;
+
+// DTO (Data Transfer Object): 一個簡單的 Java 物件，專門用來在各層之間傳遞資料。
+// 這裡用來對應前端更新 Spot 時傳來的 JSON 物件。
+@Data
+public class SpotUpdateRequest {
+
+    private Integer spotId;
+    private String spotCode;
+    private String spotName;
+    private String spotAddress;
+    private String spotStatus;
+    private Integer merchantId;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
+    private String spotDescription;
+    private String spotImage;
+
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/maintenance/MaintenanceStaff.java">
+package com.example.backend.model.maintenance;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "maintenanceStaff")
+public class MaintenanceStaff {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "staffId")
+    private Integer staffId;
+
+    @Column(name = "staffName", nullable = false, length = 50)
+    private String staffName;
+
+    @Column(name = "staffCompany", length = 100)
+    private String staffCompany;
+
+    @Column(name = "staffPhone", length = 20)
+    private String staffPhone;
+
+    @Column(name = "staffEmail", length = 100)
+    private String staffEmail;
+
+    @Column(name = "staffNote", length = 200)
+    private String staffNote;
+
+    // DB 有 DEFAULT SYSDATETIME()，建議由 DB 產生
+    @Column(name = "createdAt", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    // 你後來 ADD 的欄位：isActive default 1
+    @Column(name = "isActive", nullable = false)
+    private Boolean isActive;
+    
+
+    public MaintenanceStaff() {}
+
+    // getters/setters
+    public Integer getStaffId() { return staffId; }
+    public void setStaffId(Integer staffId) { this.staffId = staffId; }
+
+    public String getStaffName() { return staffName; }
+    public void setStaffName(String staffName) { this.staffName = staffName; }
+
+    public String getStaffCompany() { return staffCompany; }
+    public void setStaffCompany(String staffCompany) { this.staffCompany = staffCompany; }
+
+    public String getStaffPhone() { return staffPhone; }
+    public void setStaffPhone(String staffPhone) { this.staffPhone = staffPhone; }
+
+    public String getStaffEmail() { return staffEmail; }
+    public void setStaffEmail(String staffEmail) { this.staffEmail = staffEmail; }
+
+    public String getStaffNote() { return staffNote; }
+    public void setStaffNote(String staffNote) { this.staffNote = staffNote; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/maintenance/MaintenanceTicketAttachment.java">
+package com.example.backend.model.maintenance;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+/**
+ * 維修工單附件 Entity
+ * 對應資料表 maintenanceTicketAttachment
+ */
+@Entity
+@Table(name = "maintenanceTicketAttachment")
+public class MaintenanceTicketAttachment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "attachmentId")
+    private Integer attachmentId;
+
+    /**
+     * 關聯工單 (多對一)
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ticketId", nullable = false)
+    @JsonBackReference
+    private MaintenanceInformation ticket;
+
+    @Column(name = "ticketId", insertable = false, updatable = false)
+    private Integer ticketId;
+
+    @Column(name = "originalName", nullable = false, length = 255)
+    private String originalName;
+
+    @Column(name = "storedName", nullable = false, length = 255)
+    private String storedName;
+
+    @Column(name = "contentType", nullable = false, length = 100)
+    private String contentType;
+
+    @Column(name = "fileSize", nullable = false)
+    private Long fileSize;
+
+    @Column(name = "publicUrl", nullable = false, length = 400)
+    private String publicUrl;
+
+    @Column(name = "sortOrder", nullable = false)
+    private Integer sortOrder = 0;
+
+    @Column(name = "note", length = 200)
+    private String note;
+
+    /**
+     * 建立時間（由 DB 自動產生）
+     */
+    @Column(name = "createdAt", nullable = false, insertable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "isActive", nullable = false)
+    private Boolean isActive = true;
+
+    // ========== Constructors ==========
+
+    public MaintenanceTicketAttachment() {}
+
+    // ========== Getters & Setters ==========
+
+    public Integer getAttachmentId() {
+        return attachmentId;
+    }
+
+    public void setAttachmentId(Integer attachmentId) {
+        this.attachmentId = attachmentId;
+    }
+
+    public MaintenanceInformation getTicket() {
+        return ticket;
+    }
+
+    public void setTicket(MaintenanceInformation ticket) {
+        this.ticket = ticket;
+    }
+
+    public Integer getTicketId() {
+        return ticketId;
+    }
+
+    public void setTicketId(Integer ticketId) {
+        this.ticketId = ticketId;
+    }
+
+    public String getOriginalName() {
+        return originalName;
+    }
+
+    public void setOriginalName(String originalName) {
+        this.originalName = originalName;
+    }
+
+    public String getStoredName() {
+        return storedName;
+    }
+
+    public void setStoredName(String storedName) {
+        this.storedName = storedName;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public String getPublicUrl() {
+        return publicUrl;
+    }
+
+    public void setPublicUrl(String publicUrl) {
+        this.publicUrl = publicUrl;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/merchantAndCoupon/SponsorshipRecord.java">
+package com.example.backend.model.merchantAndCoupon;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "SponsorshipRecord")
+@Data
+public class SponsorshipRecord {
+    @Column(name = "sponsorid")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer sponsorId;
+
+    @Column(name = "memberid", nullable = false)
+    private Integer memberId;
+
+    @Column(name = "merchanttradeno", nullable = false, unique = true, length = 50)
+    private String merchantTradeNo; // 我們自己產生的編號
+
+    @Column(name = "tradeno", length = 50)
+    private String tradeNo; // 綠界回傳的編號
+
+    @Column(name = "amount", nullable = false)
+    private BigDecimal amount;
+
+    @Column(name = "sponsorcomment", length = 500)
+    private String sponsorComment; // 贊助者的留言
+
+    /**
+     * 0: 待支付 (Pending)
+     * 1: 支付成功 (Success)
+     * 2: 支付失敗 (Failed)
+     */
+    @Column(name = "status", nullable = false)
+    private Integer status = 0;
+
+    @Column(name = "paymenttype")
+    private String paymentType;
+
+    @CreationTimestamp
+    @Column(name = "createdat", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updatedat")
+    private LocalDateTime updatedAt;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/rec/RecRent.java">
+package com.example.backend.model.rec;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+
+@Data // Lombok 自動產生 Getter, Setter, toString 等
+@Entity
+@Table(name = "recRent")
+public class RecRent {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 對應 SQL 的 IDENTITY(1,1)
+    @Column(name = "recSeqId")
+    private Integer recSeqId;
+
+    // 對應 SQL 的計算欄位 (AS ... PERSISTED)，Java 端設為唯讀
+    @Column(name = "recId", insertable = false, updatable = false)
+    private String recId;
+
+    @Column(name = "memId", nullable = false)
+    private Integer memId;
+
+    @Column(name = "couponId")
+    private Integer couponId;
+
+    @Column(name = "seatsId", nullable = false)
+    private String seatsId;
+
+    @Column(name = "spotIdRent", nullable = false)
+    private Integer spotIdRent;
+
+    @Column(name = "spotIdReturn")
+    private Integer spotIdReturn;
+
+    @Column(name = "recRentDT2", nullable = false)
+    private LocalDateTime recRentDT2;
+
+    @Column(name = "recReturnDT2")
+    private LocalDateTime recReturnDT2;
+
+    // 對應 SQL 的 DECIMAL
+    @Column(name = "recUsageDT2")
+    private BigDecimal recUsageDT2;
+
+    @Column(name = "recStatus")
+    private String recStatus;
+
+    @Column(name = "recPrice")
+    private Integer recPrice;
+
+    @Column(name = "recRequestPay")
+    private Integer recRequestPay;
+
+    @Column(name = "recPayment")
+    private Integer recPayment;
+
+    @Column(name = "recPayBy")
+    private String recPayBy;
+
+    @Column(name = "recInvoice")
+    private String recInvoice;
+
+    @Column(name = "recCarrier")
+    private String recCarrier;
+
+    @Column(name = "recViolatInt", nullable = false)
+    private Integer recViolatInt;
+
+    @Column(name = "recNote")
+    private String recNote;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/spot/RentalSpot.java">
+package com.example.backend.model.spot;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Entity
+@Table(name = "renting_Spot")
+@Data
+public class RentalSpot {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "spotId")
+    private Integer spotId;
+
+    @NotBlank(message = "據點代碼不得為空")
+    @Column(name = "spotCode", length = 30, nullable = false)
+    private String spotCode;
+
+    @NotBlank(message = "據點名稱不得為空")
+    @Column(name = "spotName", length = 100, nullable = false)
+    private String spotName;
+
+    @Column(name = "spotAddress", length = 200)
+    private String spotAddress;
+
+    @NotBlank(message = "據點狀態不得為空")
+    @Column(name = "spotStatus", length = 20, nullable = false)
+    private String spotStatus;
+
+    @Column(name = "merchantId")
+    private Integer merchantId;
+
+    // 因 DB 已有 Default 與 Trigger，改由 DB 全權管理，JPA 不寫入、只讀取
+    @Column(name = "createdAt", updatable = false, insertable = false)
+    private LocalDateTime createdAt;
+
+    // 因 DB 已有 Default 與 Trigger，改由 DB 全權管理，JPA 不寫入、只讀取
+    @Column(name = "updatedAt", updatable = false, insertable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "latitude", precision = 10, scale = 7) // 10 總位數，7 小數位
+    private BigDecimal latitude;
+
+    @Column(name = "longitude", precision = 10, scale = 7) // 10 總位數，7 小數位
+    private BigDecimal longitude;
+
+    @Column(name = "spotDescription", length = 500)
+    private String spotDescription;
+
+    @Column(name = "spotImage", length = 255)
+    private String spotImage;
+
+    public RentalSpot() {
+    }
+
+    public RentalSpot(String spotCode, String spotName, String spotStatus) {
+        this.spotCode = spotCode;
+        this.spotName = spotName;
+        this.spotStatus = spotStatus;
+    }
+
+    public RentalSpot(String spotCode, String spotName, String spotAddress, String spotStatus, Integer merchantId,
+            BigDecimal latitude, BigDecimal longitude) {
+        this.spotCode = spotCode;
+        this.spotName = spotName;
+        this.spotAddress = spotAddress;
+        this.spotStatus = spotStatus;
+        this.merchantId = merchantId;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/spot/Seat.java">
+package com.example.backend.model.spot;
+
+import java.time.LocalDateTime;
+
+import lombok.Data;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+
+@Entity
+@Table(name = "seats")
+@Data
+public class Seat {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "seatsId")
+    private Integer seatsId;
+
+    @NotBlank(message = "座位名稱不得為空")
+    @Column(name = "seatsName", length = 100, nullable = false)
+    private String seatsName;
+
+    @NotBlank(message = "座位類型不得為空")
+    @Column(name = "seatsType", length = 50, nullable = false)
+    private String seatsType;
+
+    @NotBlank(message = "座位狀態不得為空")
+    @Column(name = "seatsStatus", length = 20, nullable = false)
+    private String seatsStatus;
+
+    @Column(name = "spotId")
+    private Integer spotId;
+
+    @Column(name = "serialNumber", length = 50, insertable = false, updatable = false)
+    private String serialNumber;
+
+    // [優化] 因 DB 已有 Default 與 Trigger，改由 DB 全權管理，JPA 不寫入、只讀取
+    @Column(name = "createdAt", updatable = false, insertable = false)
+    private LocalDateTime createdAt;
+
+    // [優化] 因 DB 已有 Default 與 Trigger，改由 DB 全權管理，JPA 不寫入、只讀取
+    @Column(name = "updatedAt", updatable = false, insertable = false)
+    private LocalDateTime updatedAt;
+
+    public Seat() {
+    }
+
+    public Seat(Integer seatsId, String seatsName, String seatsType, String seatsStatus,
+            Integer spotId, LocalDateTime updatedAt, String serialNumber, LocalDateTime createdAt) {
+        this.seatsId = seatsId;
+        this.seatsName = seatsName;
+        this.seatsType = seatsType;
+        this.seatsStatus = seatsStatus;
+        this.spotId = spotId;
+        this.updatedAt = updatedAt;
+        this.serialNumber = serialNumber;
+        this.createdAt = createdAt;
+    }
+
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/maintenance/MaintenanceTicketAttachmentRepository.java">
+package com.example.backend.repository.maintenance;
+
+import com.example.backend.model.maintenance.MaintenanceTicketAttachment;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * 維修工單附件 Repository
+ */
+@Repository
+public interface MaintenanceTicketAttachmentRepository extends JpaRepository<MaintenanceTicketAttachment, Integer> {
+
+    /**
+     * 查詢指定工單的所有啟用附件
+     * 排序：sortOrder ASC, createdAt DESC
+     */
+    List<MaintenanceTicketAttachment> findByTicketIdAndIsActiveTrueOrderBySortOrderAscCreatedAtDesc(Integer ticketId);
+
+    /**
+     * 查詢指定工單的最大 sortOrder（用於新增時計算下一個順序）
+     */
+    @Query("SELECT COALESCE(MAX(a.sortOrder), 0) FROM MaintenanceTicketAttachment a WHERE a.ticketId = :ticketId")
+    Integer findMaxSortOrderByTicketId(@Param("ticketId") Integer ticketId);
+
+    /**
+     * 檢查 storedName 是否已存在於該工單（防止重複）
+     */
+    boolean existsByTicketIdAndStoredName(Integer ticketId, String storedName);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/member/AdminRepository.java">
+package com.example.backend.repository.member;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.example.backend.model.member.Admin;
+
+public interface AdminRepository extends JpaRepository<Admin, Integer> {
+
+    // 登入
+    Admin findByAdmUsername(String admUsername);
+
+    // 新增前檢查用
+    boolean existsByAdmUsername(String admUsername);
+
+    boolean existsByAdmEmail(String admEmail);
+
+    // 模糊查詢
+    @Query("""
+                SELECT a FROM Admin a
+                WHERE a.admUsername LIKE %:kw%
+                   OR a.admName LIKE %:kw%
+                   OR a.admEmail LIKE %:kw%
+            """)
+    List<Admin> findByKeyword(@Param("kw") String keyword);
+
+    // 忘記密碼用：透過 Email 找到管理員物件
+    Admin findByAdmEmail(String admEmail);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/member/MemberRepository.java">
+package com.example.backend.repository.member;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.example.backend.model.member.Member;
+
+public interface MemberRepository extends JpaRepository<Member, Integer> {
+
+    // 登入用（新增這行）
+    Member findByMemUsername(String memUsername);
+
+    // 模糊查詢
+    @Query("""
+                SELECT m FROM Member m
+                WHERE m.memUsername LIKE %:kw%
+                   OR m.memName LIKE %:kw%
+                   OR m.memEmail LIKE %:kw%
+                   OR m.memPhone LIKE %:kw%
+            """)
+    List<Member> findByKeyword(@Param("kw") String keyword);
+
+    // 讓 CustomOAuth2UserService 可以用 Email 檢查會員是否存在
+    Optional<Member> findByMemEmail(String memEmail);
+
+    // --- 新增這行給忘記密碼功能使用 ---
+    // 直接回傳 Member 物件，方便 Service 調用
+    Member findByMemEmailIgnoreCase(String memEmail);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/merchantAndCoupon/SponsorshipRepository.java">
+package com.example.backend.repository.merchantAndCoupon;
+
+import java.util.List;
+import java.util.Optional;
+import com.example.backend.model.merchantAndCoupon.SponsorshipRecord;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SponsorshipRepository extends JpaRepository<SponsorshipRecord, Integer> {
+    // 透過訂單編號找紀錄，這是更新狀態時最核心的功能
+    List<SponsorshipRecord> findAllByOrderBySponsorIdDesc();
+
+    Optional<SponsorshipRecord> findByMerchantTradeNo(String merchantTradeNo);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/rec/RentDetailsSpecs.java">
+package com.example.backend.repository.rec;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.StringUtils;
+
+import com.example.backend.model.rec.RentDetails;
+
+import jakarta.persistence.criteria.Predicate;
+
+public class RentDetailsSpecs {
+
+    public static Specification<RentDetails> hasRecId(String recId) {
+        return (root, query, cb) -> {
+            if (!StringUtils.hasText(recId)) {
+                return cb.conjunction(); // or cb.isTrue(cb.literal(true))
+            }
+            return cb.equal(root.get("recId"), recId);
+        };
+    }
+
+    public static Specification<RentDetails> hasMemId(Integer memId) {
+        return (root, query, cb) -> {
+            if (memId == null) {
+                return cb.conjunction();
+            }
+            return cb.equal(root.get("memId"), memId);
+        };
+    }
+
+    public static Specification<RentDetails> spotNameContains(String spotName) {
+        return (root, query, cb) -> {
+            if (!StringUtils.hasText(spotName)) {
+                return cb.conjunction();
+            }
+            return cb.like(root.get("rentSpotName"), "%" + spotName + "%");
+        };
+    }
+
+    public static Specification<RentDetails> memNameContains(String memName) {
+        return (root, query, cb) -> {
+            if (!StringUtils.hasText(memName)) {
+                return cb.conjunction();
+            }
+            return cb.like(root.get("memName"), "%" + memName + "%");
+        };
+    }
+
+    public static Specification<RentDetails> hasRecStatus(String recStatus) {
+        return (root, query, cb) -> {
+            if (!StringUtils.hasText(recStatus)) {
+                return cb.conjunction();
+            }
+            return cb.equal(root.get("recStatus"), recStatus);
+        };
+    }
+
+    public static Specification<RentDetails> hasSpotId(Integer spotId) {
+        return (root, query, cb) -> {
+            if (spotId == null) {
+                return cb.conjunction();
+            }
+            // 搜尋租借站點ID或歸還站點ID
+            Predicate rentSpotMatch = cb.equal(root.get("spotIdRent"), spotId);
+            Predicate returnSpotMatch = cb.equal(root.get("spotIdReturn"), spotId);
+            return cb.or(rentSpotMatch, returnSpotMatch);
+        };
+    }
+
+    public static Specification<RentDetails> isWithinTimeRange(LocalDate startDate, LocalDate endDate) {
+        return (root, query, cb) -> {
+            if (startDate == null || endDate == null) {
+                return cb.conjunction();
+            }
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+            Predicate rentTimeIn = cb.between(root.get("recRentDT2"), startDateTime, endDateTime);
+            Predicate returnTimeIn = cb.between(root.get("recReturnDT2"), startDateTime, endDateTime);
+
+            return cb.or(rentTimeIn, returnTimeIn);
+        };
+    }
+
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/spot/SeatRepository.java">
+package com.example.backend.repository.spot;
+
+import java.util.List; // 確認這裡是 java.util.List，絕對不能是 java.awt.List
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.example.backend.model.spot.Seat;
+
+@Repository
+public interface SeatRepository extends JpaRepository<Seat, Integer>, JpaSpecificationExecutor<Seat> {
+
+    // 補上 Service 層呼叫的模糊查詢方法
+    @Query("SELECT s FROM Seat s WHERE s.seatsName LIKE %:keyword% OR s.serialNumber LIKE %:keyword% OR s.seatsType LIKE %:keyword%")
+    List<Seat> findByKeyword(@Param("keyword") String keyword);
+
+    /**
+     * 檢查指定的 serialNumber 是否已存在於資料庫中。
+     * 
+     * @param serialNumber 要檢查的序號
+     * @return 如果存在則返回 true，否則返回 false。
+     */
+    boolean existsBySerialNumber(String serialNumber);
+
+    // 根據據點 ID 查詢該據點下的所有座位
+    List<Seat> findBySpotId(Integer spotId);
+
+    // 根據據點 ID 查詢該據點下的座位數量
+    long countBySpotId(Integer spotId);
+
+    // 查詢符合前綴的最後一筆座位資料 (用於自動產生序號，例如找 SN-2026 開頭的最大值)
+    Seat findTopBySerialNumberStartingWithOrderBySerialNumberDesc(String prefix);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/maintenance/SpotOptionDto.java">
+package com.example.backend.dto.maintenance;
+
+public class SpotOptionDto {
+    private Integer spotId;
+    private String spotCode;
+    private String spotName;
+    private String spotAddress;
+    private String spotStatus;
+
+    //  經緯度欄位（前端地圖用）
+    // 建議用 Double（JSON 友善、前端也好處理）
+    private Double latitude;
+    private Double longitude;
+
+    public SpotOptionDto() {}
+
+    //  舊建構子：不影響既有程式（例如下拉選單只需要基本欄位）
+    public SpotOptionDto(Integer spotId, String spotCode, String spotName, String spotAddress, String spotStatus) {
+        this.spotId = spotId;
+        this.spotCode = spotCode;
+        this.spotName = spotName;
+        this.spotAddress = spotAddress;
+        this.spotStatus = spotStatus;
+    }
+
+    //  新建構子：給「需要地圖座標」的情境使用
+    public SpotOptionDto(
+            Integer spotId,
+            String spotCode,
+            String spotName,
+            String spotAddress,
+            String spotStatus,
+            Double latitude,
+            Double longitude
+    ) {
+        this.spotId = spotId;
+        this.spotCode = spotCode;
+        this.spotName = spotName;
+        this.spotAddress = spotAddress;
+        this.spotStatus = spotStatus;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+    public Integer getSpotId() { return spotId; }
+    public void setSpotId(Integer spotId) { this.spotId = spotId; }
+
+    public String getSpotCode() { return spotCode; }
+    public void setSpotCode(String spotCode) { this.spotCode = spotCode; }
+
+    public String getSpotName() { return spotName; }
+    public void setSpotName(String spotName) { this.spotName = spotName; }
+
+    public String getSpotAddress() { return spotAddress; }
+    public void setSpotAddress(String spotAddress) { this.spotAddress = spotAddress; }
+
+    public String getSpotStatus() { return spotStatus; }
+    public void setSpotStatus(String spotStatus) { this.spotStatus = spotStatus; }
+
+    //  getter / setter：前端地圖讀 allSpots.value[n].latitude / longitude
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/dto/support/CozeBootstrapResponseDto.java">
+package com.example.backend.dto.support;
+
+/**
+ * Coze Web Chat SDK Bootstrap API 回應 DTO
+ * 
+ * 用途：提供前端初始化 Coze SDK 所需的配置資訊
+ * 
+ * 注意：
+ * 1. token 欄位含敏感資訊，toString() 已做遮蔽處理
+ * 2. expiresIn 若無法取得可設為 0 或 null
+ * 3. 新增診斷欄位：platformHint, sdkMode, apiHostHint
+ */
+public class CozeBootstrapResponseDto {
+    
+    /**
+     * Coze Bot ID（公開資訊）
+     */
+    private String botId;
+    
+    /**
+     * 認證 Token（敏感資訊，需保密）
+     */
+    private String token;
+    
+    /**
+     * Coze SDK Script 來源 URL
+     */
+    private String sdkSrc;
+    
+    /**
+     * Token 過期時間（秒），若無法取得可為 null
+     */
+    private Integer expiresIn;
+    
+    /**
+     * 伺服器時間（ISO-8601 格式）
+     */
+    private String serverTime;
+    
+    /**
+     * 備註訊息（例如：提醒 PAT 過期時間）
+     */
+    private String note;
+
+    // ==================== 新增：診斷欄位 ====================
+    
+    /**
+     * 平台提示（例如 "coze.com" 或 "coze.cn"）
+     * 用於診斷與區分不同區域的服務
+     */
+    private String platformHint;
+    
+    /**
+     * 建議的 SDK 載入模式（"npm" | "script"）
+     * 前端可根據此欄位決定載入策略
+     */
+    private String sdkMode;
+    
+    /**
+     * API 主機提示（例如 "api.coze.com"）
+     * 用於前端診斷連通性
+     */
+    private String apiHostHint;
+
+    // Constructors
+    public CozeBootstrapResponseDto() {}
+
+    public CozeBootstrapResponseDto(String botId, String token, String sdkSrc) {
+        this.botId = botId;
+        this.token = token;
+        this.sdkSrc = sdkSrc;
+    }
+
+    // Getters and Setters
+    public String getBotId() {
+        return botId;
+    }
+
+    public void setBotId(String botId) {
+        this.botId = botId;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getSdkSrc() {
+        return sdkSrc;
+    }
+
+    public void setSdkSrc(String sdkSrc) {
+        this.sdkSrc = sdkSrc;
+    }
+
+    public Integer getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(Integer expiresIn) {
+        this.expiresIn = expiresIn;
+    }
+
+    public String getServerTime() {
+        return serverTime;
+    }
+
+    public void setServerTime(String serverTime) {
+        this.serverTime = serverTime;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getPlatformHint() {
+        return platformHint;
+    }
+
+    public void setPlatformHint(String platformHint) {
+        this.platformHint = platformHint;
+    }
+
+    public String getSdkMode() {
+        return sdkMode;
+    }
+
+    public void setSdkMode(String sdkMode) {
+        this.sdkMode = sdkMode;
+    }
+
+    public String getApiHostHint() {
+        return apiHostHint;
+    }
+
+    public void setApiHostHint(String apiHostHint) {
+        this.apiHostHint = apiHostHint;
+    }
+
+    /**
+     * 重寫 toString()，避免印出完整 token
+     * 僅顯示前 10 字元 + 遮蔽符號
+     */
+    @Override
+    public String toString() {
+        return "CozeBootstrapResponseDto{" +
+                "botId='" + botId + '\'' +
+                ", token='" + (token != null && token.length() > 10 
+                        ? token.substring(0, 10) + "..." 
+                        : "[HIDDEN]") + '\'' +
+                ", sdkSrc='" + sdkSrc + '\'' +
+                ", expiresIn=" + expiresIn +
+                ", serverTime='" + serverTime + '\'' +
+                ", platformHint='" + platformHint + '\'' +
+                ", sdkMode='" + sdkMode + '\'' +
+                ", apiHostHint='" + apiHostHint + '\'' +
+                ", note='" + note + '\'' +
+                '}';
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/rec/RecRentAnalyzeRepository.java">
+package com.example.backend.repository.rec;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.example.backend.model.rec.RecRent;
+import com.example.backend.repository.projection.AnalyzeProjections.DurationRate;
+import com.example.backend.repository.projection.AnalyzeProjections.HourlyRate;
+
+/**
+ * 專門用於儀表板統計的 Repository
+ */
+@Repository
+public interface RecRentAnalyzeRepository extends JpaRepository<RecRent, Integer> {
+
+    // 需求 3: 每日每一時間之熱度 (全站總計)
+    @Query(value = """
+                SELECT
+                    DATEPART(HOUR, recRentDT2) as hourofDay,
+                    COUNT(*) as rentedCount
+                FROM recRent
+                WHERE (:startDate IS NULL OR recRentDT2 >= :startDate)
+                  AND (:endDate IS NULL OR recRentDT2 < DATEADD(day, 1, :endDate))
+                GROUP BY DATEPART(HOUR, recRentDT2)
+                ORDER BY hourofDay
+            """, nativeQuery = true)
+    List<HourlyRate> getHourlyHeatMap(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    // 需求 4: 使用時間長短統計
+    @Query(value = """
+                SELECT
+                    CASE
+                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 60 THEN '1小時內'
+                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 120 THEN '1-2小時'
+                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 240 THEN '2-4小時'
+                        ELSE '4小時以上'
+                    END as durationRange,
+                    COUNT(*) as count
+                FROM recRent
+                WHERE recStatus = N'已完成' AND recReturnDT2 IS NOT NULL
+                  AND (:startDate IS NULL OR recRentDT2 >= :startDate)
+                  AND (:endDate IS NULL OR recRentDT2 < DATEADD(day, 1, :endDate))
+                GROUP BY
+                    CASE
+                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 60 THEN '1小時內'
+                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 120 THEN '1-2小時'
+                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 240 THEN '2-4小時'
+                        ELSE '4小時以上'
+                    END
+            """, nativeQuery = true)
+    List<DurationRate> getDurationStats(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/rec/RentDetailsRepository.java">
+package com.example.backend.repository.rec;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.example.backend.model.rec.RentDetails;
+
+public interface RentDetailsRepository
+                extends JpaRepository<RentDetails, String>, JpaSpecificationExecutor<RentDetails> {
+
+        // JPQL查詢，用於按月統計指定時間範圍內的訂單數量
+        // 返回Object[]而不是DTO，以避免JPA實現中的構造函數類型匹配問題
+        @Query("SELECT FUNCTION('YEAR', r.recRentDT2), FUNCTION('MONTH', r.recRentDT2), COUNT(r) " +
+                        "FROM RentDetails r " +
+                        "WHERE r.recRentDT2 BETWEEN :startDate AND :endDate " +
+                        "GROUP BY FUNCTION('YEAR', r.recRentDT2), FUNCTION('MONTH', r.recRentDT2) " +
+                        "ORDER BY FUNCTION('YEAR', r.recRentDT2), FUNCTION('MONTH', r.recRentDT2)")
+        List<Object[]> findMonthlyOrderCounts(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+
+        // JPQL查詢，用於統計指定時間範圍內各訂單狀態的數量（圓餅圖數據）
+        @Query("SELECT r.recStatus, COUNT(r) FROM RentDetails r " +
+                        "WHERE r.recRentDT2 BETWEEN :startDate AND :endDate " +
+                        "GROUP BY r.recStatus")
+        List<Object[]> findOrderStatusStats(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+
+        // JPQL查詢，用於獲取指定時間範圍內訂單的租借時間信息（散佈圖數據）
+        // 篩選掉recReturnDT2為null的紀錄，因為無法計算時長
+        @Query("SELECT r.recId, r.recRentDT2, r.recReturnDT2 FROM RentDetails r " +
+                        "WHERE r.recRentDT2 BETWEEN :startDate AND :endDate AND r.recReturnDT2 IS NOT NULL")
+        List<Object[]> findRentalDurations(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+
+        // 查詢：按小時統計訂單數量 (長條圖) - SQL Server 版本
+        @Query(value = "SELECT DATEPART(hour, recRentDT2), COUNT(*) " +
+                        "FROM V_RentDetails " + // 修正：使用正確的 View 與欄位名稱
+                        "WHERE recRentDT2 BETWEEN :startDate AND :endDate " +
+                        "GROUP BY DATEPART(hour, recRentDT2) " +
+                        "ORDER BY DATEPART(hour, recRentDT2)", nativeQuery = true)
+        List<Object[]> findHourlyOrderCounts(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+
+        // 查詢：按日統計訂單數量 (折線圖) - SQL Server 版本
+        @Query(value = "SELECT CONVERT(varchar, recRentDT2, 23), COUNT(*) " +
+                        "FROM V_RentDetails " + // 修正：使用正確的 View 與欄位名稱
+                        "WHERE recRentDT2 BETWEEN :startDate AND :endDate " +
+                        "GROUP BY CONVERT(varchar, recRentDT2, 23) " +
+                        "ORDER BY CONVERT(varchar, recRentDT2, 23)", nativeQuery = true)
+        List<Object[]> findDailyOrderCounts(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+
+        // 查詢：按30分鐘間隔統計租借時長 - SQL Server 版本
+        @Query(value = "SELECT floor(DATEDIFF(minute, recRentDT2, recReturnDT2) / 30) AS interval_group, COUNT(*) "
+                        +
+                        "FROM V_RentDetails " + // 修正：使用正確的 View 與欄位名稱
+                        "WHERE recRentDT2 BETWEEN :startDate AND :endDate AND recReturnDT2 IS NOT NULL " +
+                        "GROUP BY floor(DATEDIFF(minute, recRentDT2, recReturnDT2) / 30) " +
+                        "ORDER BY interval_group", nativeQuery = true)
+        List<Object[]> findRentalDurationStatsIn30MinIntervals(@Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/member/Member.java">
+package com.example.backend.model.member;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.*;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@Entity
+@Table(name = "member")
+public class Member {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "memId")
+    private int memId;
+
+    @Column(name = "memUsername", nullable = false, length = 50)
+    private String memUsername;
+
+    @Column(name = "memPassword", nullable = false, length = 100)
+    private String memPassword;
+
+    @Column(name = "memName", nullable = false, length = 50)
+    private String memName;
+
+    @Column(name = "memEmail", nullable = false, length = 50)
+    private String memEmail;
+
+    @Column(name = "memPhone", nullable = false, length = 20)
+    private String memPhone;
+
+    @Column(name = "memStatus", nullable = false)
+    private int memStatus;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @CreationTimestamp
+    @Column(name = "createdAt", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @UpdateTimestamp
+    @Column(name = "updatedAt", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(name = "memPoints", nullable = false)
+    private int memPoints;
+
+    @Column(name = "memViolation", nullable = false)
+    private int memViolation;
+
+    @Column(name = "memLevel", nullable = false)
+    private int memLevel;
+
+    @Column(name = "memInvoice", length = 20)
+    private String memInvoice;
+
+    @Column(name = "memImage", length = 255)
+    private String memImage = "default.png";
+
+    public Member() {
+    }
+
+    // getter / setter
+    public int getMemId() {
+        return memId;
+    }
+
+    public void setMemId(int memId) {
+        this.memId = memId;
+    }
+
+    public String getMemUsername() {
+        return memUsername;
+    }
+
+    public void setMemUsername(String memUsername) {
+        this.memUsername = memUsername;
+    }
+
+    public String getMemPassword() {
+        return memPassword;
+    }
+
+    public void setMemPassword(String memPassword) {
+        this.memPassword = memPassword;
+    }
+
+    public String getMemName() {
+        return memName;
+    }
+
+    public void setMemName(String memName) {
+        this.memName = memName;
+    }
+
+    public String getMemEmail() {
+        return memEmail;
+    }
+
+    public void setMemEmail(String memEmail) {
+        this.memEmail = memEmail;
+    }
+
+    public String getMemPhone() {
+        return memPhone;
+    }
+
+    public void setMemPhone(String memPhone) {
+        this.memPhone = memPhone;
+    }
+
+    public int getMemStatus() {
+        return memStatus;
+    }
+
+    public void setMemStatus(int memStatus) {
+        this.memStatus = memStatus;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public int getMemPoints() {
+        return memPoints;
+    }
+
+    public void setMemPoints(int memPoints) {
+        this.memPoints = memPoints;
+    }
+
+    public int getMemViolation() {
+        return memViolation;
+    }
+
+    public void setMemViolation(int memViolation) {
+        this.memViolation = memViolation;
+    }
+
+    public int getMemLevel() {
+        return memLevel;
+    }
+
+    public void setMemLevel(int memLevel) {
+        this.memLevel = memLevel;
+    }
+
+    public String getMemInvoice() {
+        return memInvoice;
+    }
+
+    public void setMemInvoice(String memInvoice) {
+        this.memInvoice = memInvoice;
+    }
+
+    public String getMemImage() {
+        return memImage;
+    }
+
+    public void setMemImage(String memImage) {
+        this.memImage = memImage;
+    }
+
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/projection/AnalyzeProjections.java">
+package com.example.backend.repository.projection;
+
+public class AnalyzeProjections {
+
+    // 站點於各城市之分布統計
+    public interface SpotCountByCity {
+        String getCity();
+
+        Integer getSpotCount();
+    }
+
+    // 各時段租借次數統計
+    public interface HourlyRate {
+        Integer getHourofDay();
+
+        Integer getRentedCount();
+    }
+
+    // 站點即時監控 (名稱、總座位、已租借)
+    public interface SpotMonitor {
+        Integer getSpotId(); // 新增 ID 以便前端進行調度操作
+
+        String getSpotName();
+
+        Integer getTotalSeats();
+
+        Integer getAvailableSeats();
+    }
+
+    // 各租借時長區間統計
+    public interface DurationRate {
+        String getDurationRange();
+
+        Integer getCount();
+    }
+
+    // 熱門點位統計 (首頁使用)
+    public interface HotSpot {
+        Integer getSpotId();
+
+        String getSpotName();
+
+        String getSpotStatus();
+
+        Integer getAvailableSeats();
+
+        String getSpotImage();
+
+        Double getLatitude();
+
+        Double getLongitude();
+
+        Integer getOrderCount();
+    }
+
+    // [新增] 站點與即時座位數 (地圖標記使用)
+    public interface SpotWithSeats {
+        Integer getSpotId();
+
+        String getSpotName();
+
+        String getSpotStatus();
+
+        Double getLatitude();
+
+        Double getLongitude();
+
+        String getSpotImage();
+
+        Integer getAvailableSeats();
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/model/member/Admin.java">
+package com.example.backend.model.member;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.Data;
+
+@Data
+@Entity
+@Table(name = "admin")
+public class Admin {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "admId")
+    private Integer admId;
+
+    @Column(name = "admUsername", nullable = false, unique = true)
+    private String admUsername;
+
+    @Column(name = "admPassword", nullable = false)
+    private String admPassword;
+
+    @Column(name = "admName", nullable = false)
+    private String admName;
+
+    @Column(name = "admEmail", nullable = false)
+    private String admEmail;
+
+    @Column(name = "admRole", nullable = false)
+    private Integer admRole;
+
+    @Column(name = "createdAt")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updatedAt")
+    private LocalDateTime updatedAt;
+
+    // 在類別裡面補上這兩個自動設定，這樣你新增、修改就都不用手動 set 時間了
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @Column(name = "admStatus")
+    private Integer admStatus = 1;
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/repository/spot/RentalSpotRepository.java">
+package com.example.backend.repository.spot;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.example.backend.model.spot.RentalSpot;
+import com.example.backend.repository.projection.AnalyzeProjections.SpotCountByCity;
+import com.example.backend.repository.projection.AnalyzeProjections.SpotMonitor;
+import com.example.backend.repository.projection.AnalyzeProjections.HotSpot;
+
+@Repository
+public interface RentalSpotRepository extends JpaRepository<RentalSpot, Integer>, JpaSpecificationExecutor<RentalSpot> {
+
+    @Query("SELECT r FROM RentalSpot r WHERE r.spotCode LIKE %:keyword% OR r.spotName LIKE %:keyword% OR r.spotAddress LIKE %:keyword%")
+    List<RentalSpot> findByKeyword(@Param("keyword") String keyword);
+
+    boolean existsBySpotCode(String spotCode);
+
+    @Query(value = """
+                SELECT
+                    SUBSTRING(spotAddress, 1, 3) as city,
+                    COUNT(*) as spotCount
+                FROM renting_Spot
+                WHERE spotAddress IS NOT NULL
+                GROUP BY SUBSTRING(spotAddress, 1, 3)
+                ORDER BY spotCount DESC
+            """, nativeQuery = true)
+    List<SpotCountByCity> getCityDistribution();
+
+    @Query(value = """
+                SELECT
+                    s.spotId   AS spotId,
+                    s.spotName AS spotName,
+                    20 AS totalSeats,
+                    COALESCE(curr.availableCount, 0) AS availableSeats
+                FROM renting_Spot s
+                LEFT JOIN (
+                    SELECT spotId, COUNT(*) AS availableCount
+                    FROM seats
+                    WHERE seatsStatus = N'啟用' AND spotId IS NOT NULL
+                    -- 排除目前正在租借中的座位
+                    AND seatsId NOT IN (
+                        SELECT CAST(seatsId AS INT) FROM recRent WHERE recStatus = N'租借中'
+                    )
+                    GROUP BY spotId
+                ) curr ON curr.spotId = s.spotId
+                WHERE s.spotStatus = N'營運中'
+            """, nativeQuery = true)
+    List<SpotMonitor> getSpotRealtimeStatus();
+
+    /**
+     * 獲取熱門點位 (依據租借次數排序，取前 4 名)
+     * 用於首頁 HomeView 呈現。
+     */
+    @Query(value = """
+                SELECT TOP 4
+                    s.spotId,
+                    s.spotName,
+                    s.spotStatus,
+                    COALESCE(curr.availableCount, 0) AS availableSeats,
+                    s.spotImage,
+                    s.latitude,
+                    s.longitude,
+                    COUNT(r.recId) AS orderCount
+                FROM renting_Spot s
+                LEFT JOIN (
+                    SELECT spotId, COUNT(*) AS availableCount
+                    FROM seats
+                    WHERE seatsStatus = N'啟用' AND spotId IS NOT NULL
+                    -- 排除目前正在租借中的座位
+                    AND seatsId NOT IN (
+                        SELECT CAST(seatsId AS INT) FROM recRent WHERE recStatus = N'租借中'
+                    )
+                    GROUP BY spotId
+                ) curr ON curr.spotId = s.spotId
+                LEFT JOIN recRent r ON r.spotIdRent = s.spotId
+                WHERE s.spotStatus = N'營運中'
+                GROUP BY s.spotId, s.spotName, s.spotStatus, curr.availableCount, s.spotImage, s.latitude, s.longitude
+                ORDER BY orderCount DESC
+            """, nativeQuery = true)
+    List<HotSpot> getHotSpots();
+
+    /**
+     * [新增] 獲取所有營運中的站點及其即時座位數
+     * 用於首頁地圖標記呈現。
+     */
+    @Query(value = """
+                SELECT
+                    s.spotId,
+                    s.spotName,
+                    s.spotStatus,
+                    s.latitude,
+                    s.longitude,
+                    s.spotImage,
+                    COALESCE(curr.availableCount, 0) AS availableSeats
+                FROM renting_Spot s
+                LEFT JOIN (
+                    SELECT spotId, COUNT(*) AS availableCount
+                    FROM seats
+                    WHERE seatsStatus = N'啟用' AND spotId IS NOT NULL
+                    AND seatsId NOT IN (
+                        SELECT CAST(seatsId AS INT) FROM recRent WHERE recStatus = N'租借中'
+                    )
+                    GROUP BY spotId
+                ) curr ON curr.spotId = s.spotId
+                WHERE s.spotStatus = N'營運中'
+            """, nativeQuery = true)
+    List<com.example.backend.repository.projection.AnalyzeProjections.SpotWithSeats> findAllSpotsWithSeatCount();
+}
+</file>
+
+</files>

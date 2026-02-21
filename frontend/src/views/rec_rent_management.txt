@@ -1,0 +1,443 @@
+子桓你原本檔案裏面的程式碼(後來改成Vue版本，這個當作備份)
+
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂單管理系統 (RecRent CRUD)</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            margin: 0;
+            background-color: #f9f9f9;
+            display: flex;
+            height: 100vh;
+            /* 讓頁面佔滿視窗高度 */
+        }
+
+        /* Sidebar 側邊欄樣式 */
+        .sidebar {
+            width: 250px;
+            background-color: #343a40;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+            flex-shrink: 0;
+        }
+
+        .sidebar h2 {
+            color: white;
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            padding: 15px 20px;
+            text-decoration: none;
+            color: #cfd8dc;
+            display: block;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #495057;
+            color: white;
+        }
+
+        /* 主要內容區塊樣式 */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            /* 內容過多時出現卷軸 */
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        /* 表單樣式 */
+        .form-section {
+            background-color: #eef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-group label {
+            width: 180px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            padding: 5px;
+            flex: 1;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        /* 按鈕樣式 */
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* 表格樣式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #343a40;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        /* 頁面切換控制：預設隱藏，加上 active 才顯示 */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        /* 搜尋列樣式 */
+        .search-container {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-container input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 250px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>後台管理系統</h2>
+        <a onclick="switchView('list')" id="nav-list" class="active">訂單查詢</a>
+        <a onclick="resetForm(); switchView('add')" id="nav-add">新增訂單</a>
+        <a onclick="switchView('member')" id="nav-member">會員管理</a>
+        <a onclick="switchView('report')" id="nav-report">報表分析</a>
+        <a onclick="switchView('settings')" id="nav-settings">系統設定</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1>訂單管理系統 (RecRent)</h1>
+
+        <!-- 新增/編輯區塊 (預設隱藏) -->
+        <div id="view-add" class="view-section form-section">
+            <h2 id="formTitle">新增訂單</h2>
+            <input type="hidden" id="recSeqId">
+
+            <div class="form-group">
+                <label>會員 ID (memId):</label>
+                <input type="number" id="memId" placeholder="例如: 1" required>
+            </div>
+            <div class="form-group">
+                <label>座位編號 (seatsId):</label>
+                <input type="text" id="seatsId" placeholder="例如: S001" required>
+            </div>
+            <div class="form-group">
+                <label>租借站點 ID (spotIdRent):</label>
+                <input type="number" id="spotIdRent" placeholder="例如: 10" required>
+            </div>
+            <div class="form-group">
+                <label>租借時間 (recRentDT2):</label>
+                <!-- step="1" 允許輸入秒數 -->
+                <input type="datetime-local" id="recRentDT2" step="1" required>
+            </div>
+            <div class="form-group">
+                <label>違規記點 (recViolatInt):</label>
+                <input type="number" id="recViolatInt" value="0" required>
+            </div>
+
+            <div style="text-align: right;">
+                <button class="btn-secondary" onclick="resetForm()">重置 / 取消</button>
+                <button class="btn-primary" onclick="saveRent()">儲存訂單</button>
+            </div>
+        </div>
+
+        <!-- 列表區塊 (預設顯示) -->
+        <div id="view-list" class="view-section active">
+            <h2>訂單列表 <button class="btn-secondary" style="font-size: 0.8em;" onclick="loadRents()">重新整理</button></h2>
+
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="輸入會員ID、座位或訂單ID搜尋..."
+                    onkeyup="if(event.key === 'Enter') searchRents()">
+                <button class="btn-primary" onclick="searchRents()">搜尋</button>
+                <button class="btn-secondary"
+                    onclick="document.getElementById('searchInput').value=''; searchRents();">清除</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th width="50">ID</th>
+                        <th>業務編號</th>
+                        <th>會員</th>
+                        <th>座位</th>
+                        <th>租借站點</th>
+                        <th>租借時間</th>
+                        <th width="150">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="rentTableBody">
+                    <!-- 資料將由 JavaScript 動態載入 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 新增的頁面區塊 (預設隱藏) -->
+        <div id="view-member" class="view-section">
+            <h2>會員管理</h2>
+            <p>這裡是會員管理功能的區塊 (範例)...</p>
+            <button class="btn-primary">新增會員</button>
+        </div>
+
+        <div id="view-report" class="view-section">
+            <h2>報表分析</h2>
+            <p>這裡是報表分析功能的區塊 (範例)...</p>
+            <div style="background: #ddd; height: 200px; display: flex; align-items: center; justify-content: center;">
+                圖表預留位置</div>
+        </div>
+
+        <div id="view-settings" class="view-section">
+            <h2>系統設定</h2>
+            <p>這裡是系統設定功能的區塊 (範例)...</p>
+        </div>
+    </div>
+
+    <script>
+        // 若是直接開啟 HTML 檔案，請使用完整 URL (需注意後端 CORS 設定)
+        const API_URL = 'http://localhost:8080/api/rec-rents';
+        let currentRents = []; // 暫存資料以便編輯時使用
+
+        // 頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', loadRents);
+
+        // 1. 查詢 (Read)
+        function loadRents() {
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(data => {
+                    currentRents = data;
+                    renderTable(data);
+                })
+                .catch(err => {
+                    console.error('載入失敗:', err);
+                    alert('無法載入資料，請確認後端伺服器是否已啟動。\n錯誤: ' + err.message);
+                });
+        }
+
+        // 渲染表格 (支援搜尋過濾)
+        function renderTable(data) {
+            const tbody = document.getElementById('rentTableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">查無資料</td></tr>';
+                return;
+            }
+
+            data.forEach((rent) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${rent.recSeqId}</td>
+                    <td>${rent.recId || '<span style="color:gray">處理中...</span>'}</td>
+                    <td>${rent.memId}</td>
+                    <td>${rent.seatsId}</td>
+                    <td>${rent.spotIdRent}</td>
+                    <td>${rent.recRentDT2 ? rent.recRentDT2.replace('T', ' ') : ''}</td>
+                    <td>
+                        <!-- 改為傳遞 ID 而非 index，確保搜尋後編輯對象正確 -->
+                        <button class="btn-warning" onclick="editRent(${rent.recSeqId})">編輯</button>
+                        <button class="btn-danger" onclick="deleteRent(${rent.recSeqId})">刪除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 搜尋功能
+        function searchRents() {
+            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+
+            // 若無輸入則顯示全部
+            if (!keyword) {
+                renderTable(currentRents);
+                return;
+            }
+
+            // 過濾資料 (比對 ID, 會員ID, 座位)
+            const filtered = currentRents.filter(rent =>
+                String(rent.recSeqId).includes(keyword) ||
+                String(rent.memId).includes(keyword) ||
+                (rent.seatsId && rent.seatsId.toLowerCase().includes(keyword))
+            );
+            renderTable(filtered);
+        }
+
+        // 2. 新增或更新 (Create / Update)
+        function saveRent() {
+            const id = document.getElementById('recSeqId').value;
+            const rentData = {
+                memId: document.getElementById('memId').value,
+                seatsId: document.getElementById('seatsId').value,
+                spotIdRent: document.getElementById('spotIdRent').value,
+                recRentDT2: document.getElementById('recRentDT2').value,
+                recViolatInt: document.getElementById('recViolatInt').value
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/${id}` : API_URL;
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rentData)
+            })
+                .then(res => {
+                    if (res.ok) {
+                        alert(id ? '更新成功！' : '新增成功！');
+                        resetForm();
+                        loadRents();
+                        switchView('list'); // 儲存成功後跳轉回列表
+                    } else {
+                        alert('儲存失敗，請檢查輸入資料。');
+                    }
+                });
+        }
+
+        // 3. 刪除 (Delete)
+        function deleteRent(id) {
+            if (!confirm('確定要刪除這筆訂單嗎？(ID: ' + id + ')')) return;
+
+            fetch(`${API_URL}/${id}`, { method: 'DELETE' })
+                .then(res => {
+                    if (res.ok) {
+                        loadRents();
+                    } else {
+                        alert('刪除失敗');
+                    }
+                });
+        }
+
+        // 準備編輯資料
+        function editRent(id) {
+            // 改用 ID 尋找資料，避免搜尋過濾後 index 對不上的問題
+            const rent = currentRents.find(r => r.recSeqId == id);
+            if (!rent) return;
+
+            document.getElementById('formTitle').innerText = '編輯訂單 (ID: ' + rent.recSeqId + ')';
+            document.getElementById('recSeqId').value = rent.recSeqId;
+            document.getElementById('memId').value = rent.memId;
+            document.getElementById('seatsId').value = rent.seatsId;
+            document.getElementById('spotIdRent').value = rent.spotIdRent;
+            document.getElementById('recViolatInt').value = rent.recViolatInt;
+
+            // 處理時間格式以符合 input type="datetime-local"
+            if (rent.recRentDT2) {
+                // 截取 yyyy-MM-ddTHH:mm:ss 格式，去除毫秒與時區資訊以免 input 顯示錯誤
+                let formattedDate = rent.recRentDT2;
+                if (formattedDate.length > 19) {
+                    formattedDate = formattedDate.substring(0, 19);
+                }
+                document.getElementById('recRentDT2').value = formattedDate;
+            }
+
+            // 切換到編輯頁面
+            switchView('add');
+            // 捲動到內容上方 (因為現在是 main-content 在捲動)
+            document.querySelector('.main-content').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 重置表單
+        function resetForm() {
+            document.getElementById('formTitle').innerText = '新增訂單';
+            document.getElementById('recSeqId').value = '';
+            document.getElementById('memId').value = '';
+            document.getElementById('seatsId').value = '';
+            document.getElementById('spotIdRent').value = '';
+            document.getElementById('recRentDT2').value = '';
+            document.getElementById('recViolatInt').value = '0';
+        }
+
+        // 切換頁面視圖函式
+        function switchView(viewName) {
+            // 1. 隱藏所有視圖
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            // 2. 移除 Sidebar 的 active 狀態
+            document.querySelectorAll('.sidebar a').forEach(el => el.classList.remove('active'));
+
+            // 3. 顯示目標視圖
+            document.getElementById('view-' + viewName).classList.add('active');
+            // 4. 設定 Sidebar 當前項目為 active
+            document.getElementById('nav-' + viewName).classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

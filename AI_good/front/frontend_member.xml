@@ -1,0 +1,6670 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: frontend/src/**/member/**, frontend/src/**/user/**, frontend/src/**/login/**, frontend/src/router/**
+- Files matching these patterns are excluded: **/*.map, **/*.min.js, **/*.min.css, **/node_modules/**, **/dist/**, **/target/**, **/vendor/**, **/public/vendor/**, **/logs/**, **/*.log, **/*.svg, **/*.png, **/*.jpg, **/*.ico, AI_good/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+frontend/src/router/index.js
+frontend/src/views/member/AdminCreateView.vue
+frontend/src/views/member/AdminEditView.vue
+frontend/src/views/member/AdminHomeView.vue
+frontend/src/views/member/AdminInfoModal.vue
+frontend/src/views/member/AdminListView.vue
+frontend/src/views/member/LoginView.vue
+frontend/src/views/member/MemberCreateView.vue
+frontend/src/views/member/MemberEditView.vue
+frontend/src/views/member/MemberListView.vue
+frontend/src/views/member/MemberProfileView.vue
+frontend/src/views/member/Register.vue
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="frontend/src/views/member/AdminInfoModal.vue">
+<script setup>
+import { ref, watch } from 'vue'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+const props = defineProps({
+  show: Boolean,
+  adminData: Object
+})
+
+const emit = defineEmits(['close', 'update-success'])
+
+// 表單資料
+const form = ref({
+  password: '',
+  confirmPassword: ''
+})
+
+// 格式化日期
+const formatDate = (dt) => {
+  if (!dt) return 'N/A'
+  return dt.substring(0, 10).replace(/-/g, '/')
+}
+
+// 取得頭像邏輯 (比照你的管理員列表)
+const getAvatar = (id) => {
+  if (id >= 1 && id <= 10) {
+    const fileName = String(id).padStart(2, '0')
+    return `/admin/${fileName}.jpg`
+  }
+  return '/admin/default.png'
+}
+
+// 儲存變更
+// 儲存變更
+const handleSave = async () => {
+  // 1. 如果沒輸入密碼，代表不改密碼，直接關閉
+  if (!form.value.password) {
+    emit('close')
+    return
+  }
+
+  // 2. 檢查兩次密碼是否一致
+  if (form.value.password !== form.value.confirmPassword) {
+    Swal.fire({ icon: 'error', title: '密碼不一致', text: '請再次確認新密碼' })
+    return
+  }
+
+  try {
+    // 3. 準備要傳給 AdminController.java 的物件
+    // 這裡的 key 必須對應到你 Admin.java 的欄位名稱
+    const updateData = {
+      admId: props.adminData.admId,       // 從 props 拿 ID
+      admUsername: props.adminData.admUsername, 
+      admName: props.adminData.admName,
+      admEmail: props.adminData.admEmail,
+      admRole: props.adminData.admRole,
+      admPassword: form.value.password   // 這是你要更新的新密碼
+    };
+
+    // 4. 改呼叫你自己的 API：/admins/update
+    // 這裡用 POST，因為你的 Controller 寫的是 @PostMapping("/update")
+    const response = await axios.post('http://localhost:8080/admins/update', updateData);
+
+    // 5. 判斷回傳字串 (因為你的 Controller 回傳的是 String "管理員修改成功")
+    if (response.data === "管理員修改成功") {
+      await Swal.fire({ 
+        icon: 'success', 
+        title: '密碼修改成功', 
+        timer: 1500, 
+        showConfirmButton: false 
+      });
+      emit('update-success');
+      emit('close');
+    } else {
+      Swal.fire({ icon: 'error', title: '儲存失敗', text: response.data });
+    }
+
+  } catch (error) {
+    console.error('更新失敗:', error);
+    // 這裡報錯通常是連線問題，因為你走的是自己的路徑，應該不會再有 401 了
+    Swal.fire({ icon: 'error', title: '連線失敗', text: '請檢查後端伺服器是否運行' });
+  }
+}
+
+// 每次開啟時清空密碼欄位
+watch(() => props.show, (newVal) => {
+  if (newVal) {
+    form.value.password = ''
+    form.value.confirmPassword = ''
+  }
+})
+</script>
+
+<template>
+  <div v-if="show" class="modal-overlay" @click.self="emit('close')">
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="header-title">
+          <i class="fas fa-address-card"></i>
+          <span>管理員個人資訊</span>
+        </div>
+        <button class="close-x" @click="emit('close')">&times;</button>
+      </div>
+
+      <div class="profile-body">
+        <div class="left-panel">
+          <div class="avatar-wrapper">
+            <img :src="getAvatar(adminData?.admId)" />
+          </div>
+          <h3 class="admin-name">{{ adminData?.admName }}</h3>
+          <span class="admin-tag">@{{ adminData?.admUsername }}</span>
+        </div>
+
+        <div class="right-panel">
+          <div class="info-section">
+            <div class="section-divider">個人資訊</div>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>管理員 ID</label>
+                <div class="value">{{ adminData?.admId }}</div>
+              </div>
+              <div class="detail-item">
+                <label>電子信箱</label>
+                <div class="value">{{ adminData?.admEmail }}</div>
+              </div>
+              <div class="detail-item">
+                <label>目前權限</label>
+                <div class="value">
+                  <span class="role-badge" :class="adminData?.admRole === 9 ? 'super' : 'normal'">
+                    {{ adminData?.admRole === 9 ? '超級管理員' : '一般管理員' }}
+                  </span>
+                </div>
+              </div>
+              <div class="detail-item">
+                <label>到職日期</label>
+                <div class="value">{{ formatDate(adminData?.createdAt) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <div class="section-divider">安全性設定</div>
+            <div class="password-fields">
+              <div class="input-group">
+                <label>修改密碼 (留空則不更動)</label>
+                <input 
+                  type="password" 
+                  v-model="form.password" 
+                  placeholder="請輸入新密碼" 
+                />
+              </div>
+              <div class="input-group">
+                <label>再次確認新密碼</label>
+                <input 
+                  type="password" 
+                  v-model="form.confirmPassword" 
+                  placeholder="請再次輸入新密碼" 
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-footer">
+        <button class="btn-cancel" @click="emit('close')">關閉視窗</button>
+        <button class="btn-save" @click="handleSave">儲存變更</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.profile-card {
+  background: white;
+  width: 750px;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.profile-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.header-title i {
+  color: #1890ff;
+}
+
+.close-x {
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+}
+
+.profile-body {
+  display: flex;
+  min-height: 400px;
+}
+
+/* 左側樣式 */
+.left-panel {
+  flex: 1;
+  background: #fcfcfc;
+  border-right: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.avatar-wrapper {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.avatar-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-name {
+  font-size: 22px;
+  margin: 0;
+  color: #262626;
+}
+
+.admin-tag {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+/* 右側樣式 */
+.right-panel {
+  flex: 2;
+  padding: 30px;
+}
+
+.section-divider {
+  font-weight: 600;
+  color: #1890ff;
+  border-left: 4px solid #1890ff;
+  padding-left: 10px;
+  margin-bottom: 20px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.detail-item label {
+  display: block;
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+}
+
+.detail-item .value {
+  font-size: 15px;
+  color: #262626;
+  font-weight: 500;
+}
+
+.role-badge {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: white;
+}
+
+.role-badge.super { background: #f5222d; }
+.role-badge.normal { background: #1890ff; }
+
+.password-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 13px;
+  color: #595959;
+  margin-bottom: 6px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.input-group input:focus {
+  border-color: #40a9ff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Footer */
+.profile-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-cancel {
+  padding: 8px 20px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #595959;
+}
+
+.btn-save {
+  padding: 8px 20px;
+  background: #1890ff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  transition: background 0.3s;
+}
+
+.btn-save:hover {
+  background: #40a9ff;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/Register.vue">
+<script setup>
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+const router = useRouter()
+
+const form = reactive({
+  memName: '',
+  memUsername: '',
+  memEmail: '',
+  memPhone: '',
+  memPassword: '',
+})
+
+const confirmPassword = ref('')
+
+const autoFill = () => {
+  form.memName = '林育辰'
+  form.memUsername = 'demo123'
+  form.memEmail = 'alan123145@gmail.com'
+  form.memPhone = '0998765432'
+  form.memPassword = 'demo987'
+  confirmPassword.value = 'demo987'
+}
+
+const submit = async () => {
+  // 1️⃣ 空值檢查
+  if (
+    !form.memName ||
+    !form.memUsername ||
+    !form.memEmail ||
+    !form.memPhone ||
+    !form.memPassword ||
+    !confirmPassword.value
+  ) {
+    Swal.fire('錯誤', '請填寫所有欄位', 'warning')
+    return
+  }
+
+  // 2️⃣ Email 格式驗證
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(form.memEmail)) {
+    Swal.fire('錯誤', '電子郵件格式不正確', 'error')
+    return
+  }
+
+  // 3️⃣ 手機號碼驗證（只允許數字，8~15 碼你可調）
+  const phoneRegex = /^\d{8,15}$/
+  if (!phoneRegex.test(form.memPhone)) {
+    Swal.fire('錯誤', '手機號碼格式不正確', 'error')
+    return
+  }
+
+  // 4️⃣ 密碼一致檢查
+  if (form.memPassword !== confirmPassword.value) {
+    Swal.fire('錯誤', '兩次密碼輸入不一致', 'error')
+    return
+  }
+
+  // 5️⃣ 送後端
+  try {
+    await axios.post('http://localhost:8080/api/members/register', form)
+    await Swal.fire('成功', '註冊成功，請登入', 'success')
+    router.push('/login')
+  } catch (err) {
+    Swal.fire('註冊失敗', err.response?.data || '錯誤', 'error')
+  }
+}
+
+const goLogin = () => {
+  router.push('/login')
+}
+</script>
+
+<template>
+  <div class="register-card">
+    <h2 class="page-title">會員註冊</h2>
+    
+    <form @submit.prevent="submit" novalidate class="register-form">
+      <div class="form-group">
+        <label>姓名</label>
+        <input v-model="form.memName" type="text" placeholder="請輸入您的姓名" />
+      </div>
+
+      <div class="form-group">
+        <label>帳號</label>
+        <input v-model="form.memUsername" type="text" placeholder="請輸入帳號" />
+      </div>
+
+      <div class="form-group">
+        <label>電子郵件</label>
+        <input v-model="form.memEmail" type="text" placeholder="請輸入您的 E-MAIL" />
+      </div>
+
+      <div class="form-group">
+        <label>手機</label>
+        <input v-model="form.memPhone" type="text" placeholder="請輸入您的手機" />
+      </div>
+
+      <div class="form-group">
+        <label>密碼</label>
+        <input v-model="form.memPassword" type="password" placeholder="請輸入您的密碼" />
+      </div>
+
+      <div class="form-group">
+        <label>再次輸入密碼</label>
+        <input v-model="confirmPassword" type="password" placeholder="再輸入一次密碼" />
+      </div>
+
+      <button type="submit" class="submit-btn">加入會員</button>
+
+      <button type="button" class="demo-btn" @click="autoFill">
+        一鍵帶入
+      </button>
+    </form>
+
+    <div class="back-login-area">
+      <div class="back-login" @click="goLogin">
+        👤 我已經有會員帳號了？ <span>回登入頁面</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* 核心白底卡片容器 */
+.register-card {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 50px 80px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px; /* 輕微圓角增加質感 */
+}
+
+/* 標題樣式 */
+.page-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 35px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 欄位群組 */
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+/* 輸入框樣式：仿照圖片寬高與色調 */
+.form-group input {
+  width: 100%;
+  height: 45px;
+  padding: 0 15px;
+  border: 1px solid #dcdcdc;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.form-group input:focus {
+  border-color: #ff7a66;
+  box-shadow: 0 0 4px rgba(255, 122, 102, 0.2);
+}
+
+/* 按鈕樣式：珊瑚橘滿版設計 */
+.submit-btn {
+  width: 100%;
+  height: 50px;
+  background-color: #ff7a66;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #ff6650;
+}
+
+/* 底部連結區塊 */
+.back-login-area {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.back-login {
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.back-login span {
+  color: #0066cc;
+  margin-left: 5px;
+}
+
+.back-login:hover span {
+  text-decoration: underline;
+}
+
+/* 針對行動裝置的調整 */
+@media (max-width: 600px) {
+  .register-card {
+    padding: 30px 20px;
+    border: none;
+  }
+}
+
+.demo-btn {
+  width: 100%;
+  height: 40px;
+  background-color: #f4f4f4;
+  color: #666;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s;
+}
+
+.demo-btn:hover {
+  background-color: #eee;
+  border-color: #ff7a66;
+  color: #ff7a66;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/AdminCreateView.vue">
+<script setup>
+/**
+ * AdminCreateView.vue：新增管理員
+ */
+import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+const router = useRouter()
+
+const admin = reactive({
+  admUsername: '',
+  admPassword: '',
+  admName: '',
+  admEmail: '',
+  admRole: 1,
+  adminImage: 'default.png' // 11號以後預設圖片
+})
+
+// 驗證邏輯
+const validateForm = () => {
+  // 1. 信箱格式驗證：需包含 @ 且結尾為 .com
+  const emailRegex = /^[^\s@]+@[^\s@]+\.com$/
+  if (!emailRegex.test(admin.admEmail)) {
+    Swal.fire({
+      icon: 'warning',
+      title: '格式錯誤',
+      text: '信箱必須包含 @ 且以 .com 結尾',
+      confirmButtonColor: '#409eff'
+    })
+    return false
+  }
+
+  // 2. 密碼格式驗證：至少 6 碼且包含至少 1 個英文字母
+  const passwordRegex = /^(?=.*[a-zA-Z]).{6,}$/
+  if (!passwordRegex.test(admin.admPassword)) {
+    Swal.fire({
+      icon: 'warning',
+      title: '密碼格式錯誤',
+      text: '密碼需至少 6 個字元，並包含至少一個英文字母',
+      confirmButtonColor: '#409eff'
+    })
+    return false
+  }
+
+  // 3. 必填檢查
+  if (!admin.admUsername || !admin.admName) {
+    Swal.fire({
+      icon: 'warning',
+      title: '資料未填寫',
+      text: '帳號與姓名為必填項目',
+      confirmButtonColor: '#409eff'
+    })
+    return false
+  }
+
+  return true
+}
+
+const submitCreate = () => {
+  if (!validateForm()) return
+
+  axios
+    .post('http://localhost:8080/admins', admin)
+    .then((res) => {
+      Swal.fire({
+        icon: 'success',
+        title: '新增成功',
+        text: '管理員帳號已建立',
+        timer: 1500,
+        showConfirmButton: false
+      }).then(() => {
+        router.push('/admin/admins')
+      })
+    })
+    .catch((err) => {
+      console.error('API Error:', err)
+      Swal.fire({
+        icon: 'error',
+        title: '新增失敗',
+        text: err.response?.data || '帳號可能已存在，請檢查輸入內容',
+        confirmButtonColor: '#409eff'
+      })
+    })
+}
+
+// 一鍵帶入功能
+const autoFill = () => {
+  admin.admUsername = 'demoEmployee'
+  admin.admPassword = 'demo987'
+  admin.admName = '測試員工'
+  admin.admEmail = 'alan123145@gmail.com'
+  admin.admRole = 1
+}
+
+const goBack = () => {
+  router.push('/admin/admins')
+}
+</script>
+
+<template>
+  <div class="create-page">
+    <div class="form-card">
+      <div class="card-header">
+        <div class="header-icon">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <h2>新增管理員</h2>
+        <p>建立新的系統管理員帳號</p>
+      </div>
+
+      <el-form @submit.prevent="submitCreate" label-position="top" class="admin-form">
+        <el-form-item label="帳號" required>
+          <el-input
+            v-model="admin.admUsername"
+            placeholder="請輸入帳號"
+            prefix-icon="User"
+            autocomplete="new-username"
+          />
+        </el-form-item>
+
+        <el-form-item label="密碼" required>
+          <el-input
+            type="password"
+            v-model="admin.admPassword"
+            placeholder="至少 6 碼且包含英文字母"
+            prefix-icon="Lock"
+            autocomplete="new-password"
+            show-password
+          />
+        </el-form-item>
+
+        <el-form-item label="姓名" required>
+          <el-input
+            v-model="admin.admName"
+            placeholder="請輸入姓名"
+            prefix-icon="UserFilled"
+          />
+        </el-form-item>
+
+        <el-form-item label="信箱" required>
+          <el-input
+            v-model="admin.admEmail"
+            placeholder="example@mail.com"
+            prefix-icon="Message"
+          />
+        </el-form-item>
+
+        <el-form-item label="角色">
+          <el-select v-model="admin.admRole" placeholder="選擇角色" style="width: 100%">
+            <el-option :value="1" label="一般管理員">
+              <span class="role-option">
+                <i class="fas fa-user-tie mr-2"></i> 一般管理員
+              </span>
+            </el-option>
+            <el-option :value="9" label="超級管理員">
+              <span class="role-option">
+                <i class="fas fa-crown mr-2"></i> 超級管理員
+              </span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+
+        <div class="form-actions">
+          <el-button 
+            type="primary" 
+            size="large" 
+            native-type="submit" 
+            class="submit-btn"
+          >
+            <i class="fas fa-check mr-2"></i> 確認新增
+          </el-button>
+
+          <el-button 
+              type="info" 
+              plain 
+              size="large" 
+              @click="autoFill" 
+              class="demo-btn"
+          >
+            <i class="fas fa-magic mr-2"></i> 一鍵帶入
+          </el-button>
+
+          <el-button size="large" @click="goBack" class="back-btn" style="margin-left: 0">
+            <i class="fas fa-arrow-left mr-2"></i> 回管理員列表
+          </el-button>
+        </div>
+      </el-form>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.create-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== 表單卡片 ========== */
+.form-card {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== 標題區域 ========== */
+.card-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.header-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #e8f4fc 0%, #d4e8f7 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #5b9bd5;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 15px rgba(91, 155, 213, 0.15);
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #303133;
+}
+
+.card-header p {
+  margin: 8px 0 0;
+  color: #909399;
+  font-size: 0.95rem;
+}
+
+/* ========== 表單樣式 ========== */
+.admin-form {
+  margin-top: 24px;
+}
+
+.admin-form :deep(.el-form-item__label) {
+  font-weight: 600;
+  color: #606266;
+}
+
+.admin-form :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  padding: 4px 12px;
+}
+
+.admin-form :deep(.el-select .el-input__wrapper) {
+  border-radius: 10px;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+}
+
+/* ========== 按鈕區域 ========== */
+.form-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #5b9bd5 0%, #7cb9e8 100%);
+  border: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: white;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(91, 155, 213, 0.35);
+  filter: brightness(1.1);
+}
+
+.submit-btn:active {
+  transform: scale(0.95);
+}
+
+.back-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 2px solid #e8ecf1;
+  background: transparent;
+  color: #606266;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  border-color: #5b9bd5;
+  color: #5b9bd5;
+  background: rgba(91, 155, 213, 0.05);
+}
+
+.back-btn:active {
+  transform: scale(0.95);
+}
+
+/* ========== 工具類 ========== */
+.mr-2 { 
+  margin-right: 8px; 
+}
+
+/* ========== 響應式設計 ========== */
+@media (max-width: 520px) {
+  .form-card {
+    padding: 24px;
+    margin: 16px;
+  }
+  
+  .header-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+}
+
+/* ========== 一鍵帶入按鈕樣式 ========== */
+.demo-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 1px dashed #909399; /* 虛線邊框 */
+  background: #f8f9fa;
+  color: #606266;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-left: 0 !important; /* 強制覆蓋 Element Plus 預設間距 */
+}
+
+.demo-btn:hover {
+  background: #f0f2f5;
+  border-color: #5b9bd5;
+  color: #5b9bd5;
+  transform: translateY(-1px);
+}
+
+.demo-btn:active {
+  transform: scale(0.98);
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/AdminEditView.vue">
+<script setup>
+/**
+ * AdminEditView.vue：編輯管理員 (完整驗證與 SweetAlert 版)
+ */
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+const router = useRouter()
+const route = useRoute()
+
+const admin = ref(null)
+const newPassword = ref('')
+const errorMsg = ref('')
+const loading = ref(false)
+
+// 載入資料
+const fetchAdmin = () => {
+  loading.value = true
+  const id = route.params.id
+  axios
+    .get(`http://localhost:8080/admins/find?admId=${id}`)
+    .then((res) => {
+      // res.data 應包含 adminImage 欄位
+      admin.value = res.data
+    })
+    .catch(() => {
+      errorMsg.value = '載入管理員資料失敗'
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
+
+// 驗證邏輯
+const validateForm = () => {
+  // 1. 信箱格式驗證：需包含 @ 且結尾為 .com
+  const emailRegex = /^[^\s@]+@[^\s@]+\.com$/
+  if (!emailRegex.test(admin.value.admEmail)) {
+    Swal.fire({
+      icon: 'warning',
+      title: '信箱格式錯誤',
+      text: '電子郵件必須包含 @ 且以 .com 結尾',
+      confirmButtonColor: '#409eff'
+    })
+    return false
+  }
+
+  // 2. 密碼格式驗證：如果有填寫新密碼，則需至少 6 碼 + 1 英文字
+  if (newPassword.value && newPassword.value.trim() !== '') {
+    const passwordRegex = /^(?=.*[a-zA-Z]).{6,}$/
+    if (!passwordRegex.test(newPassword.value)) {
+      Swal.fire({
+        icon: 'warning',
+        title: '新密碼格式不符',
+        text: '新密碼需至少 6 個字元，且包含至少 1 個英文字母',
+        confirmButtonColor: '#409eff'
+      })
+      return false
+    }
+  }
+
+  return true
+}
+
+// 提交修改
+const submitEdit = () => {
+  if (!validateForm()) return
+
+  const payload = {
+    ...admin.value,
+    admPassword: newPassword.value || '', // 如果沒填就傳空字串，後端會判斷不更新密碼
+  }
+
+  axios
+    .post('http://localhost:8080/admins/update', payload)
+    .then(() => {
+      Swal.fire({
+        icon: 'success',
+        title: '修改成功',
+        text: '管理員資料已成功更新',
+        timer: 1500,
+        showConfirmButton: false
+      }).then(() => {
+        router.push('/admin/admins')
+      })
+    })
+    .catch((err) => {
+      console.error('Update Error:', err)
+      Swal.fire({
+        icon: 'error',
+        title: '修改失敗',
+        text: '請檢查輸入資料或連線狀況',
+        confirmButtonColor: '#409eff'
+      })
+    })
+}
+
+const goBack = () => {
+  router.push('/admin/admins')
+}
+
+onMounted(() => {
+  fetchAdmin()
+})
+</script>
+
+<template>
+  <div class="edit-page">
+    <div class="form-card">
+      <div class="card-header">
+        <div class="header-icon">
+          <i class="fas fa-user-edit"></i>
+        </div>
+        <h2>修改管理員資料</h2>
+        <p>編輯現有管理員的帳號資訊</p>
+      </div>
+
+      <el-alert 
+        v-if="errorMsg" 
+        :title="errorMsg" 
+        type="error" 
+        show-icon 
+        :closable="false" 
+        class="error-alert" 
+      />
+      
+      <div v-if="loading" class="loading-state">
+        <i class="fas fa-spinner fa-spin loading-icon"></i>
+        <p>資料載入中...</p>
+      </div>
+
+      <el-form v-else-if="admin" @submit.prevent="submitEdit" label-position="top" class="admin-form">
+        <input type="hidden" v-model="admin.admId" />
+
+        <el-form-item label="帳號" required>
+          <el-input
+            v-model="admin.admUsername"
+            placeholder="請輸入帳號"
+            prefix-icon="User"
+          />
+        </el-form-item>
+
+        <el-form-item label="新密碼">
+          <el-input
+            type="password"
+            v-model="newPassword"
+            placeholder="若不修改請留空"
+            prefix-icon="Lock"
+            show-password
+          />
+          <div class="form-hint">
+            <i class="fas fa-info-circle"></i>
+            需至少 6 碼並含 1 個英文字，不修改請保持空白
+          </div>
+        </el-form-item>
+
+        <el-form-item label="姓名" required>
+          <el-input
+            v-model="admin.admName"
+            placeholder="請輸入姓名"
+            prefix-icon="UserFilled"
+          />
+        </el-form-item>
+
+        <el-form-item label="信箱" required>
+          <el-input
+            v-model="admin.admEmail"
+            placeholder="example@mail.com"
+            prefix-icon="Message"
+          />
+        </el-form-item>
+
+        <el-form-item label="角色">
+          <el-select v-model="admin.admRole" placeholder="選擇角色" style="width: 100%">
+            <el-option :value="1" label="一般管理員">
+              <span class="role-option">
+                <i class="fas fa-user-tie mr-2"></i> 一般管理員
+              </span>
+            </el-option>
+            <el-option :value="9" label="超級管理員">
+              <span class="role-option">
+                <i class="fas fa-crown mr-2"></i> 超級管理員
+              </span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+
+        <div class="form-actions">
+          <el-button 
+            type="primary" 
+            size="large" 
+            native-type="submit" 
+            class="submit-btn"
+          >
+            <i class="fas fa-save mr-2"></i> 確認修改
+          </el-button>
+          <el-button 
+            size="large" 
+            @click="goBack" 
+            class="back-btn"
+            style="margin-left: 0"
+          >
+            <i class="fas fa-arrow-left mr-2"></i> 回管理員列表
+          </el-button>
+        </div>
+      </el-form>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.edit-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== 表單卡片 ========== */
+.form-card {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== 標題區域 ========== */
+.card-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.header-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #e8f4fc 0%, #d4e8f7 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #5b9bd5;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 15px rgba(91, 155, 213, 0.15);
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #303133;
+}
+
+.card-header p {
+  margin: 8px 0 0;
+  color: #909399;
+  font-size: 0.95rem;
+}
+
+/* ========== 載入狀態 ========== */
+.loading-state {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-icon {
+  font-size: 36px;
+  color: #409eff;
+  margin-bottom: 16px;
+}
+
+.loading-state p {
+  color: #909399;
+  font-size: 15px;
+}
+
+/* ========== 錯誤提示 ========== */
+.error-alert {
+  margin-bottom: 20px;
+  border-radius: 10px;
+}
+
+/* ========== 表單樣式 ========== */
+.admin-form {
+  margin-top: 24px;
+}
+
+.admin-form :deep(.el-form-item__label) {
+  font-weight: 600;
+  color: #606266;
+}
+
+.admin-form :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  padding: 4px 12px;
+}
+
+.admin-form :deep(.el-select .el-input__wrapper) {
+  border-radius: 10px;
+}
+
+.form-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-hint i {
+  color: #409eff;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+}
+
+/* ========== 按鈕區域 ========== */
+.form-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #5b9bd5 0%, #7cb9e8 100%);
+  border: none;
+  transition: all 0.3s ease;
+  color: white;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(91, 155, 213, 0.35);
+}
+
+.submit-btn:active {
+  transform: scale(0.95);
+}
+
+.back-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 2px solid #e8ecf1;
+  background: transparent;
+  color: #606266;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  border-color: #5b9bd5;
+  color: #5b9bd5;
+  background: rgba(91, 155, 213, 0.05);
+}
+
+.back-btn:active {
+  transform: scale(0.95);
+}
+
+/* ========== 工具類 ========== */
+.mr-2 { 
+  margin-right: 8px; 
+}
+
+/* ========== 響應式設計 ========== */
+@media (max-width: 520px) {
+  .form-card {
+    padding: 24px;
+    margin: 16px;
+  }
+  
+  .header-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/LoginView.vue">
+<script setup>
+import { ref, reactive, watch } from 'vue' // 引入 reactive
+import { useRouter, useRoute } from 'vue-router' // 引入 useRoute
+import axios from 'axios'
+
+//  SweetAlert2：統一用彈窗顯示成功/失敗訊息（取代 errorMsg/successMsg）
+import Swal from 'sweetalert2'
+
+//  Pinia：引入兩種 store
+import { useAdminAuthStore } from '@/stores/adminAuth'
+import { useMemberAuthStore } from '@/stores/memberAuth'
+
+const adminAuthStore = useAdminAuthStore()
+const memberAuthStore = useMemberAuthStore()
+const router = useRouter()
+const route = useRoute() // 建立 route 實例
+
+/**
+ * 登入類型：
+ * - member：會員登入（導向 /member/profile）
+ * - admin：管理員登入（導向 /admin）
+ */
+const loginType = ref('member') // member | admin
+
+// --- 忘記密碼相關狀態 ---
+const viewMode = ref('login') // login | forgot | reset
+const forgotForm = reactive({
+  email: '',
+  code: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+// 返回登入並清空資料
+const backToLogin = () => {
+  viewMode.value = 'login'
+  forgotForm.email = ''
+  forgotForm.code = ''
+}
+// -----------------------
+
+// 共用輸入欄位（會員/管理員都用同一組欄位）
+const account = ref('')
+const password = ref('')
+
+// 切換登入身分時，清空輸入，避免誤送上一種身分的帳密
+watch(loginType, () => {
+  account.value = ''
+  password.value = ''
+})
+
+/**
+ * 登入主流程（async/await）
+ * 目的：
+ * 1) 避免 Promise then/catch 的順序 race condition
+ * 2) 確保「先寫入 localStorage」再導頁，路由守衛才會放行
+ */
+const login = async () => {
+  try {
+    // =========================
+    // 會員登入
+    // =========================
+    if (loginType.value === 'member') {
+      const res = await axios.post(
+        'http://localhost:8080/login/member',
+        {
+          memUsername: account.value,
+          memPassword: password.value,
+        },
+        {
+          withCredentials: true,
+        },
+      )
+
+      /**
+       * token 儲存規則（統一 localStorage）
+       * - main.js 的 axios interceptor 從 localStorage 取 token
+       * - 所以這裡也必須存 localStorage
+       * - 若後端沒回 token，暫用 'login-ok'（你原本 HEAD 的策略）避免流程卡死
+       */
+      const token = res.data?.token || 'login-ok'
+      localStorage.setItem('token', token)
+
+      adminAuthStore.clearAdmin()
+      localStorage.removeItem('admin')
+
+      //  [+] 將登入狀態存入 Pinia，讓整個 App 保持同步
+      memberAuthStore.setMemberLogin({
+        memId: res.data.memId,
+        memUsername: res.data.memUsername,
+        memName: res.data.memName,
+        memPoints: res.data.memPoints,
+        memInvoice: res.data.memInvoice,
+      })
+
+      //  [+] 將會員資料存入 localStorage，實現持久化登入
+      localStorage.setItem('member_user', JSON.stringify(res.data))
+
+      // 成功提示
+      await Swal.fire({
+        icon: 'success',
+        title: '登入成功',
+        text: '歡迎回來！',
+        showConfirmButton: false,
+        timer: 1200,
+      })
+
+      //  檢查是否有重定向路徑，若有則跳轉，否則導向會員頁
+      if (route.query.redirect) {
+        router.push(route.query.redirect)
+      } else {
+        router.push('/')
+      }
+      return
+    }
+
+    // =========================
+    // 管理員登入 (最簡化修正版)
+    // =========================
+    const res = await axios.post(
+      'http://localhost:8080/login/admin',
+      {
+        admUsername: account.value,
+        admPassword: password.value,
+      },
+      {
+        withCredentials: true,
+      },
+    )
+
+    // 1. 只清掉「會員」的資料，不要用 clear()
+    localStorage.removeItem('member_user')
+    memberAuthStore.clearMemberLogin()
+
+    // 2. 存入管理員 Token 與資料
+    const token = res.data?.token || 'admin-login-ok'
+    localStorage.setItem('token', token)
+
+    const adminData = {
+      username: res.data?.admUsername,
+      name: res.data?.admName,
+      role: res.data?.admRole,
+      admId: res.data?.admId,          // 補上 ID
+      admEmail: res.data?.admEmail,    // 補上 Email
+      admCreatedAt: res.data?.admCreatedAt // 補上到職日
+    }
+
+    // 3. 同步寫入 Pinia 和 LocalStorage
+    adminAuthStore.setAdmin(adminData)
+    localStorage.setItem('admin', JSON.stringify(adminData))
+
+    // 4. 成功提示
+    await Swal.fire({
+      icon: 'success',
+      title: '管理員登入成功',
+      text: '歡迎回來！',
+      showConfirmButton: false,
+      timer: 1000,
+    })
+
+    //  進後台（replace 避免回上一頁又回到登入頁）
+    router.push('/admin')
+  } catch (err) {
+    console.error(err)
+
+    // 錯誤訊息整理：後端可能回字串或物件
+    let errorText = '登入失敗'
+    if (err.response && err.response.data) {
+      const msg = err.response.data
+      errorText = typeof msg === 'object' ? JSON.stringify(msg) : String(msg)
+    }
+
+    // 失敗提示
+    Swal.fire({
+      icon: 'error',
+      title: '登入失敗',
+      text: errorText,
+      confirmButtonText: '確認',
+    })
+  }
+}
+
+// 發送驗證碼邏輯
+const handleSendCode = async () => {
+  if (!forgotForm.email) {
+    Swal.fire('錯誤', '請填寫電子郵件', 'warning')
+    return
+  }
+  // 顯示讀取中，因為寄信需要 2~5 秒
+  Swal.fire({
+    title: '正在發送驗證碼...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading() }
+  })
+  try {
+    // 根據目前的登入身分(member/admin)決定 API 路徑
+    const url = loginType.value === 'admin' 
+      ? 'http://localhost:8080/api/admin/forgot-password/send-code' 
+      : 'http://localhost:8080/api/forgot-password/send-code';
+
+    await axios.post(url, { email: forgotForm.email })
+    
+    Swal.close() // 關閉 Loading
+    await Swal.fire('成功', '驗證碼已發送至您的信箱', 'success')
+    viewMode.value = 'reset'
+  } catch (err) {
+    Swal.close()
+    console.error(err)
+    // 顯示後端傳回的錯誤訊息（例如：帳號不存在）
+    const errorMsg = err.response?.data || '發送失敗，請檢查網路或信箱'
+    Swal.fire('失敗', errorMsg, 'error')
+  }
+}
+
+// 重設密碼邏輯
+const handleResetPassword = async () => {
+  // 基本檢查
+  if (!forgotForm.code || !forgotForm.newPassword) {
+    Swal.fire('錯誤', '請完整填寫驗證碼與新密碼', 'warning')
+    return
+  }
+
+  if (forgotForm.newPassword !== forgotForm.confirmPassword) {
+    Swal.fire('錯誤', '兩次密碼輸入不一致', 'error')
+    return
+  }
+
+  try {
+    // 根據目前的登入身分(member/admin)決定 API 路徑
+    const url = loginType.value === 'admin' 
+      ? 'http://localhost:8080/api/admin/forgot-password/reset' 
+      : 'http://localhost:8080/api/forgot-password/reset';
+
+    await axios.post(url, forgotForm)
+    
+    await Swal.fire('成功', '密碼重設成功，請重新登入', 'success')
+    backToLogin()
+  } catch (err) {
+    console.error(err)
+    const errorMsg = err.response?.data || '驗證碼錯誤或已過期'
+    Swal.fire('重設失敗', errorMsg, 'error')
+  }
+}
+
+/**
+ * Particles 背景設定（只影響視覺，不影響登入邏輯）
+ * 注意：main.js 需已 app.use(Particles) 且已載入 loadSlim
+ */
+const particlesOptions = {
+  background: {
+    color: { value: '#e9ecef' },
+  },
+  particles: {
+    color: { value: '#6c757d' },
+    links: {
+      enable: true,
+      color: '#6c757d',
+      distance: 150,
+      opacity: 0.3,
+      width: 1,
+    },
+    move: {
+      enable: true,
+      speed: 1.2,
+    },
+    number: {
+      value: 60,
+    },
+    size: {
+      value: { min: 1, max: 3 },
+    },
+  },
+  interactivity: {
+    events: {
+      onHover: {
+        enable: true,
+        mode: 'grab',
+      },
+    },
+  },
+}
+
+const goRegister = () => {
+  router.push('/register')
+}
+
+const loginWithGoogle = () => {
+  // 加上時間戳記 t=${Date.now()} 確保每次請求都是新的，不被瀏覽器緩存網址
+  const googleLoginUrl = `http://localhost:8080/oauth2/authorization/google?prompt=select_account&t=${Date.now()}`
+  window.location.href = googleLoginUrl
+}
+</script>
+
+<template>
+  <div class="login-page">
+    <vue-particles id="tsparticles" :options="particlesOptions" class="particles-bg" />
+
+    <div class="login-box">
+      <div class="card card-outline card-primary">
+        <div class="card-header text-center">
+          <h1 class="h1"><b>SeatRentSys</b></h1>
+        </div>
+        <div class="card-body">
+          
+          <div v-if="viewMode === 'login'">
+            <div class="login-switch">
+              <button
+                :class="{ active: loginType === 'member' }"
+                @click="loginType = 'member'"
+                type="button"
+              >
+                會員登入
+              </button>
+
+              <button
+                :class="{ active: loginType === 'admin' }"
+                @click="loginType = 'admin'"
+                type="button"
+              >
+                管理員登入
+              </button>
+            </div>
+
+            <form @submit.prevent="login">
+              <div class="input-group mb-3">
+                <input
+                  v-model="account"
+                  type="text"
+                  class="form-control"
+                  :placeholder="loginType === 'member' ? '會員帳號' : '管理員帳號'"
+                  required
+                />
+              </div>
+              <div class="input-group mb-3">
+                <input
+                  v-model="password"
+                  type="password"
+                  class="form-control"
+                  :placeholder="loginType === 'member' ? '會員密碼' : '管理員密碼'"
+                  required
+                />
+              </div>
+
+              <div class="helper-links">
+                <span v-if="loginType === 'member'" @click="goRegister">註冊會員</span>
+                
+                <span v-else></span>
+
+                <span @click="viewMode = 'forgot'">忘記密碼？</span>
+              </div>
+
+              <div class="google-login-section">
+                <div class="divider">
+                  <span>或使用第三方登入</span>
+                </div>
+
+                <button type="button" class="btn-google" @click="loginWithGoogle">
+                  <img
+                    src="https://developers.google.com/static/identity/images/g-logo.png"
+                    alt="Google"
+                  />
+                  使用 Google 帳號登入
+                </button>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">登入</button>
+              <div class="back-to-home" @click="router.push('/')">
+                <el-icon><ArrowLeft /></el-icon>
+                <span>返回首頁</span>
+              </div>
+            </form>
+          </div>
+
+          <div v-else-if="viewMode === 'forgot'">
+            <h2 class="sub-title">忘記密碼</h2>
+            <p class="desc-text">請輸入您的電子郵件，我們將發送驗證碼至您的信箱</p>
+            
+            <div class="input-group mb-3">
+              <input
+                v-model="forgotForm.email"
+                type="email"
+                class="form-control"
+                placeholder="請輸入註冊的 E-MAIL"
+              />
+            </div>
+            
+            <button @click="handleSendCode" class="btn btn-primary btn-block">發送驗證碼</button>
+            
+            <div class="back-link-center" @click="backToLogin">
+              <span>返回登入頁面</span>
+            </div>
+          </div>
+
+          <div v-else-if="viewMode === 'reset'">
+            <h2 class="sub-title">重設密碼</h2>
+            <div class="info-text">驗證碼已發送至：{{ forgotForm.email }}</div>
+            
+            <div class="input-group mb-3">
+              <input v-model="forgotForm.code" type="text" class="form-control" placeholder="請輸入 6 位驗證碼" />
+            </div>
+            <div class="input-group mb-3">
+              <input v-model="forgotForm.newPassword" type="password" class="form-control" placeholder="新密碼" />
+            </div>
+            <div class="input-group mb-3">
+              <input v-model="forgotForm.confirmPassword" type="password" class="form-control" placeholder="再次確認新密碼" />
+            </div>
+            
+            <button @click="handleResetPassword" class="btn btn-primary btn-block">確認重設</button>
+            
+            <div class="back-link-center" @click="viewMode = 'forgot'">
+              <span>重新輸入電子郵件</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* ========== 登入頁面主容器 ========== */
+.login-page {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #9db8d4 0%, #8aa5c1 100%);
+}
+
+/* 粒子背景：最底層 */
+.particles-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ========== 登入框：Glassmorphism 風格 ========== */
+.login-box {
+  width: 400px;
+  position: relative;
+  z-index: 10;
+}
+
+.login-box .card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.login-box .card-header {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  padding: 24px;
+  border-bottom: none;
+}
+
+.login-box .card-header h1 {
+  color: #ffffff;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.login-box .card-body {
+  padding: 28px;
+}
+
+/* ========== 登入切換按鈕 ========== */
+.login-switch {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.login-switch button {
+  padding: 10px 24px;
+  border: 2px solid #e2e8f0;
+  background-color: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.login-switch button:hover {
+  background-color: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.login-switch button.active {
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* ========== 輸入欄位 ========== */
+.login-box .input-group {
+  margin-bottom: 16px;
+}
+
+.login-box .form-control {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 15px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  background: #f8fafc;
+}
+
+.login-box .form-control:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+  outline: none;
+  background: #ffffff;
+}
+
+.login-box .form-control::placeholder {
+  color: #94a3b8;
+}
+
+/* ========== 輔助連結 (註冊 + 忘記密碼) ========== */
+.helper-links {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.helper-links span {
+  font-size: 14px;
+  color: #3b82f6;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.helper-links span:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* ========== 登入按鈕 ========== */
+.login-box .btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.login-box .btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.login-box .btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* ========== 忘記密碼專用樣式 ========== */
+.sub-title {
+  text-align: center;
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.desc-text {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.info-text {
+  font-size: 14px;
+  background-color: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+  color: #475569;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.back-link-center {
+  margin-top: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.back-link-center span {
+  font-size: 14px;
+  color: #64748b;
+  transition: color 0.2s;
+}
+
+.back-link-center:hover span {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+/* ========== Google 登入與返回首頁  ========== */
+.back-to-home {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+  /* 與登入按鈕拉開距離 */
+  padding-top: 10px;
+  border-top: 1px inset #f0f0f0; /* 加一條淡淡的分隔線 */
+  color: #6c757d;
+  /* 灰色，不搶走登入按鈕的焦點 */
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+  gap: 5px;
+}
+
+.back-to-home:hover {
+  color: #007bff;
+  /* 懸浮時變回藍色 */
+  text-decoration: underline;
+}
+
+/* 確保 el-icon 在文字中間 */
+.back-to-home .el-icon {
+  font-size: 12px;
+}
+
+.google-login-section {
+  margin-top: 20px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  color: #888;
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+
+.divider span {
+  padding: 0 10px;
+}
+
+.btn-google {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  color: #3c4043;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-google img {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-google:hover {
+  background-color: #f8f9fa;
+  box-shadow:
+    0 1px 2px 0 rgba(60, 64, 67, 0.3),
+    0 1px 3px 1px rgba(60, 64, 67, 0.15);
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/MemberCreateView.vue">
+<script setup>
+/**
+ * MemberCreateView.vue：新增會員（換裝美化版）
+ */
+import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+const router = useRouter()
+
+const member = reactive({
+  memUsername: '',
+  memPassword: '',
+  memName: '',
+  memEmail: '',
+  memPhone: '',
+  memInvoice: '',
+  memStatus: 1,
+  memLevel: 1,
+})
+
+// --- 格式驗證邏輯 (保留原樣) ---
+const validateForm = () => {
+  if (!member.memUsername || !member.memPassword || !member.memName || !member.memEmail || !member.memPhone) {
+    return '除了發票載具，其餘欄位皆為必填'
+  }
+
+  const pwdRegex = /^(?=.*[a-zA-Z]).{6,}$/
+  if (!pwdRegex.test(member.memPassword)) {
+    return '密碼需至少 6 個字元，並包含至少一個英文字母'
+  }
+
+  const phoneRegex = /^09\d{8}$/
+  if (!phoneRegex.test(member.memPhone)) {
+    return '手機格式錯誤，請輸入 09 開頭的 10 位數字'
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.com$/
+  if (!emailRegex.test(member.memEmail)) {
+    return '信箱格式錯誤，必須包含 @ 且結尾為 .com'
+  }
+
+  return null
+}
+
+const submitCreate = async () => {
+  const error = validateForm()
+  if (error) {
+    await Swal.fire({
+      icon: 'warning',
+      title: '格式錯誤',
+      text: error,
+      confirmButtonColor: '#5b9bd5',
+    })
+    return
+  }
+
+  try {
+    const res = await axios.post('http://localhost:8080/api/members', {
+      ...member,
+      memStatus: 1,
+      memLevel: 1,
+    })
+
+    await Swal.fire({
+      icon: 'success',
+      title: '新增成功',
+      text: res.data?.message || '會員已新增',
+      timer: 1500,
+      showConfirmButton: false,
+    })
+
+    router.push('/admin/members')
+  } catch (err) {
+    const msg = err.response?.data?.message || '新增失敗'
+    await Swal.fire({
+      icon: 'error',
+      title: '新增失敗',
+      text: msg,
+      confirmButtonColor: '#f56c6c',
+    })
+  }
+}
+
+const goBack = () => {
+  router.push('/admin/members')
+}
+</script>
+
+<template>
+  <div class="create-page">
+    <div class="form-card">
+      <div class="card-header">
+        <div class="header-icon">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <h2>新增會員</h2>
+        <p>建立新的 Take@Seat 使用者帳號</p>
+      </div>
+
+      <el-form @submit.prevent="submitCreate" label-position="top" class="admin-form">
+        <el-form-item label="帳號" required>
+          <el-input
+            v-model="member.memUsername"
+            placeholder="請輸入帳號"
+            prefix-icon="User"
+            autocomplete="new-username"
+          />
+        </el-form-item>
+
+        <el-form-item label="密碼" required>
+          <el-input
+            type="password"
+            v-model="member.memPassword"
+            placeholder="至少 6 碼且包含英文字母"
+            prefix-icon="Lock"
+            autocomplete="new-password"
+            show-password
+          />
+        </el-form-item>
+
+        <el-form-item label="姓名" required>
+          <el-input
+            v-model="member.memName"
+            placeholder="請輸入真實姓名"
+            prefix-icon="UserFilled"
+          />
+        </el-form-item>
+
+        <el-form-item label="信箱" required>
+          <el-input
+            v-model="member.memEmail"
+            placeholder="example@mail.com"
+            prefix-icon="Message"
+          />
+        </el-form-item>
+
+        <el-form-item label="手機" required>
+          <el-input
+            v-model="member.memPhone"
+            placeholder="09xxxxxxxx"
+            maxlength="10"
+            prefix-icon="Iphone"
+          />
+        </el-form-item>
+
+        <el-form-item label="發票載具 (選填)">
+          <el-input
+            v-model="member.memInvoice"
+            placeholder="例：/ABC1234"
+            prefix-icon="Tickets"
+          />
+        </el-form-item>
+
+        <div class="form-actions">
+          <el-button 
+            type="primary" 
+            size="large" 
+            native-type="submit" 
+            class="submit-btn"
+          >
+            <i class="fas fa-check mr-2"></i> 確認新增
+          </el-button>
+          
+          <el-button 
+            size="large" 
+            @click="goBack" 
+            class="back-btn"
+            style="margin-left: 0" 
+          >
+            <i class="fas fa-arrow-left mr-2"></i> 回會員列表
+          </el-button>
+        </div>
+      </el-form>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.create-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== 表單卡片 ========== */
+.form-card {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== 標題區域 ========== */
+.card-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.header-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #3b82f6;
+  margin: 0 auto 16px;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.card-header p {
+  margin: 8px 0 0;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+/* ========== 表單樣式 ========== */
+.admin-form :deep(.el-form-item__label) {
+  font-weight: 600;
+  color: #475569;
+}
+
+.admin-form :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  padding: 4px 12px;
+  background-color: #f8fafc;
+}
+
+/* ========== 按鈕區域 ========== */
+.form-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  color: white;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
+}
+
+.back-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 15px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+}
+
+.back-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #f0f7ff;
+}
+
+.mr-2 { margin-right: 8px; }
+
+@media (max-width: 520px) {
+  .form-card { padding: 24px; }
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/MemberEditView.vue">
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+const router = useRouter()
+const route = useRoute()
+
+// 保留你原本的初始結構與回填邏輯
+const member = ref({
+  memId: '',
+  memUsername: '',
+  memName: '',
+  memEmail: '',
+  memPhone: '',
+  memPoints: 0,
+  memInvoice: ''
+})
+const newPassword = ref('')
+const errorMsg = ref('')
+const isSubmitting = ref(false)
+const isLoading = ref(true)
+
+const fetchMember = async () => {
+  const id = route.params.id
+  isLoading.value = true
+  try {
+    const res = await axios.get(`http://localhost:8080/api/members/find`, {
+      params: { memId: id },
+    })
+    
+    const data = res.data
+    member.value = {
+      ...data,
+      memEmail: data.memEmail || data.email || '', 
+      memPhone: data.memPhone || data.phone || ''
+    }
+  } catch (err) {
+    errorMsg.value = '載入會員資料失敗'
+    Swal.fire({ icon: 'error', title: '載入失敗', text: errorMsg.value })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 保留原本的驗證邏輯
+const validateEditForm = () => {
+  const m = member.value
+  if (!m.memUsername || !m.memName || !m.memEmail || !m.memPhone) {
+    return '基本資料欄位皆為必填'
+  }
+  if (newPassword.value) {
+    const pwdRegex = /^(?=.*[a-zA-Z]).{6,}$/
+    if (!pwdRegex.test(newPassword.value)) {
+      return '新密碼需至少 6 個字元，並包含至少一個英文字母'
+    }
+  }
+  const phoneRegex = /^09\d{8}$/
+  if (!phoneRegex.test(m.memPhone)) {
+    return '手機格式錯誤，請輸入 09 開頭的 10 位數字'
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.com$/
+  if (!emailRegex.test(m.memEmail)) {
+    return '信箱格式錯誤，必須包含 @ 且結尾為 .com'
+  }
+  if (m.memInvoice) {
+    const invoiceRegex = /^\/[A-Z0-9]{7}$/
+    if (!invoiceRegex.test(m.memInvoice)) {
+      return '載具格式錯誤！請輸入 / 開頭加上 7 碼大寫英數組合'
+    }
+  }
+  return null
+}
+
+const submitEdit = async () => {
+  if (!member.value) return
+  const error = validateEditForm()
+  if (error) {
+    await Swal.fire({
+      icon: 'warning',
+      title: '格式錯誤',
+      text: error,
+      confirmButtonColor: '#5b9bd5',
+    })
+    return
+  }
+
+  // 保留二次確認視窗
+  const confirmResult = await Swal.fire({
+    title: '確定要修改嗎？',
+    text: "修改後的資料將會立即生效！",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#5b9bd5',
+    cancelButtonColor: '#909399',
+    confirmButtonText: '修改',
+    cancelButtonText: '取消'
+  })
+
+  if (!confirmResult.isConfirmed) return
+
+  errorMsg.value = ''
+  isSubmitting.value = true
+
+  try {
+    const payload = {
+      ...member.value,
+      ...(newPassword.value ? { memPassword: newPassword.value } : {}),
+    }
+    await axios.post('http://localhost:8080/api/members/update', payload)
+    await Swal.fire({
+      icon: 'success',
+      title: '修改成功',
+      text: '會員資料已更新',
+      timer: 1500,
+      showConfirmButton: false
+    })
+    router.push('/admin/members')
+  } catch (err) {
+    const msg = err?.response?.data?.message || '修改失敗'
+    await Swal.fire({
+      icon: 'error',
+      title: '修改失敗',
+      text: msg,
+      confirmButtonColor: '#f56c6c',
+    })
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const goBack = () => router.push('/admin/members')
+onMounted(fetchMember)
+</script>
+
+<template>
+  <div class="edit-page">
+    <div class="form-card">
+      <div class="card-header">
+        <div class="header-icon">
+          <i class="fas fa-user-edit"></i>
+        </div>
+        <h2>修改會員資料</h2>
+        <p>編輯 Take@Seat 會員帳號與點數資訊</p>
+      </div>
+
+      <el-alert 
+        v-if="errorMsg" 
+        :title="errorMsg" 
+        type="error" 
+        show-icon 
+        :closable="false" 
+        class="error-alert" 
+      />
+      
+      <div v-if="isLoading" class="loading-state">
+        <i class="fas fa-spinner fa-spin loading-icon"></i>
+        <p>資料載入中...</p>
+      </div>
+
+      <el-form v-else @submit.prevent="submitEdit" label-position="top" class="admin-form">
+        <input type="hidden" v-model="member.memId" />
+
+        <el-form-item label="帳號" required>
+          <el-input v-model="member.memUsername" prefix-icon="User" />
+        </el-form-item>
+
+        <el-form-item label="新密碼">
+          <el-input
+            type="password"
+            v-model="newPassword"
+            placeholder="若不修改請留空"
+            prefix-icon="Lock"
+            show-password
+          />
+          <div class="form-hint">
+            <i class="fas fa-info-circle"></i>
+            需至少 6 碼並含英文字，不修改請保持空白
+          </div>
+        </el-form-item>
+
+        <el-form-item label="姓名" required>
+          <el-input v-model="member.memName" prefix-icon="UserFilled" />
+        </el-form-item>
+
+        <el-form-item label="信箱" required>
+          <el-input v-model="member.memEmail" prefix-icon="Message" />
+        </el-form-item>
+
+        <el-form-item label="電話" required>
+          <el-input v-model="member.memPhone" maxlength="10" prefix-icon="Iphone" />
+        </el-form-item>
+
+        <el-form-item label="點數">
+          <el-input v-model.number="member.memPoints" type="number" prefix-icon="Coin" />
+        </el-form-item>
+
+        <el-form-item label="發票載具">
+          <el-input v-model="member.memInvoice" placeholder="例：/ABC1234" prefix-icon="Tickets" />
+        </el-form-item>
+
+        <div class="form-actions">
+          <el-button 
+            type="primary" 
+            size="large" 
+            native-type="submit" 
+            class="submit-btn"
+            :loading="isSubmitting"
+          >
+            <i class="fas fa-save mr-2"></i> {{ isSubmitting ? '修改中...' : '確認修改' }}
+          </el-button>
+          <el-button 
+            size="large" 
+            @click="goBack" 
+            class="back-btn"
+            style="margin-left: 0"
+          >
+            <i class="fas fa-arrow-left mr-2"></i> 回會員列表
+          </el-button>
+        </div>
+      </el-form>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* 套用管理員修改頁面的高級樣式 */
+.edit-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.header-icon {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #e8f4fc 0%, #d4e8f7 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #5b9bd5;
+  margin: 0 auto 16px;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #303133;
+}
+
+.card-header p {
+  margin: 8px 0 0;
+  color: #909399;
+  font-size: 0.95rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-icon {
+  font-size: 36px;
+  color: #409eff;
+  margin-bottom: 16px;
+}
+
+.error-alert {
+  margin-bottom: 20px;
+  border-radius: 10px;
+}
+
+.admin-form :deep(.el-form-item__label) {
+  font-weight: 600;
+  color: #606266;
+}
+
+.admin-form :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  padding: 4px 12px;
+}
+
+.form-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #5b9bd5 0%, #7cb9e8 100%);
+  border: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(91, 155, 213, 0.35);
+}
+
+.back-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 15px;
+  border-radius: 12px;
+  border: 1px solid #e8ecf1;
+  background: transparent;
+  color: #606266;
+}
+
+.back-btn:hover {
+  border-color: #5b9bd5;
+  color: #5b9bd5;
+  background: rgba(91, 155, 213, 0.05);
+}
+
+.mr-2 { margin-right: 8px; }
+</style>
+</file>
+
+<file path="frontend/src/views/member/AdminHomeView.vue">
+<script setup>
+/**
+ * AdminHomeView.vue：後台首頁入口 (Layout 適配修正版)
+ * ------------------------------------------------
+ * 1. [Fix] 更名 .content-wrapper -> .dashboard-inner 避免與 AdminLayout 衝突
+ * 2. [Fix] 移除 min-height: 100vh，改由內容撐開，適配 AdminLTE 結構
+ * 3. [Fix] 粒子特效改為 absolute，限制在內容區塊內
+ * 4. [Layout] 模組區塊採用 Grid 分箱設計，確保每個類別獨立顯示
+ * ------------------------------------------------
+ */
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAdminAuthStore } from '@/stores/adminAuth'
+import axios from 'axios'
+
+const router = useRouter()
+const adminAuthStore = useAdminAuthStore()
+
+const adminName = computed(() => adminAuthStore.admin?.name || '管理員')
+
+// =======================
+// 1. 統計數據狀態
+// =======================
+const stats = ref({
+  totalSpots: 0,
+  totalSeats: 0,
+  maintenanceCount: 0,
+  totalMembers: 0,
+  activeRentals: 0,
+})
+
+const loading = ref(true)
+const currentTime = ref('')
+const timeInterval = ref(null)
+
+// =======================
+// 2. 圖表設定
+// =======================
+// (A) 營收趨勢圖
+const revenueSeries = ref([])
+const revenueOptions = ref({
+  chart: {
+    type: 'area',
+    height: 350,
+    toolbar: { show: false },
+    fontFamily: 'Helvetica, Arial, sans-serif',
+    animations: { enabled: true, easing: 'easeinout', speed: 800 },
+    background: 'transparent',
+  },
+  dataLabels: { enabled: false },
+  stroke: { curve: 'smooth', width: 3 },
+  xaxis: {
+    categories: [],
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+    labels: { style: { colors: '#64748b' } },
+  },
+  yaxis: { labels: { style: { colors: '#64748b' } } },
+  grid: {
+    borderColor: '#f1f1f1',
+    strokeDashArray: 4,
+    padding: { top: 0, right: 0, bottom: 0, left: 10 },
+  },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.6,
+      opacityTo: 0.05,
+      stops: [0, 90, 100],
+    },
+  },
+  tooltip: { x: { format: 'yyyy-MM-dd' }, theme: 'light' },
+  colors: ['#4f46e5'],
+})
+
+// (B) 熱門站點排行
+const spotSeries = ref([])
+const spotOptions = ref({
+  chart: {
+    type: 'bar',
+    height: 350,
+    toolbar: { show: false },
+    fontFamily: 'Helvetica, Arial, sans-serif',
+    background: 'transparent',
+  },
+  plotOptions: {
+    bar: {
+      borderRadius: 4,
+      horizontal: true,
+      barHeight: '55%',
+      distributed: true,
+    },
+  },
+  dataLabels: { enabled: false },
+  xaxis: {
+    categories: [],
+    labels: { style: { colors: '#64748b' } },
+  },
+  yaxis: { labels: { style: { colors: '#64748b', fontSize: '13px', fontWeight: 500 } } },
+  grid: { show: false },
+  colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+  legend: { show: false },
+})
+
+// =======================
+// 3. 時間更新邏輯
+// =======================
+const updateTime = () => {
+  currentTime.value = new Date().toLocaleString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+}
+
+// =======================
+// 4. 資料獲取與處理
+// =======================
+const fetchStats = async () => {
+  loading.value = true
+  try {
+    const [spotsRes, seatsRes, membersRes, rentalsRes, ticketsRes] = await Promise.all([
+      axios.get('/api/spot/list'),
+      axios.get('/api/seats'),
+      axios.get('/api/members'),
+      axios.get('/api/rent-details/all'),
+      axios.get('/api/maintenance/tickets/active'),
+    ])
+
+    // 基礎數據
+    stats.value.totalSpots = spotsRes.data?.length || 0
+    stats.value.totalSeats = seatsRes.data?.length || 0
+    stats.value.maintenanceCount = (ticketsRes.data || []).length
+    stats.value.totalMembers = membersRes.data?.length || 0
+    stats.value.activeRentals = (rentalsRes.data || []).filter(
+      (r) => r.recStatus === '租借中',
+    ).length
+
+    // 圖表數據處理
+    const rawRentals = rentalsRes.data || []
+
+    // (A) 每日營收
+    const dailyMap = {}
+    rawRentals.forEach((item) => {
+      const dateKey = item.recRentDT2 ? item.recRentDT2.split('T')[0] : 'Unknown'
+      const price = item.recPrice || 0
+      if (!dailyMap[dateKey]) dailyMap[dateKey] = 0
+      dailyMap[dateKey] += price
+    })
+    const sortedDates = Object.keys(dailyMap).sort()
+    const dailyAmounts = sortedDates.map((date) => dailyMap[date])
+
+    revenueOptions.value = { ...revenueOptions.value, xaxis: { categories: sortedDates } }
+    revenueSeries.value = [{ name: '當日營收', data: dailyAmounts }]
+
+    // (B) 熱門站點
+    const spotCountMap = {}
+    rawRentals.forEach((item) => {
+      const spotName = item.rentSpotName || '未知站點'
+      spotCountMap[spotName] = (spotCountMap[spotName] || 0) + 1
+    })
+    const sortedSpots = Object.entries(spotCountMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+
+    const topSpotNames = sortedSpots.map((entry) => entry[0])
+    const topSpotCounts = sortedSpots.map((entry) => entry[1])
+
+    spotOptions.value = { ...spotOptions.value, xaxis: { categories: topSpotNames } }
+    spotSeries.value = [{ name: '租借次數', data: topSpotCounts }]
+  } catch (error) {
+    console.error('統計載入失敗:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// =======================
+// 5. 模組定義
+// =======================
+const moduleGroups = [
+  {
+    title: '場地與座位管理',
+    icon: 'fas fa-building',
+    modules: [
+      {
+        name: '據點管理',
+        desc: '管理各區域據點',
+        icon: 'fas fa-map-marker-alt',
+        path: '/admin/spot/list',
+      },
+      { name: '座位管理', desc: '座位配置與狀態', icon: 'fas fa-chair', path: '/admin/seat/list' },
+      {
+        name: '據點分析',
+        desc: '關鍵統計圖表',
+        icon: 'fas fa-chart-line',
+        path: '/admin/spot/analyze',
+      },
+      {
+        name: '調度中心',
+        desc: '即時監控與調度',
+        icon: 'fas fa-broadcast-tower',
+        path: '/admin/spot/monitor',
+      },
+    ],
+  },
+  {
+    title: '會員與權限管理',
+    icon: 'fas fa-users-cog',
+    modules: [
+      { name: '會員列表', desc: '一般會員資料管理', icon: 'fas fa-users', path: '/admin/members' },
+      {
+        name: '管理員列表',
+        desc: '後台權限設定',
+        icon: 'fas fa-user-shield',
+        path: '/admin/admins',
+      },
+    ],
+  },
+  {
+    title: '商家與優惠管理',
+    icon: 'fas fa-store',
+    modules: [
+      {
+        name: '商家管理',
+        desc: '合作商家資料',
+        icon: 'fas fa-store-alt',
+        path: '/admin/merchants',
+      },
+      {
+        name: '優惠券管理',
+        desc: '發放與管理優惠券',
+        icon: 'fas fa-ticket-alt',
+        path: '/admin/discounts',
+      },
+      {
+        name: '兌換紀錄',
+        desc: '點數兌換報表',
+        icon: 'fas fa-clipboard-list',
+        path: '/admin/redemption-logs',
+      },
+    ],
+  },
+  {
+    title: '租借與訂單管理',
+    icon: 'fas fa-file-invoice-dollar',
+    modules: [
+      {
+        name: '統計圖表',
+        desc: '營收與租借分析',
+        icon: 'fas fa-chart-pie',
+        path: '/admin/rec-chart',
+      },
+      { name: '訂單管理', desc: '查詢歷史訂單', icon: 'fas fa-list-alt', path: '/admin/rec-rent' },
+    ],
+  },
+  {
+    title: '維護與工單管理',
+    icon: 'fas fa-tools',
+    modules: [
+      {
+        name: '維護人員管理',
+        desc: '人員排班與資料',
+        icon: 'fas fa-user-cog',
+        path: '/admin/staff-list',
+      },
+      {
+        name: '維修工單管理',
+        desc: '追蹤維修進度',
+        icon: 'fas fa-wrench',
+        path: '/admin/mtif-list',
+      },
+      {
+        name: '定期排程管理',
+        desc: '自動化維護排程',
+        icon: 'fas fa-calendar-alt',
+        path: '/admin/maintenance/schedule',
+      },
+    ],
+  },
+]
+
+// =======================
+// 6. 生命週期
+// =======================
+onMounted(() => {
+  updateTime()
+  timeInterval.value = setInterval(updateTime, 1000)
+  fetchStats()
+})
+
+onUnmounted(() => {
+  if (timeInterval.value) clearInterval(timeInterval.value)
+})
+</script>
+
+<template>
+  <div class="dashboard-container">
+    <div class="particles-container">
+      <div class="particle" v-for="n in 30" :key="n"></div>
+    </div>
+
+    <main class="dashboard-inner fade-in-up">
+      <header class="header-section">
+        <div class="header-left">
+          <h1>{{ adminName }} <span class="wave"></span></h1>
+          <p class="subtitle">Take@Seat 營運控制中心</p>
+        </div>
+        <div class="header-right">
+          <div class="time-pill">
+            <span class="pulse-dot"></span>
+            {{ currentTime }}
+          </div>
+        </div>
+      </header>
+
+      <section class="stats-section">
+        <div class="stat-card">
+          <div class="icon-circle blue-bg"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="stat-content">
+            <span class="stat-num">{{ loading ? '...' : stats.totalSpots }}</span>
+            <span class="stat-label">營運據點</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="icon-circle purple-bg"><i class="fas fa-chair"></i></div>
+          <div class="stat-content">
+            <span class="stat-num">{{ loading ? '...' : stats.totalSeats }}</span>
+            <span class="stat-label">資產總數</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="icon-circle red-bg"><i class="fas fa-tools"></i></div>
+          <div class="stat-content">
+            <span class="stat-num">{{ loading ? '...' : stats.maintenanceCount }}</span>
+            <span class="stat-label">維護案量</span>
+          </div>
+          <div class="alert-dot" v-if="stats.maintenanceCount > 0"></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="icon-circle green-bg"><i class="fas fa-broadcast-tower"></i></div>
+          <div class="stat-content">
+            <span class="stat-num">{{ loading ? '...' : stats.activeRentals }}</span>
+            <span class="stat-label">即時租借</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="charts-section">
+        <div class="chart-wrapper">
+          <div class="section-header">
+            <h3><i class="fas fa-chart-area"></i> 營收趨勢分析</h3>
+            <span class="badge-soft">近 7 日</span>
+          </div>
+          <apexchart
+            type="area"
+            height="350"
+            :options="revenueOptions"
+            :series="revenueSeries"
+          ></apexchart>
+        </div>
+
+        <div class="chart-wrapper">
+          <div class="section-header">
+            <h3><i class="fas fa-chart-bar"></i> 熱門站點排行</h3>
+            <span class="badge-soft">Top 5</span>
+          </div>
+          <apexchart
+            type="bar"
+            height="350"
+            :options="spotOptions"
+            :series="spotSeries"
+          ></apexchart>
+        </div>
+      </section>
+
+      <section class="modules-section">
+        <div v-for="(group, gIndex) in moduleGroups" :key="gIndex" class="module-group-box">
+          <div class="group-header">
+            <i :class="group.icon"></i>
+            <span>{{ group.title }}</span>
+          </div>
+
+          <div class="module-grid">
+            <div
+              v-for="(mod, mIndex) in group.modules"
+              :key="mIndex"
+              class="module-btn"
+              @click="router.push(mod.path)"
+            >
+              <div class="mod-icon">
+                <i :class="mod.icon"></i>
+              </div>
+              <div class="mod-info">
+                <h4>{{ mod.name }}</h4>
+                <span>{{ mod.desc }}</span>
+              </div>
+              <i class="fas fa-chevron-right arrow-icon"></i>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</template>
+
+<style scoped>
+/* =========================================
+   1. Layout 適配修正
+   ========================================= */
+.dashboard-container {
+  /* 🔥 移除 min-height: 100vh，因為外層 AdminLayout 已經有高度 */
+  width: 100%;
+  background-color: #f8fafc; /* 確保有底色 */
+  color: #0f172a;
+  position: relative;
+  /* 給一點內距，讓內容不要貼死邊緣 */
+  padding: 1.5rem;
+  overflow: hidden; /* 防止內部粒子溢出 */
+}
+
+/* ✅ 改名為 dashboard-inner，不再與 AdminLTE 的 content-wrapper 衝突 */
+.dashboard-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* =========================================
+   2. 粒子特效 (改為 absolute)
+   ========================================= */
+.particles-container {
+  position: absolute; /* 🔥 改為 absolute，只佔滿 dashboard-container */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(59, 130, 246, 0.4);
+  border-radius: 50%;
+  animation: float 20s infinite linear;
+  opacity: 0.6;
+}
+
+.particle:nth-child(even) {
+  background: rgba(16, 185, 129, 0.3);
+  width: 8px;
+  height: 8px;
+  animation-duration: 25s;
+}
+.particle:nth-child(3n) {
+  background: rgba(245, 158, 11, 0.3);
+  width: 4px;
+  height: 4px;
+  animation-duration: 18s;
+}
+
+/* 隨機分佈 */
+.particle:nth-child(1) {
+  top: 10%;
+  left: 5%;
+}
+.particle:nth-child(2) {
+  top: 20%;
+  left: 85%;
+}
+.particle:nth-child(3) {
+  top: 80%;
+  left: 15%;
+}
+.particle:nth-child(4) {
+  top: 50%;
+  left: 50%;
+}
+.particle:nth-child(5) {
+  top: 30%;
+  left: 10%;
+}
+.particle:nth-child(6) {
+  top: 60%;
+  left: 90%;
+}
+/* ...更多省略 */
+
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-100px) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+/* =========================================
+   3. UI 元件
+   ========================================= */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-left h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+.subtitle {
+  color: #64748b;
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+}
+.time-pill {
+  background: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 99px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.9rem;
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  animation: pulse 2s infinite;
+}
+
+/* 統計卡片 Grid */
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+    0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  position: relative;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.blue-bg {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+.purple-bg {
+  background: #f5f3ff;
+  color: #8b5cf6;
+}
+.red-bg {
+  background: #fef2f2;
+  color: #ef4444;
+}
+.green-bg {
+  background: #f0fdf4;
+  color: #22c55e;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+.stat-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+.alert-dot {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: pulse 1s infinite;
+}
+
+/* 圖表 Grid */
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.chart-wrapper {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+    0 1px 2px -1px rgba(0, 0, 0, 0.03);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.section-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.badge-soft {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* =========================================
+   4. 模組區 - 分箱佈局 (Modules)
+   ========================================= */
+.modules-section {
+  display: grid;
+  /* 🔥 [關鍵] 大螢幕雙欄，中螢幕單欄 */
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.5rem;
+}
+
+/* 這是您要的「獨立 Box」 */
+.module-group-box {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+    0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #334155;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.group-header i {
+  color: #3b82f6;
+  font-size: 1.2rem;
+}
+
+/* 按鈕 Grid */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.module-btn {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.module-btn:hover {
+  background: white;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.mod-icon {
+  width: 40px;
+  height: 40px;
+  background: white;
+  color: #64748b;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: 0.2s;
+}
+.module-btn:hover .mod-icon {
+  background: #3b82f6;
+  color: white;
+}
+
+.mod-info {
+  flex: 1;
+}
+.mod-info h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+.mod-info span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  display: block;
+  margin-top: 2px;
+}
+
+.arrow-icon {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  transition: 0.2s;
+}
+.module-btn:hover .arrow-icon {
+  color: #3b82f6;
+  transform: translateX(3px);
+}
+
+/* 動畫 */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+  transform: translateY(15px);
+}
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes wave-animation {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(15deg);
+  }
+}
+.wave {
+  display: inline-block;
+  animation: wave-animation 2.5s infinite;
+  transform-origin: 70% 70%;
+}
+
+/* RWD */
+@media (max-width: 768px) {
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+  .modules-section {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/AdminListView.vue">
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+import { useAdminAuthStore } from '@/stores/adminAuth'
+
+const router = useRouter()
+const admins = ref([])
+const keyword = ref('')
+const loading = ref(false)
+const authStore = useAdminAuthStore()
+
+const showRoleModal = ref(false)
+const adminToEditRole = ref(null)
+const selectedRole = ref(1)
+
+// --- 分頁控制 ---
+const currentPage = ref(1)
+const pageSize = 5
+
+// --- 統計數據邏輯 --- 
+const totalAdmins = computed(() => 
+  admins.value.filter(a => a.admStatus === 1).length
+)
+const superAdmins = computed(() => 
+  admins.value.filter(a => a.admRole === 9 && a.admStatus === 1).length
+)
+const normalAdmins = computed(() => 
+  admins.value.filter(a => a.admRole === 1 && a.admStatus === 1).length
+)
+
+// --- 狀態切換與停權彈窗 ---
+const filterStatus = ref(1) // 1: 啟用, 0: 停用
+const showBanModal = ref(false)
+const banReason = ref('')
+const adminToBan = ref(null)
+
+// 取得管理員
+const fetchAdmins = async () => {
+  loading.value = true
+  try {
+    const res = await axios.get('http://localhost:8080/admins')
+    admins.value = res.data
+    currentPage.value = 1
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: '載入失敗',
+      text: '取得管理員資料失敗',
+      confirmButtonColor: '#ff4d4f'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// 過濾與分頁 (狀態過濾)
+const filteredAdmins = computed(() => {
+  return admins.value.filter(a => a.admStatus === filterStatus.value)
+})
+
+const paginatedAdmins = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredAdmins.value.slice(start, start + pageSize)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredAdmins.value.length / pageSize) || 1
+})
+
+// 模糊搜尋
+const searchAdmins = async () => {
+  if (!keyword.value.trim()) {
+    fetchAdmins()
+    return
+  }
+  loading.value = true
+  try {
+    const res = await axios.get('http://localhost:8080/admins/search', {
+      params: { keyword: keyword.value.trim() }
+    })
+    
+    if (res.data.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: '找不到資料',
+        text: `找不到與「${keyword.value}」相關的管理員`,
+        confirmButtonColor: '#f39c12'
+      })
+    } else {
+      admins.value = res.data
+      currentPage.value = 1
+      Swal.fire({
+        icon: 'success',
+        title: '搜尋成功',
+        text: `找到 ${res.data.length} 筆符合的管理員資料`,
+        timer: 1500,
+        showConfirmButton: false
+      })
+    }
+  } catch (error) {
+    Swal.fire({ 
+      icon: 'error', 
+      title: '搜尋發生錯誤' 
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+
+// --- 權限檢查邏輯 ---
+const checkPermission = (actionCallback) => {
+  const role = authStore.admin?.admRole || authStore.admin?.role;
+  if (Number(role) === 9) {
+    actionCallback();
+  } else {
+    Swal.fire({
+      icon: 'lock',
+      title: '權限不足',
+      text: '您目前是一般管理員，無法執行此操作。',
+      confirmButtonColor: '#ff4d4f'
+    });
+  }
+};
+
+// 停權操作
+const openBanModal = (admin) => {
+  adminToBan.value = admin
+  banReason.value = ''
+  showBanModal.value = true
+}
+
+const confirmBanAdmin = async () => {
+  if (!banReason.value.trim()) {
+    Swal.fire({ icon: 'warning', title: '請輸入原因', confirmButtonColor: '#f39c12' })
+    return
+  }
+  try {
+    // 假設後端 API 為 /admins/ban，並將狀態改為 0
+    await axios.post('http://localhost:8080/admins/ban', {
+      admId: adminToBan.value.admId,
+      reason: banReason.value
+    })
+    showBanModal.value = false
+    Swal.fire({ icon: 'success', title: '該管理員已停職', timer: 1500, showConfirmButton: false })
+    fetchAdmins()
+  } catch (error) {
+    Swal.fire({ icon: 'error', title: '操作失敗' })
+  }
+}
+
+// 恢復啟用
+const activateAdmin = async (admin) => {
+  const result = await Swal.fire({
+    title: '確定要重新啟用嗎？',
+    text: `將恢復管理員：${admin.admName} 的存取權限`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#52c41a',
+    cancelButtonColor: '#8c8c8c',
+    confirmButtonText: '確定啟用',
+    cancelButtonText: '取消'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await axios.post('http://localhost:8080/admins/activate', { admId: admin.admId })
+      Swal.fire({ icon: 'success', title: '已恢復啟用', timer: 1500, showConfirmButton: false })
+      fetchAdmins()
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: '恢復失敗' })
+    }
+  }
+}
+
+const formatDate = (dt) => {
+  if (!dt) return ''
+  return dt.substring(0, 10).replace(/-/g, '/')
+}
+
+const getAvatar = (id) => {
+  if (id >= 1 && id <= 10) {
+    const fileName = String(id).padStart(2, '0')
+    return `/admin/${fileName}.jpg`
+  }
+  return '/admin/default.png'
+}
+
+// 開啟彈窗
+const openRoleModal = (admin) => {
+  adminToEditRole.value = admin
+  selectedRole.value = admin.admRole
+  showRoleModal.value = true
+}
+
+// 儲存變更並跳出 SweetAlert 確認
+const handleUpdateRole = async () => {
+  const result = await Swal.fire({
+    title: '確定要變更權限嗎？',
+    text: `將管理員「${adminToEditRole.value.admName}」的角色變更為：${selectedRole.value === 9 ? '超級管理員' : '一般管理員'}`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#1890ff',
+    cancelButtonColor: '#8c8c8c',
+    confirmButtonText: '確定更新',
+    cancelButtonText: '取消'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await axios.post(`http://localhost:8080/admins/${adminToEditRole.value.admId}/role`, {
+        admRole: selectedRole.value
+      })
+      showRoleModal.value = false
+      Swal.fire({ icon: 'success', title: '權限已更新', timer: 1500, showConfirmButton: false })
+      fetchAdmins() // 重新整理列表
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: '更新失敗' })
+    }
+  }
+}
+
+onMounted(fetchAdmins)
+</script>
+
+<template>
+  <div class="admin-main-container">
+      <div class="header-info-card">
+        <div class="header-icon">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="header-content">
+          <h2>管理員列表</h2>
+          <p>管理系統管理員帳號與權限</p>
+        </div>
+      </div>
+
+      <div class="statistics-row">
+        <div class="stat-item blue-left">
+          <div class="stat-icon-box bg-blue-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-data">
+            <div class="stat-value">{{ totalAdmins }}</div>
+            <div class="stat-label">管理員總數</div>
+          </div>
+        </div>
+        <div class="stat-item red-left">
+          <div class="stat-icon-box bg-red-icon">
+            <i class="fas fa-crown"></i>
+          </div>
+          <div class="stat-data">
+            <div class="stat-value">{{ superAdmins }}</div>
+            <div class="stat-label">超級管理員</div>
+          </div>
+        </div>
+        <div class="stat-item green-left">
+          <div class="stat-icon-box bg-green-icon">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="stat-data">
+            <div class="stat-value">{{ normalAdmins }}</div>
+            <div class="stat-label">一般管理員</div>
+          </div>
+        </div>
+      </div>
+
+    <div class="search-filter-bar">
+      <div class="search-input-group">
+        <div class="icon-input-wrap">
+          <i class="fas fa-search"></i>
+          <input
+            v-model="keyword"
+            type="text"
+            placeholder="搜尋帳號 / 姓名 / Email"
+            @keyup.enter="searchAdmins"
+          />
+        </div>
+        <button class="btn-action-search" @click="searchAdmins">
+          <i class="fas fa-search"></i> 搜尋
+        </button>
+        <button class="btn-action-all" @click="fetchAdmins">
+          <i class="fas fa-sync-alt"></i> 顯示全部
+        </button>
+      </div>
+
+      <div class="action-right-group">
+        <div class="status-toggle-group">
+          <button 
+            class="toggle-btn" 
+            :class="{ active: filterStatus === 1 }" 
+            @click="filterStatus = 1"
+          >啟用員工</button>
+          <button 
+            class="toggle-btn" 
+            :class="{ active: filterStatus === 0 }" 
+            @click="filterStatus = 0"
+          >停職員工</button>
+        </div>
+        <button class="btn-add-admin" @click="checkPermission(() => router.push('/admin/admins/create'))">
+          <i class="fas fa-plus"></i> 新增管理員
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper-card">
+      <table class="data-list-table">
+        <thead>
+          <tr>
+            <th class="col-w-id">ID</th>
+            <th class="col-w-info">管理員資訊</th>
+            <th class="col-w-email">Email</th>
+            <th class="col-w-role">權限</th>
+            <th class="col-w-date">到職日</th>
+            <th class="col-w-date">{{ filterStatus === 1 ? '更新時間' : '停職日' }}</th>
+            <th class="col-w-btn">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="a in paginatedAdmins" :key="a.admId">
+            <td>{{ a.admId }}</td>
+            <td class="align-left">
+              <div class="user-info-flex">
+                <div class="avatar-box">
+                  <img :src="getAvatar(a.admId)" />
+                </div>
+                <div class="name-account-stack">
+                  <span class="full-name">{{ a.admName }}</span>
+                  <span class="account-tag">@{{ a.admUsername }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="align-left">{{ a.admEmail }}</td>
+            <td>
+              <span 
+                class="role-badge" 
+                :class="a.admRole === 9 ? 'role-super' : 'role-normal'"
+                @click="checkPermission(() => openRoleModal(a))" 
+                style="cursor: pointer;"
+              >
+                {{ a.admRole === 9 ? '超級管理員' : '一般管理員' }}
+                <i class="fas fa-edit" style="font-size: 10px; margin-left: 4px;"></i>
+              </span>
+            </td>
+            <td>{{ formatDate(a.createdAt) }}</td>
+            <td>{{ formatDate(a.updatedAt) }}</td>
+            <td>
+              <div class="op-button-group">
+                <template v-if="filterStatus === 1">
+                  <button class="btn-op-edit" @click="checkPermission(() => router.push(`/admin/admins/edit/${a.admId}`))">修改</button>
+                  <button class="btn-op-stop" @click="checkPermission(() => openBanModal(a))">停職</button>
+                </template>
+                <template v-else>
+                  <button class="btn-box-active" @click="checkPermission(() => activateAdmin(a))">啟用</button>
+                </template>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="page-control-footer" v-if="filteredAdmins.length > pageSize">
+      <button class="page-nav-btn" :disabled="currentPage === 1" @click="currentPage--">上一頁</button>
+      <span class="page-current-info">第 {{ currentPage }} / {{ totalPages }} 頁</span>
+      <button class="page-nav-btn" :disabled="currentPage === totalPages" @click="currentPage++">下一頁</button>
+    </div>
+
+    <div v-if="showBanModal" class="modal-overlay" @click.self="showBanModal = false">
+      <div class="ban-card">
+        <div class="ban-header">
+          <span>管理員停職處理</span>
+          <button class="close-x" @click="showBanModal = false">&times;</button>
+        </div>
+        <div class="ban-body">
+          <label>停職原因 <span class="required">*</span></label>
+          <textarea v-model="banReason" placeholder="請詳細輸入停職原因..."></textarea>
+          <div class="ban-warning">
+            <i class="fas fa-exclamation-triangle"></i> 注意：停職後該帳號將無法登入後台系統。
+          </div>
+        </div>
+        <div class="ban-footer">
+          <button class="btn-close-modal" @click="showBanModal = false">取消</button>
+          <button class="btn-confirm-ban" @click="confirmBanAdmin">確認停職</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-if="showRoleModal" class="modal-overlay" @click.self="showRoleModal = false">
+    <div class="ban-card" style="width: 350px;"> <div class="ban-header" style="background: #1890ff;">
+        <span>編輯 {{ adminToEditRole.admName }} 的職位</span>
+        <button class="close-x" @click="showRoleModal = false">&times;</button>
+      </div>
+      <div class="ban-body">
+        <p style="color: #909399; font-size: 14px; margin-bottom: 15px;">請勾選要指派給此員工的職位：</p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" v-model="selectedRole" :value="9"> 超級管理員 (ADMIN)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" v-model="selectedRole" :value="1"> 一般管理員 (EMPLOYEE)
+          </label>
+        </div>
+      </div>
+      <div class="ban-footer">
+        <button class="btn-close-modal" @click="showRoleModal = false">取消</button>
+        <button class="btn-confirm-ban" style="background: #1890ff;" @click="handleUpdateRole">儲存變更</button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.admin-main-container {
+  padding: 24px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.header-info-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: #ffffff;
+  padding: 20px 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+.header-icon {
+  width: 56px;
+  height: 56px;
+  background-color: #e8f4ff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #1890ff;
+}
+
+.header-content h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #303133;
+}
+
+.header-content p {
+  margin: 4px 0 0 0;
+  color: #909399;
+  font-size: 14px;
+}
+
+/* 統計卡片容器：控制三欄等寬 */
+.statistics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* 單個統計項目 */
+.stat-item {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-left-width: 5px;
+  border-left-style: solid;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* 左側邊框顏色 */
+.blue-left { 
+  border-left-color: #1890ff; 
+}
+
+.red-left { 
+  border-left-color: #ff4d4f; 
+}
+
+.green-left { 
+  border-left-color: #52c41a; 
+}
+
+.stat-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.bg-blue-icon { 
+  background-color: #1890ff; 
+}
+
+.bg-red-icon { 
+  background-color: #ff4d4f; 
+}
+
+.bg-green-icon { 
+  background-color: #52c41a; 
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #303133;
+}
+
+.search-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.search-input-group {
+  display: flex;
+  gap: 12px;
+}
+
+.icon-input-wrap {
+  position: relative;
+}
+
+.icon-input-wrap i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #c0c4cc;
+}
+
+.icon-input-wrap input {
+  padding: 10px 12px 10px 36px;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  width: 300px;
+}
+
+.action-right-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-toggle-group {
+  display: flex;
+  border: 1px solid #1890ff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 8px 16px;
+  border: none;
+  background: white;
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.toggle-btn.active {
+  background: #1890ff;
+  color: white;
+}
+
+.btn-action-search,
+.btn-action-all,
+.btn-add-admin,
+.btn-op-edit,
+.btn-op-stop,
+.btn-box-active,
+.page-nav-btn {
+  transition: all 0.2s ease;
+  cursor: pointer;
+  outline: none;
+}
+
+.btn-action-search:hover,
+.btn-action-all:hover,
+.btn-add-admin:hover,
+.btn-op-edit:hover,
+.btn-op-stop:hover,
+.btn-box-active:hover,
+.page-nav-btn:hover:not(:disabled), 
+.role-badge:hover{
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action-search:active,
+.btn-add-admin:active,
+.btn-op-stop:active {
+  transform: scale(0.95);
+}
+
+.btn-add-admin {
+  background-color: #52c41a;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+.btn-action-search {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  border-radius: 8px;
+}
+
+.btn-action-all {
+  background-color: #52c41a;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  border-radius: 8px;
+}
+
+.table-wrapper-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.data-list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-list-table th {
+  background-color: #f8f9fb;
+  padding: 16px;
+  color: #606266;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.data-list-table td {
+  padding: 16px;
+  text-align: left;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.user-info-flex {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-box img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.name-account-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.full-name {
+  font-weight: 600;
+}
+
+.account-tag {
+  font-size: 12px;
+  color: #909399;
+}
+
+.role-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.role-super {
+  background: linear-gradient(135deg, #f56c6c 0%, #ff8e8e 100%);
+}
+
+.role-normal {
+  background: linear-gradient(135deg, #409eff 0%, #79bbff 100%);
+}
+
+.op-button-group {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-op-edit {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.btn-op-stop {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.btn-box-active {
+  background-color: #52c41a;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.ban-card {
+  background: white;
+  width: 450px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ban-header {
+  background: #f39c12;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  color: white;
+  font-weight: bold;
+}
+
+.ban-body {
+  padding: 20px;
+}
+
+.ban-body textarea {
+  width: 100%;
+  height: 120px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: none;
+}
+
+.ban-warning {
+  margin-top: 15px;
+  background: #fff9db;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #856404;
+}
+
+.ban-footer {
+  padding: 15px 20px;
+  text-align: right;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-confirm-ban {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-confirm-ban:hover {
+  background: #d32f2f;
+  transform: translateY(-1px);
+}
+
+.btn-close-modal {
+  padding: 8px 20px;
+  background: #909399;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-close-modal:hover {
+  background: #a6a9ad;
+  transform: translateY(-1px);
+}
+
+.close-x {
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.close-x:hover {
+  color: #f56c6c;
+  transform: rotate(90deg);
+}
+
+.required {
+  color: red;
+}
+
+.page-control-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.page-nav-btn {
+  padding: 8px 16px;
+  background-color: #ffffff;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/MemberProfileView.vue">
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+import { useMemberAuthStore } from '@/stores/memberAuth'
+
+import RecRentUserRecord from '@/components/rec/RecRentUserRecord.vue'
+
+import Swal from 'sweetalert2'
+
+const memberAuth = useMemberAuthStore()
+const member = ref(null)
+const form = ref({})
+const isEdit = ref(false)
+const errorMsg = ref('')
+
+// 租借狀態相關
+const activeRent = ref(null) // 進行中的租借訂單
+const rentSpotName = ref('') // 租借站點的名稱
+const isLoadingRentStatus = ref(true) // 租借狀態的讀取狀態
+
+// [新增] 控制歷史紀錄顯示
+const showHistory = ref(false)
+const toggleHistory = () => {
+  showHistory.value = !showHistory.value
+}
+
+const originForm = ref({})
+
+const fetchProfile = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/member/profile', {
+      withCredentials: true,
+    })
+
+    const m = res.data
+    member.value = m
+
+    // 一定要 trim，避免空白 bug
+    form.value = {
+      memName: m.memName?.trim() || '',
+      memPhone: m.memPhone?.trim() || '',
+      memEmail: m.memEmail?.trim() || '',
+      memInvoice: m.memInvoice?.trim() || '',
+    }
+    memberAuth.setMemberLogin(m) // 更新 Pinia store
+
+    // 取得個人資料後，接著取得租借狀態
+    await fetchRentalStatus()
+  } catch (e) {
+    errorMsg.value = '尚未登入'
+  }
+}
+
+// 查詢租借狀態
+const fetchRentalStatus = async () => {
+  isLoadingRentStatus.value = true
+  try {
+    const memId = memberAuth.member?.memId
+    if (!memId) {
+      activeRent.value = null
+      return
+    }
+
+    // 查詢會員的租借紀錄，目的是為了找到進行中訂單的 ID
+    const rentListRes = await axios.get(`http://localhost:8080/rec-rent?memId=${memId}`)
+    const basicRentInfo = rentListRes.data.find((rent) => rent.recStatus === '租借中')
+
+    // 如果找到進行中的訂單
+    if (basicRentInfo && basicRentInfo.recId) {
+      try {
+        // 使用訂單 ID 去查詢完整的、包含站點名稱的詳細資訊
+        const detailsRes = await axios.get(
+          `http://localhost:8080/api/rent-details/${basicRentInfo.recId}`,
+        )
+        const currentRentDetails = detailsRes.data
+
+        if (currentRentDetails) {
+          activeRent.value = currentRentDetails
+          // 直接從回傳的詳細資料中取得站點名稱
+          rentSpotName.value = currentRentDetails.spotNameRent || '未知站點'
+        } else {
+          activeRent.value = null // 如果詳細資料查無，也當作沒有
+        }
+      } catch (detailsError) {
+        console.error(`查詢訂單詳細資訊 ${basicRentInfo.recId} 失敗:`, detailsError)
+        // Fallback: 即使詳細資料查詢失敗，仍然顯示基本資訊
+        activeRent.value = basicRentInfo
+        rentSpotName.value = '站點資料讀取失敗'
+      }
+    } else {
+      // 如果連基本訂單都找不到，則確認無租借中訂單
+      activeRent.value = null
+    }
+  } catch (error) {
+    console.error('查詢租借狀態失敗:', error)
+    activeRent.value = null
+  } finally {
+    isLoadingRentStatus.value = false
+  }
+}
+
+onMounted(fetchProfile)
+
+const formatDate = (dt) => {
+  if (!dt) return ''
+  return dt.substring(0, 10).replace(/-/g, '-')
+}
+
+// [新增] 格式化日期時間的函式
+const formatDateTime = (dt) => {
+  if (!dt) return ''
+  const date = new Date(dt)
+  return date
+    .toLocaleString('zh-TW', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+    .replace(/\//g, '-')
+}
+
+const startEdit = () => {
+  originForm.value = { ...form.value }
+  isEdit.value = true
+}
+
+const cancelEdit = () => {
+  isEdit.value = false
+  fetchProfile()
+}
+
+const saveEdit = async () => {
+  // 密碼格式初步檢查 (前端擋路)
+  const passwordRegex = /^(?=.*[A-Za-z])[A-Za-z\d!@#$%^&*()_+=\[\]{}:;"'<>,.?/\-]{6,}$/
+  if (form.value.memPassword && !passwordRegex.test(form.value.memPassword)) {
+    Swal.fire('格式錯誤', '密碼必須至少 6 碼且包含 1 個英文字母', 'error')
+    return
+  }
+
+  const phoneRegex = /^09\d{8}$/
+  if (!phoneRegex.test(form.value.memPhone.trim())) {
+    Swal.fire('格式錯誤', '手機號碼請輸入 09 開頭的 10 碼數字', 'error')
+    return
+  }
+
+  // Email 格式：標準電子郵件，結尾需為 .com
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]*com$/
+  if (!emailRegex.test(form.value.memEmail.trim())) {
+    Swal.fire('格式錯誤', 'Email 格式不正確（需包含 @ 且以 .com 結尾）', 'error')
+    return
+  }
+
+  // 發票載具：/ 開頭，後接 7 碼大寫英文或數字
+  const invoiceRegex = /^\/[A-Z0-9]{7}$/
+  if (form.value.memInvoice && !invoiceRegex.test(form.value.memInvoice.trim())) {
+    Swal.fire('格式錯誤', '發票載具格式錯誤（應為 / 開頭加上 7 碼大寫英數）', 'error')
+    return
+  }
+
+  // 二次確認彈窗
+  const confirmResult = await Swal.fire({
+    title: '確定要變更資料嗎？',
+    text: '修改後將會立即生效',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#22c55e',
+    cancelButtonColor: '#9ca3af',
+    confirmButtonText: '確定更新',
+    cancelButtonText: '取消',
+  })
+
+  if (!confirmResult.isConfirmed) return
+
+  try {
+    // 修正這裡的路徑與方法
+    const res = await axios.post(
+      // 1. 改回 post
+      'http://localhost:8080/api/members/update', // 2. 指向正確的後端路徑
+      {
+        memId: member.value.memId, // 3. 務必傳送 memId，否則後端 findById 會找不到人
+        memName: form.value.memName.trim(),
+        memPhone: form.value.memPhone.trim(),
+        memEmail: form.value.memEmail.trim(),
+        memInvoice: form.value.memInvoice.trim(),
+        memPassword: form.value.memPassword,
+        memUsername: member.value.memUsername, // 建議也帶上，確保資料完整
+      },
+      { withCredentials: true },
+    )
+
+    // 4. 注意：後端回傳的是 "會員修改成功"，這裡要對齊字串
+    if (res.data === '會員修改成功') {
+      Swal.fire({
+        title: '編輯成功',
+        text: '您的資料已同步',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+      })
+
+      isEdit.value = false
+      fetchProfile()
+    } else {
+      Swal.fire('更新失敗', res.data, 'error')
+    }
+  } catch (e) {
+    Swal.fire('系統錯誤', '無法連接至伺服器', 'error')
+    form.value = { ...originForm.value }
+  }
+}
+</script>
+
+<template>
+  <div class="profile-page">
+    <div v-if="errorMsg">{{ errorMsg }}</div>
+
+    <div v-if="member">
+      <!-- 頭像 + 名稱 -->
+      <div class="profile-header">
+        <div class="avatar">
+          <img
+            class="member-photo"
+            :src="member.memImage ? `/members/${member.memImage}` : '/members/default.png'"
+            @error="(e) => (e.target.src = '/members/default.png')"
+            alt="會員頭像"
+          />
+          <div v-if="isEdit" class="photo-edit-hint">
+            <span>📷</span>
+          </div>
+        </div>
+        <div class="name">{{ member.memName }}</div>
+      </div>
+
+      <!-- 操作按鈕 -->
+      <div class="actions">
+        <template v-if="!isEdit">
+          <button @click="toggleHistory" class="btn btn-info">
+            {{ showHistory ? '隱藏訂單歷史' : '查看訂單歷史資訊' }}
+          </button>
+          <button class="edit-btn" @click="startEdit">編輯資料</button>
+        </template>
+        <template v-else>
+          <button class="save-btn" @click="saveEdit">儲存變更</button>
+          <button class="cancel-btn" @click="cancelEdit">取消</button>
+        </template>
+      </div>
+
+      <!-- 資料卡片 -->
+      <div class="profile-card">
+        <div class="row">
+          <label>帳號</label>
+          <div class="value">{{ member.memUsername }}</div>
+        </div>
+
+        <div class="row">
+          <label>密碼</label>
+          <input
+            :type="isEdit ? 'password' : 'text'"
+            class="value-input"
+            v-model="form.memPassword"
+            :placeholder="isEdit ? '輸入新密碼以修改' : '********'"
+            :readonly="!isEdit"
+          />
+        </div>
+
+        <div class="row">
+          <label>姓名</label>
+          <input class="value-input" v-model="form.memName" :readonly="!isEdit" />
+        </div>
+
+        <div class="row">
+          <label>手機</label>
+          <input class="value-input" v-model="form.memPhone" :readonly="!isEdit" />
+        </div>
+
+        <div class="row">
+          <label>Email</label>
+          <input class="value-input" v-model="form.memEmail" :readonly="!isEdit" />
+        </div>
+
+        <!-- 會員點數（唯讀） -->
+        <div class="row">
+          <label>會員點數</label>
+          <div class="value">
+            {{ member.memPoints }}
+          </div>
+        </div>
+
+        <!-- 租借狀態 -->
+        <div class="row">
+          <label>租借狀態</label>
+          <div class="value">
+            <!-- 讀取中 -->
+            <div v-if="isLoadingRentStatus" class="placeholder">讀取中...</div>
+            <!-- 有租借中訂單 -->
+            <div v-else-if="activeRent" class="rent-details">
+              <div>
+                <strong>狀態:</strong> <span class="status-active">{{ activeRent.recStatus }}</span>
+              </div>
+              <div><strong>訂單編號:</strong> {{ activeRent.recId }}</div>
+              <div><strong>租借站點:</strong> {{ activeRent.rentSpotName }}</div>
+              <div><strong>租借時間:</strong> {{ formatDateTime(activeRent.recRentDT2) }}</div>
+            </div>
+            <!-- 無租借中訂單 -->
+            <div v-else class="placeholder">目前沒有租借中的訂單</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>發票載具</label>
+          <input class="value-input" v-model="form.memInvoice" :readonly="!isEdit" />
+        </div>
+
+        <div class="row">
+          <label>註冊日期</label>
+          <div class="value">{{ formatDate(member.createdAt) }}</div>
+        </div>
+      </div>
+
+      <!-- [新增] 訂單歷史紀錄 -->
+      <div v-if="showHistory" class="history-container mt-4">
+        <RecRentUserRecord />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* 整體 */
+.profile-page {
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 20px 0; /*  小螢幕不貼邊（左右 20） */
+  box-sizing: border-box;
+
+  /*  可留可不留：留著也不會壞，未來更好做版面控制 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 頭像 */
+.profile-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.avatar {
+  width: 120px; /* 稍微加大一點比較好看 */
+  height: 120px;
+  border-radius: 50%;
+  background: #f0f2f5;
+  margin: 0 auto 15px;
+  position: relative; /* 為了定位編輯圖示 */
+  overflow: hidden; /* 確保圖片超出圓圈會被裁切 */
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.member-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 關鍵：保持比例填充 */
+  display: block;
+}
+
+/* [新增] 編輯模式的半透明遮罩 */
+.photo-edit-hint {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  padding: 4px 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* 按鈕 */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.edit-btn {
+  background: #c9a46a;
+  color: #fff;
+}
+
+.save-btn {
+  background: #22c55e;
+  color: #fff;
+}
+
+.cancel-btn {
+  background: #9ca3af;
+  color: #fff;
+}
+
+.actions button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 卡片 */
+.profile-card {
+  background: #fff;
+  border-radius: 12px;
+  width: auto;
+  margin: 0 20px 0 20px;
+  padding: 20px 20px 5px 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+}
+
+.row {
+  display: flex;
+  padding: 4px 0;
+  font-size: larger;
+  border-bottom: 1px solid #eee;
+}
+
+.row:last-child {
+  border-bottom: none;
+  font-size: larger;
+}
+
+label {
+  width: 120px;
+  color: #666;
+}
+
+/* input / 顯示共用 */
+.value,
+.value-input {
+  flex: 1;
+  font-size: large;
+}
+
+.value-input {
+  border: none;
+  background: transparent;
+}
+
+.value-input:read-only {
+  pointer-events: none;
+}
+
+.value-input:not(:read-only) {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* 編輯資料 */
+.edit-btn:hover {
+  background: #b8935a;
+}
+
+/* 儲存變更 */
+.save-btn:hover {
+  background: #16a34a;
+}
+
+/* 取消 */
+.cancel-btn:hover {
+  background: #6b7280;
+}
+
+/* 通用 hover 手感 */
+.actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.rent-details > div {
+  padding: 2px 0;
+}
+
+.status-active {
+  background-color: #28a745; /* 綠色背景 */
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/member/MemberListView.vue">
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+import { useAdminAuthStore } from '@/stores/adminAuth'
+
+import { Bar, Line } from 'vue-chartjs'
+import { 
+  Chart as ChartJS, Title, Tooltip, Legend, BarElement, 
+  CategoryScale, LinearScale, PointElement, LineElement 
+} from 'chart.js'
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement)
+
+const router = useRouter()
+const members = ref([])
+const keyword = ref('')
+const loading = ref(false)
+const authStore = useAdminAuthStore()
+
+// --- 分頁控制 ---
+const currentPage = ref(1)
+const pageSize = 6 
+
+// --- 彈窗控制 ---
+const showModal = ref(false)
+const selectedMember = ref(null)
+
+// --- 狀態切換與停權彈窗 ---
+const filterStatus = ref(1) // 1: 啟用, 0: 停用
+const showBanModal = ref(false)
+const banReason = ref('')
+const memberToBan = ref(null)
+
+// 取得會員
+const fetchMembers = async () => {
+  loading.value = true
+  try {
+    const res = await axios.get('http://localhost:8080/api/members')
+    members.value = res.data
+    currentPage.value = 1 
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: '載入失敗',
+      text: '取得會員資料失敗',
+      confirmButtonColor: '#f56c6c'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// 過濾與分頁
+const filteredMembers = computed(() => {
+  return members.value.filter(m => m.memStatus === filterStatus.value)
+})
+
+const paginatedMembers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredMembers.value.slice(start, start + pageSize)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredMembers.value.length / pageSize) || 1
+})
+
+const openMemberDetail = (member) => {
+  selectedMember.value = member
+  showModal.value = true
+}
+
+// 模糊搜尋 (完全保留原邏輯與樣式)
+const searchMembers = async () => {
+  // 如果關鍵字為空，顯示全部資料
+  if (!keyword.value.trim()) {
+    fetchMembers()
+    return
+  }
+
+  loading.value = true
+  try {
+    const res = await axios.get('http://localhost:8080/api/members/search', {
+      params: { keyword: keyword.value.trim() }
+    })
+
+    members.value = res.data
+    currentPage.value = 1 // 搜尋後回到第一頁
+
+    // --- 完整還原：顯示搜尋結果提示 ---
+    if (res.data.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: '查無結果',
+        text: `找不到包含「${keyword.value.trim()}」的會員資料`,
+        confirmButtonText: '確定',
+        confirmButtonColor: '#e6a23c'
+      })
+    } else {
+      Swal.fire({
+        icon: 'success',
+        title: '搜尋成功',
+        text: `找到 ${res.data.length} 筆符合的會員資料`,
+        timer: 1500,
+        showConfirmButton: false
+      })
+    }
+  } catch (error) {
+    // --- 完整還原：搜尋失敗提示 ---
+    Swal.fire({
+      icon: 'error',
+      title: '搜尋失敗',
+      text: error.response?.data?.message || '搜尋過程發生錯誤，請稍後再試',
+      confirmButtonText: '確定',
+      confirmButtonColor: '#f56c6c'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// 停權邏輯
+const openBanModal = (member) => {
+  memberToBan.value = member
+  banReason.value = ''
+  showBanModal.value = true
+}
+
+const confirmBanMember = async () => {
+  if (!banReason.value.trim()) {
+    Swal.fire({ icon: 'warning', title: '請輸入原因', confirmButtonColor: '#e6a23c' })
+    return
+  }
+  try {
+    await axios.post('http://localhost:8080/api/members/ban', {
+      memId: memberToBan.value.memId,
+      reason: banReason.value
+    })
+    showBanModal.value = false
+    Swal.fire({ icon: 'success', title: '該會員已移至停權區', timer: 1500, showConfirmButton: false })
+    fetchMembers()
+  } catch (error) {
+    Swal.fire({ icon: 'error', title: '操作失敗' })
+  }
+}
+
+// 恢復啟用 (加回 SweetAlert 確認)
+const activateMember = async (member) => {
+  const result = await Swal.fire({
+    title: '確定要重新啟用嗎？',
+    text: `即將恢復會員：${member.memName} 的權限`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#67c23a',
+    cancelButtonColor: '#909399',
+    confirmButtonText: '確定啟用',
+    cancelButtonText: '取消'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await axios.post('http://localhost:8080/api/members/activate', { memId: member.memId })
+      Swal.fire({ icon: 'success', title: '已重新啟用', timer: 1500, showConfirmButton: false })
+      fetchMembers()
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: '恢復失敗' })
+    }
+  }
+}
+
+const formatDateOnly = (dt) => {
+  if (!dt) return ''
+  return dt.substring(0, 10).replace(/-/g, '/')
+}
+
+const clearSearch = () => {
+  keyword.value = ''
+  fetchMembers()
+}
+
+const checkPermission = (actionCallback) => {
+  const role = authStore.admin?.role; 
+  if (authStore.isLogin && Number(role) === 9) {
+    actionCallback();
+  } else {
+    Swal.fire({
+      icon: 'lock',
+      title: '權限不足',
+      text: '您目前的身分是一般管理員，無法執行此操作。',
+      confirmButtonColor: '#f56c6c'
+    });
+  }
+};
+
+// --- 統計邏輯：點數級距 ---
+const pointStats = computed(() => {
+  const dist = { '0-100': 0, '101-500': 0, '501-1000': 0, '1000+': 0 }
+  members.value.forEach(m => {
+    if (m.memPoints <= 100) dist['0-100']++
+    else if (m.memPoints <= 500) dist['101-500']++
+    else if (m.memPoints <= 1000) dist['501-1000']++
+    else dist['1000+']++
+  })
+  return dist
+})
+
+// --- 統計邏輯：註冊趨勢 ---
+const registrationStats = computed(() => {
+  const counts = {}
+  members.value.forEach(m => {
+    if (m.createdAt) {
+      const date = m.createdAt.substring(0, 10)
+      counts[date] = (counts[date] || 0) + 1
+    }
+  })
+  const sortedDates = Object.keys(counts).sort()
+  return {
+    labels: sortedDates,
+    data: sortedDates.map(d => counts[d])
+  }
+})
+
+// --- 圖表數據配置 ---
+const lineChartData = computed(() => ({
+  labels: registrationStats.value.labels,
+  datasets: [{
+    label: '每日新註冊人數',
+    data: registrationStats.value.data,
+    borderColor: '#409eff',
+    backgroundColor: 'rgba(64, 158, 255, 0.1)',
+    tension: 0.4,
+    fill: true
+  }]
+}))
+
+const barChartData = computed(() => ({
+  labels: Object.keys(pointStats.value),
+  datasets: [{
+    label: '會員人數',
+    data: Object.values(pointStats.value),
+    backgroundColor: ['#95d475', '#409eff', '#f89898', '#eebe77']
+  }]
+}))
+
+// --- CSV 匯出邏輯 ---
+const exportToCSV = () => {
+  if (members.value.length === 0) {
+    Swal.fire('提示', '目前無資料可導出', 'info');
+    return;
+  }
+
+  // 定義標題列
+  const headers = ['會員ID', '帳號', '姓名', 'Email', '手機', '點數', '註冊日期'];
+
+  // 處理資料內容
+  const rows = members.value.map(m => [
+    `\t${m.memId}`,
+    `\t${m.memUsername}`,
+    `\t${m.memName}`,
+    m.memEmail,
+    `\t${m.memPhone}`, // 加 \t 解決 9.1E+08 (科學記號)
+    m.memPoints,
+    `\t${m.createdAt?.substring(0, 10)}` // 加 \t 解決 #### 並格式化日期
+  ]);
+
+  // 轉成 CSV 字串，並用逗號分隔
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+
+  // 加上 BOM (\uFEFF) 解決 Excel 開啟中文亂碼問題
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `會員名單_${new Date().toLocaleDateString()}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+onMounted(fetchMembers)
+</script>
+
+<template>
+  <div class="member-page">
+    <h2 class="title"><i class="fas fa-users"></i> 會員列表</h2>
+
+    <div class="dashboard-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title"><i class="fas fa-chart-line"></i> 註冊成長趨勢</span>
+          <button class="btn-csv" @click="exportToCSV">
+            <i class="fas fa-file-download"></i> 匯出報表 (CSV)
+          </button>
+        </div>
+        <div class="chart-body">
+          <Line :data="lineChartData" :options="chartOptions" />
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <span class="chart-title"><i class="fas fa-chart-pie"></i> 會員點數級距</span>
+        </div>
+        <div class="chart-body">
+          <Bar :data="barChartData" :options="chartOptions" />
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-bar">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            v-model="keyword"
+            type="text"
+            placeholder="搜尋：帳號 / 姓名 / Email / 手機"
+            @keyup.enter="searchMembers"
+            :disabled="loading"
+          />
+          <button v-if="keyword" class="clear-btn" @click="clearSearch">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <button class="btn-search" @click="searchMembers" :disabled="loading">
+          <i class="fas fa-search"></i> 搜尋
+        </button>
+        <button class="btn-refresh" @click="fetchMembers" :disabled="loading">
+          <i class="fas fa-sync-alt"></i> 顯示全部
+        </button>
+      </div>
+      <div class="create-bar">
+        <div class="status-toggle-group">
+          <button 
+            class="toggle-btn" 
+            :class="{ active: filterStatus === 1 }" 
+            @click="filterStatus = 1"
+          >啟用會員</button>
+          <button 
+            class="toggle-btn" 
+            :class="{ active: filterStatus === 0 }" 
+            @click="filterStatus = 0"
+          >停用會員</button>
+        </div>
+        <button class="btn-create" @click="checkPermission(() => router.push('/admin/members/create'))">
+          <i class="fas fa-user-plus"></i> 新增會員
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-id">ID</th>
+            <th class="col-info">會員資訊</th>
+            <th class="col-points">點數</th>
+            <th class="col-date">{{ filterStatus === 1 ? '註冊日期' : '停用日期' }}</th>
+            <th class="col-status">狀態</th>
+            <th class="col-action">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr 
+            v-for="m in paginatedMembers" 
+            :key="m.memId" 
+            :class="{ 'row-active': selectedMember?.memId === m.memId && showModal }"
+          >
+            <td class="col-id id-link-cell" @click="openMemberDetail(m)">{{ m.memId }}</td>
+            <td class="col-info">
+              <div class="info-cell">
+                <div class="list-avatar-wrap">
+                  <img :src="m.memImage ? '/members/' + m.memImage : '/members/default.png'" />
+                </div>
+                <div class="user-text">
+                  <span class="user-name">{{ m.memName }}</span>
+                  <span class="user-phone">{{ m.memPhone }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="col-points"><span class="points-val">{{ m.memPoints }}</span></td>
+            <td class="col-date">
+              {{ filterStatus === 1 ? formatDateOnly(m.createdAt) : formatDateOnly(m.updatedAt) }}
+            </td>
+            <td class="col-status">
+              <span class="status-badge" :class="m.memStatus === 1 ? 'status-active' : 'status-inactive'">
+                {{ m.memStatus === 1 ? '啟用' : '停用' }}
+              </span>
+            </td>
+            <td class="col-action">
+              <div class="action-btns">
+                <button 
+                  v-if="filterStatus === 1" 
+                  class="btn-box-edit" 
+                  @click="checkPermission(() => router.push(`/admin/members/edit/${m.memId}`))"
+                >修改</button>
+                
+                <button 
+                  v-if="m.memStatus === 1"
+                  class="btn-box-del" 
+                  @click="checkPermission(() => openBanModal(m))"
+                >停權</button>
+                
+                <button 
+                  v-else
+                  class="btn-box-active" 
+                  @click="checkPermission(() => activateMember(m))"
+                >啟用</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination-bar" v-if="filteredMembers.length > pageSize">
+      <button class="btn-page" :disabled="currentPage === 1" @click="currentPage--">上一頁</button>
+      <span class="page-info">第 {{ currentPage }} / {{ totalPages }} 頁</span>
+      <button class="btn-page" :disabled="currentPage === totalPages" @click="currentPage++">下一頁</button>
+    </div>
+
+    <div v-if="showBanModal" class="modal-overlay" @click.self="showBanModal = false">
+      <div class="ban-card">
+        <div class="ban-header">
+          <span>停權會員</span>
+          <button class="close-x" @click="showBanModal = false">&times;</button>
+        </div>
+        <div class="ban-body">
+          <label>停權原因 <span class="required">*</span></label>
+          <textarea v-model="banReason" placeholder="請輸入停權原因..."></textarea>
+          <div class="ban-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            注意：停權後該會員將無法使用服務，直到重新啟用為止。
+          </div>
+        </div>
+        <div class="ban-footer">
+          <button class="btn-close-modal" @click="showBanModal = false">取消</button>
+          <button class="btn-confirm-ban" @click="confirmBanMember">確認停權</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showModal && selectedMember" class="modal-overlay" @click.self="showModal = false">
+      <div class="compact-card">
+        <div class="card-header">
+          <h3><i class="fas fa-id-card"></i> 會員詳細資訊</h3>
+          <button class="close-x" @click="showModal = false">&times;</button>
+        </div>
+        <div class="card-body">
+          <div class="compact-sidebar">
+            <div class="mini-avatar">
+              <img :src="selectedMember.memImage ? `/members/${selectedMember.memImage}` : '/members/default.png'" />
+            </div>
+            <h4 class="sidebar-name">{{ selectedMember.memName }}</h4>
+            <span class="sidebar-user">@{{ selectedMember.memUsername }}</span>
+          </div>
+          <div class="compact-main">
+            <div class="data-section">
+              <h5 class="section-title">個人資訊</h5>
+              <div class="mini-grid">
+                <div class="grid-item">
+                  <label>會員 ID</label>
+                  <span>{{ selectedMember.memId }}</span>
+                </div>
+                <div class="grid-item">
+                  <label>聯絡電話</label>
+                  <span>{{ selectedMember.memPhone || '未提供' }}</span>
+                </div>
+                <div class="grid-item">
+                  <label>電子信箱</label>
+                  <span>{{ selectedMember.memEmail }}</span>
+                </div>
+                <div class="grid-item">
+                  <label>發票載具</label>
+                  <span class="text-blue">{{ selectedMember.memInvoice || '未提供' }}</span>
+                </div>
+                <div class="grid-item">
+                  <label>目前點數</label>
+                  <span class="text-green">{{ selectedMember.memPoints }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="data-section">
+              <h5 class="section-title">系統資訊</h5>
+              <div class="mini-grid">
+                <div class="grid-item">
+                  <label>註冊日期</label>
+                  <span>{{ formatDateOnly(selectedMember.createdAt) }}</span>
+                </div>
+                <div class="grid-item">
+                  <label>帳號狀態</label>
+                  <span :class="selectedMember.memStatus === 1 ? 'status-text-active' : 'status-text-inactive'">
+                    {{ selectedMember.memStatus === 1 ? '啟用' : '停用' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn-close-modal" @click="showModal = false">關閉視窗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.member-page {
+  min-height: 100vh;
+  background-color: #f0f5fa;
+  padding: 20px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #303133;
+  margin-bottom: 20px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 350px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #c0c4cc;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  padding: 10px 40px;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+  background: #f5f7fa;
+  transition: border-color 0.3s;
+}
+
+.search-input-wrapper input:focus {
+  border-color: #409eff;
+  outline: none;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #909399;
+  cursor: pointer;
+}
+
+.btn-search {
+  padding: 10px 18px;
+  background: #409eff;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-search:hover {
+  background: #66b1ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(64, 158, 255, 0.3);
+}
+
+.btn-refresh {
+  padding: 10px 18px;
+  background: #67c23a;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-refresh:hover {
+  background: #85ce61;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(103, 194, 58, 0.3);
+}
+
+.create-bar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.status-toggle-group {
+  display: flex;
+  border: 1px solid #409eff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 8px 16px;
+  border: none;
+  background: white;
+  color: #409eff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.toggle-btn.active {
+  background: #409eff;
+  color: white;
+}
+
+.btn-create {
+  padding: 10px 20px;
+  background: #67c23a;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-create:hover {
+  background: #85ce61;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(103, 194, 58, 0.3);
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+th, td {
+  padding: 16px 12px;
+  text-align: center;
+  border-bottom: 1px solid #ebeef5;
+}
+
+th {
+  background: #f5f7fa;
+  color: #606266;
+  font-weight: 600;
+}
+
+.col-id {
+  width: 70px;
+}
+
+.col-info {
+  width: 280px;
+  text-align: left !important;
+  padding-left: 20px;
+}
+
+.col-points {
+  width: 100px;
+}
+
+.col-date {
+  width: 150px;
+}
+
+.col-status {
+  width: 100px;
+}
+
+.col-action {
+  width: 160px;
+}
+
+.info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.list-avatar-wrap img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #eee;
+}
+
+.user-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #303133;
+}
+
+.user-phone {
+  font-size: 12px;
+  color: #909399;
+}
+
+.id-link-cell {
+  color: #409eff;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.points-val {
+  color: #f59e0b;
+  font-weight: bold;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.status-active {
+  background: #f0f9ff;
+  color: #409eff;
+  border: 1px solid #b3d8ff;
+}
+
+.status-inactive {
+  background: #fef0f0;
+  color: #f56c6c;
+  border: 1px solid #fbc4c4;
+}
+
+.action-btns {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-box-edit {
+  background-color: #409eff;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-box-edit:hover {
+  background-color: #66b1ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(64, 158, 255, 0.3);
+}
+
+.btn-box-del {
+  background-color: #f56c6c;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-box-del:hover {
+  background-color: #f78989;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(245, 108, 108, 0.3);
+}
+
+.btn-box-active {
+  background-color: #67c23a;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-box-active:hover {
+  background-color: #85ce61;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(103, 194, 58, 0.3);
+}
+
+.pagination-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.btn-page {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-page:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(64, 158, 255, 0.2);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.ban-card {
+  background: white;
+  width: 450px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.ban-header {
+  background: #ffc107;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  align-items: center;
+}
+
+.ban-body {
+  padding: 20px;
+}
+
+.ban-body textarea {
+  width: 100%;
+  height: 120px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: none;
+}
+
+.ban-warning {
+  margin-top: 15px;
+  background: #fff9db;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #856404;
+}
+
+.ban-footer {
+  padding: 15px 20px;
+  text-align: right;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-confirm-ban {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-confirm-ban:hover {
+  background: #d32f2f;
+  transform: translateY(-1px);
+}
+
+.compact-card {
+  background: white;
+  width: 600px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.card-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-body {
+  display: flex;
+}
+
+.compact-sidebar {
+  width: 180px;
+  background: #f9f9f9;
+  padding: 25px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid #eee;
+}
+
+.mini-avatar img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #409eff;
+}
+
+.sidebar-name {
+  margin-top: 10px;
+  font-size: 1.1rem;
+}
+
+.sidebar-user {
+  font-size: 12px;
+  color: #999;
+}
+
+.compact-main {
+  flex: 1;
+  padding: 20px;
+}
+
+.data-section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  border-left: 3px solid #409eff;
+  padding-left: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.grid-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-item label {
+  font-size: 11px;
+  color: #bbb;
+  margin-bottom: 4px;
+}
+
+.text-green {
+  color: #67c23a;
+  font-weight: bold;
+}
+
+.text-blue {
+  color: #409eff;
+  font-weight: bold;
+}
+
+.status-text-active {
+  color: #409eff;
+}
+
+.status-text-inactive {
+  color: #f56c6c;
+}
+
+.card-footer {
+  padding: 15px 20px;
+  text-align: right;
+  border-top: 1px solid #eee;
+}
+
+.btn-close-modal {
+  padding: 8px 20px;
+  background: #909399;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-close-modal:hover {
+  background: #a6a9ad;
+  transform: translateY(-1px);
+}
+
+.close-x {
+  position: absolute;
+  top: 15px;         /* 距離頂部高度 */
+  right: 20px;
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.2s;
+}
+
+.close-x:hover {
+  color: #f56c6c;
+  transform: rotate(90deg);
+}
+
+.required {
+  color: red;
+}
+
+.row-active {
+  background-color: #ecf5ff !important; /* 淡淡的藍色選中感 */
+  transition: background-color 0.3s;
+}
+
+.row-active .id-link-cell {
+  color: #66b1ff;
+  text-shadow: 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr; /* 左寬右窄 */
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.chart-title {
+  font-weight: 600;
+  color: #606266;
+  font-size: 14px;
+}
+
+.chart-body {
+  height: 230px; /* 固定高度，避免表格被推太遠 */
+}
+
+.btn-csv {
+  padding: 6px 12px;
+  background-color: #f0f9ff;
+  color: #409eff;
+  border: 1px solid #d9ecff;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-csv:hover {
+  background-color: #409eff;
+  color: white;
+}
+
+/* 讓圖表變垂直排列 */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</file>
+
+<file path="frontend/src/router/index.js">
+import { createRouter, createWebHistory } from 'vue-router'
+import Swal from 'sweetalert2'
+
+/**
+ * ==========================================
+ * 1. 靜態導入元件 (Static Imports)
+ * ==========================================
+ */
+import LoginView from '@/views/member/LoginView.vue' // 登入頁
+import AdminLayout from '@/layouts/AdminLayout.vue' // 後臺主框架 (包含側邊欄與 Header)
+import AdminHomeView from '@/views/member/AdminHomeView.vue' // 後臺首頁(儀表板)
+import MemberListView from '@/views/member/MemberListView.vue' // 會員列表
+import MemberEditView from '@/views/member/MemberEditView.vue' // 會員編輯
+import MemberCreateView from '@/views/member/MemberCreateView.vue' // 會員新增
+import PaymentView from '@/views/ecpay/PaymentView.vue' // 綠界付款頁
+import AdminListView from '@/views/member/AdminListView.vue' // 管理員列表
+import AdminCreateView from '@/views/member/AdminCreateView.vue' // 管理員新增
+import AdminEditView from '@/views/member/AdminEditView.vue' // 管理員編輯
+import MemberLayout from '@/layouts/MemberLayout.vue' // 會員主框架
+import MemberProfileView from '@/views/member/MemberProfileView.vue' // 會員個人資料頁
+import AuthLayout from '@/layouts/AuthLayout.vue' // 認證相關頁面框架
+import MainLayout from '@/layouts/MainLayout.vue' // 前台主框架
+import HomeView from '@/views/HomeView.vue' // 前台首頁
+
+/**
+ * ==========================================
+ * 2. 懶加載導入 (Dynamic Imports)
+ * ==========================================
+ */
+const MerchantList = () => import('@/views/merchantAndCoupon/MerchantList.vue') // 商家列表
+const DiscountList = () => import('@/views/merchantAndCoupon/DiscountList.vue') // 優惠券列表
+const RedemptionLogList = () => import('@/views/merchantAndCoupon/RedemptionLogList.vue') // 新增：後台紀錄
+const CouponMall = () => import('@/views/merchantAndCoupon/CouponMallView.vue') // 新增：前台商城
+const SnakeGame = () => import('@/views/game/SnakeGame.vue') // 貪食蛇遊戲
+
+// 定義路由表
+const routes = [
+  // --- 登入頁面 ---
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+  },
+
+  // ==========================================
+  // [新增] 前台使用者頁面 (不套用後台側邊欄)
+  // ==========================================
+  {
+    path: '/',
+    name: 'entrance',
+    component: MainLayout,
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: HomeView,
+      },
+
+      // 會員頁面
+      {
+        path: 'profile',
+        name: 'member-profile',
+        component: MemberProfileView,
+      },
+
+      // 租借頁面
+      {
+        path: 'rent/:action?',
+        name: 'rec-rent-user',
+        component: () => import('@/views/rec/RecRentUserPage.vue'),
+      },
+      {
+        path: 'SearchSpot',
+        name: 'SearchSpot',
+        component: () => import('@/views/rec/RecRentUserSearchPage.vue'),
+      },
+      {
+        path: 'VisitSiteReommand',
+        name: 'VisitSiteReommand',
+        component: () => import('@/views/rec/VisitSiteReommandPage.vue'),
+      },
+
+      // 將 'rec-rent-record' 路由重定向至帶有 action 參數的標準租借路由
+      {
+        path: 'recordRoute',
+        name: 'rec-rent-record',
+        redirect: { name: 'rec-rent-user', params: { action: 'record' } },
+      },
+
+      {
+        path: 'payment/order',
+        name: 'payment-order',
+        component: () => import('@/views/ecpay/PaymentViewOrder.vue'),
+      },
+      {
+        path: 'claims',
+        name: 'claims',
+        component: () => import('@/views/rec/RightsClaimPage.vue'),
+      },
+
+      // --- 新增：優惠券商城 ---
+      {
+        path: '/mall',
+        name: 'coupon-mall',
+        component: CouponMall,
+      },
+
+      // --- 新增：前台貪食蛇遊戲 ---
+      {
+        path: '/snake',
+        name: 'snake-game',
+        component: SnakeGame,
+      },
+      {
+        path: '/redemption-history',
+        name: 'redemption-history',
+        component: () => import('@/views/merchantAndCoupon/RedemptionHistory.vue'),
+      },
+      {
+        path: '/sponsor',
+        name: 'sponsor',
+        component: () => import('@/views/ecpay/SponsorView.vue'),
+      },
+      {
+        path: '/payment-success',
+        name: 'payment-success',
+        component: () => import('@/views/ecpay/PaymentSuccessView.vue'),
+      },
+
+      // 訂單確認與付款頁
+      {
+        path: '/payment-checkout/:recId',
+        name: 'payment-checkout',
+        component: () => import('@/views/ecpay/PaymentView.vue'),
+      },
+
+      // ==========================================
+      // (翌帆2026-1-31)【新增】客服支援模組 (Support)
+      // ==========================================
+      {
+        path: '/support',
+        name: 'support-center',
+        component: () => import('@/views/support/SupportCenterView.vue'),
+      },
+      {
+        path: '/support/report',
+        name: 'support-report-entry',
+        component: () => import('@/views/support/ReportEntryView.vue'),
+      },
+      {
+        path: '/support/report/damage',
+        name: 'support-report-damage',
+        component: () => import('@/views/support/ReportDamageView.vue'),
+      },
+      {
+        path: '/support/report/manual',
+        name: 'support-report-manual',
+        component: () => import('@/views/support/ReportManualView.vue'),
+      },
+    ],
+  },
+
+  // 註冊會員
+  {
+    path: '/register',
+    component: AuthLayout,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/member/Register.vue'),
+      },
+    ],
+  },
+
+  /**
+   * ==========================================
+   * 3. 管理後臺嵌套路由 (Nested Routes)
+   * 網址前綴統一為 /admin
+   * ==========================================
+   */
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      // 管理後臺首頁
+      {
+        path: '',
+        name: 'admin-home',
+        component: AdminHomeView,
+      },
+
+      // 據點與座位管理 (Spot & Seat)
+      {
+        path: 'spot/list',
+        name: 'spot-list',
+        component: () => import('@/views/spot/SpotList.vue'),
+      },
+
+      // 據點新增與編輯共用同一個元件
+      {
+        path: 'spot/add',
+        name: 'spot-add',
+        component: () => import('@/views/spot/SpotForm.vue'),
+      },
+
+      // 據點編輯
+      {
+        path: 'spot/edit/:id',
+        name: 'spot-edit',
+        component: () => import('@/views/spot/SpotForm.vue'),
+      },
+
+      // 據點詳細資訊
+      {
+        path: 'spot/view/:id', // 網址: /admin/spot/view/1
+        name: 'spot-view',
+        component: () => import('@/views/spot/SpotOne.vue'),
+      },
+      // 據點統計儀表板
+      {
+        path: 'spot/analyze',
+        name: 'spot-analyze',
+        component: () => import('@/views/spot/SpotAnalyze.vue'),
+      },
+      {
+        path: 'spot/monitor',
+        name: 'dispatch-monitor',
+        component: () => import('@/views/spot/DispatchMonitor.vue'),
+      },
+      // ==========================================
+      // [整合] 座位管理模組 (Seat)
+      // ==========================================
+      // 座位管理
+
+      {
+        path: 'seat/list',
+        name: 'seat-list',
+        component: () => import('@/views/spot/SeatList.vue'),
+      },
+
+      // 座位新增與編輯共用同一個元件
+      {
+        path: 'seat/insert',
+        name: 'seat-insert',
+        component: () => import('@/views/spot/SeatForm.vue'),
+      },
+
+      // 座位編輯
+      {
+        path: 'seat/edit/:id',
+        name: 'seat-edit',
+        component: () => import('@/views/spot/SeatForm.vue'),
+      },
+
+      // 座位詳細資訊
+      {
+        path: 'seat/view/:id',
+        name: 'seat-view',
+        component: () => import('@/views/spot/SeatOne.vue'),
+      },
+
+      // [核心功能] 商家與優惠券管理
+      {
+        path: 'merchants',
+        name: 'merchants',
+        component: MerchantList,
+      },
+
+      // 優惠券管理
+      {
+        path: 'discounts',
+        name: 'discounts',
+        component: DiscountList,
+        alias: 'coupons',
+      },
+      // --- 新增：兌換紀錄報表 ---
+      {
+        path: 'redemption-logs',
+        name: 'admin-redemption-logs',
+        component: RedemptionLogList,
+      },
+
+      // [新增] 後台貪食蛇遊戲
+      {
+        path: 'snake-game',
+        name: 'admin-snake-game',
+        component: SnakeGame,
+      },
+      {
+        path: 'sponsors',
+        name: 'admin-sponsors',
+        component: () => import('@/views/ecpay/SponsorLog.vue'),
+      },
+
+      // [核心功能] 會員管理
+      {
+        path: 'members',
+        name: 'member-list',
+        component: MemberListView,
+      },
+
+      // 會員編輯
+      {
+        path: 'members/edit/:id',
+        name: 'member-edit',
+        component: MemberEditView,
+      },
+
+      // 會員新增
+      {
+        path: 'members/create',
+        name: 'member-create',
+        component: MemberCreateView,
+      },
+
+      // [核心功能] 管理員管理
+      {
+        path: 'admins',
+        name: 'admin-list',
+        component: AdminListView,
+      },
+
+      // 管理員新增
+      {
+        path: 'admins/create',
+        name: 'admin-create',
+        component: AdminCreateView,
+      },
+
+      // 管理員編輯
+      {
+        path: 'admins/edit/:id',
+        name: 'admin-edit',
+        component: AdminEditView,
+      },
+
+      // [功能] 租借訂單管理
+      {
+        path: 'rec-rent',
+        name: 'rec-rent',
+        component: () => import('@/views/rec/RecRentMgnPage.vue'),
+      },
+      {
+        path: 'rec-chart',
+        name: 'rec-chart',
+        component: () => import('@/views/rec/RecRentMgnChartPage.vue'),
+      },
+
+      // [功能] 維修管理 (Maintenance)
+      {
+        path: 'staff-list',
+        name: 'staff-list',
+        component: () => import('@/views/maintenance/MaintenanceStaffList.vue'),
+      },
+
+      // 維修人員表單 (新增/編輯)
+      {
+        path: 'staff-form/:id?',
+        name: 'staff-form',
+        component: () => import('@/views/maintenance/MaintenanceStaffForm.vue'),
+      },
+
+      // 維修人員歷史紀錄
+      {
+        path: 'staff-history',
+        name: 'staff-history',
+        component: () => import('@/views/maintenance/MaintenanceStaffHistory.vue'),
+      },
+
+      // 維修工單列表與表單
+      {
+        path: 'mtif-list',
+        name: 'mtif-list',
+        component: () => import('@/views/maintenance/MtifList.vue'),
+        props: { historyMode: false },
+      },
+
+      // 維修工單歷史紀錄
+      {
+        path: 'mtif-history',
+        name: 'mtif-history',
+        component: () => import('@/views/maintenance/MtifList.vue'),
+        props: { historyMode: true },
+      },
+
+      // 維修工單表單 (新增/編輯)
+      {
+        path: 'mtif-form/:id?',
+        name: 'mtif-form',
+        component: () => import('@/views/maintenance/MtifForm.vue'),
+      },
+
+      // --- Schedule (排程) ---
+      {
+        path: 'maintenance/schedule',
+        name: 'schedule-list',
+        component: () => import('@/views/maintenance/ScheduleList.vue'),
+      },
+
+      // 排程表單 (新增/編輯)
+      {
+        path: 'maintenance/schedule/create',
+        name: 'schedule-create',
+        component: () => import('@/views/maintenance/ScheduleForm.vue'),
+      },
+
+      // 排程編輯
+      {
+        path: 'maintenance/schedule/edit/:id',
+        name: 'schedule-edit',
+        component: () => import('@/views/maintenance/ScheduleForm.vue'),
+      },
+    ],
+  },
+
+  // ==========================================
+  // 4. 路由守衛與轉址 (Redirects)
+  // ==========================================
+
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
+]
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+})
+
+/**
+ * ==========================================
+ * 全域路由守衛：後台登入驗證（統一 localStorage）
+ * ==========================================
+ */
+router.beforeEach((to, from, next) => {
+  // 1. 如果不是去後台，直接放行
+  if (!to.path.startsWith('/admin')) {
+    next()
+    return
+  }
+
+  // 2. 取得 localStorage 資料
+  const token = localStorage.getItem('token')
+  const adminJson = localStorage.getItem('admin')
+
+  // Debug 用：如果進不去，請按 F12 看 Console
+  console.log('路由守衛檢查:', { path: to.path, hasToken: !!token, hasAdmin: !!adminJson })
+
+  // 3. 判斷是否有管理員身分
+  if (adminJson) {
+    // 只要有 admin 資料就讓它進去 (Token 視後端攔截器而定)
+    next()
+  } else {
+    // 沒資料才跳警告
+    Swal.fire({
+      icon: 'warning',
+      title: '請先登入',
+      text: '管理員帳號已過期或尚未登入。',
+      confirmButtonText: '去登入',
+      allowOutsideClick: false,
+    }).then(() => {
+      next('/login')
+    })
+  }
+})
+
+export default router
+</file>
+
+</files>

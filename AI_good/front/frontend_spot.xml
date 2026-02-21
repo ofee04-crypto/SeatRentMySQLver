@@ -1,0 +1,4938 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: frontend/src/**/spot/**, frontend/src/**/seat/**, frontend/src/router/**
+- Files matching these patterns are excluded: **/*.map, **/*.min.js, **/*.min.css, **/node_modules/**, **/dist/**, **/target/**, **/vendor/**, **/public/vendor/**, **/logs/**, **/*.log, **/*.svg, **/*.png, **/*.jpg, **/*.ico, AI_good/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+frontend/src/composables/spot/useGoogleMaps.js
+frontend/src/router/index.js
+frontend/src/views/spot/DispatchMonitor.vue
+frontend/src/views/spot/SeatForm.vue
+frontend/src/views/spot/SeatList.vue
+frontend/src/views/spot/SeatOne.vue
+frontend/src/views/spot/SeatResult.vue
+frontend/src/views/spot/SeatSearch.vue
+frontend/src/views/spot/SpotAnalyze.vue
+frontend/src/views/spot/SpotForm.vue
+frontend/src/views/spot/SpotList.vue
+frontend/src/views/spot/SpotOne.vue
+frontend/src/views/spot/SpotResult.vue
+frontend/src/views/spot/SpotSearch.vue
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="frontend/src/views/spot/SeatOne.vue">
+<template>
+  <div class="seat-one-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon detail-mode">
+                <i class="fas fa-chair"></i>
+              </div>
+              <div class="title-content">
+                <h1>Seat 詳細資料</h1>
+                <p class="subtitle">查看座位完整資訊</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="zoom-fade" appear>
+          <div>
+            <el-card v-if="loading" shadow="hover" class="detail-card">
+              <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>載入中...</span>
+              </div>
+            </el-card>
+
+            <el-card v-else-if="!seat" shadow="hover" class="detail-card">
+              <el-empty description="找不到資料" />
+            </el-card>
+
+            <el-card v-else shadow="hover" class="detail-card">
+              <div class="detail-content">
+                <el-descriptions :column="2" border>
+                  <el-descriptions-item label="ID">
+                    <el-tag type="info">{{ seat.seatsId }}</el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="名稱">
+                    <span class="name-text">{{ seat.seatsName }}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="類型">
+                    {{ seat.seatsType }}
+                  </el-descriptions-item>
+                  <el-descriptions-item label="狀態">
+                    <el-tag :type="seat.seatsStatus === '啟用' ? 'success' : (seat.seatsStatus === '維修中' ? 'warning' : 'danger')">
+                      {{ seat.seatsStatus }}
+                    </el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="SpotId">
+                    <el-tag type="info">{{ seat.spotId }}</el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="序號">
+                    <span class="code-text">{{ seat.serialNumber || '-' }}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="CreatedAt">
+                    {{ seat.createdAt || '-' }}
+                  </el-descriptions-item>
+                  <el-descriptions-item label="UpdatedAt">
+                    {{ seat.updatedAt || '-' }}
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+
+              <div class="card-actions">
+                <router-link to="/admin/seat/list">
+                  <el-button>
+                    <i class="fas fa-arrow-left mr-1"></i> 回清單
+                  </el-button>
+                </router-link>
+              </div>
+            </el-card>
+          </div>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from 'axios'
+
+
+// 明確定義元件名稱，方便識別與除錯
+defineOptions({
+  name: 'SeatOne'
+})
+const route = useRoute()
+const seat = ref(null)
+const loading = ref(true)
+
+onMounted(async () => {
+  const seatId = route.params.id
+  if (seatId) {
+    try {
+      // [修正] 改用 RESTful 風格: GET /api/seats/{id}
+      const response = await axios.get(`/api/seats/${seatId}`)
+      seat.value = response.data
+    } catch (error) {
+      console.error('Error fetching seat:', error)
+    }
+  }
+  loading.value = false
+})
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.seat-one-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.detail-mode {
+  background: linear-gradient(135deg, #909399 0%, #c0c4cc 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 詳情卡片 ========== */
+.detail-card {
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  color: #409eff;
+  font-size: 16px;
+}
+
+.detail-content {
+  margin-bottom: 24px;
+}
+
+.code-text {
+  font-family: monospace;
+  background: #f5f7fa;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.name-text {
+  font-weight: 600;
+  color: #303133;
+}
+
+/* ========== 按鈕區 ========== */
+.card-actions {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* ========== 動畫效果 ========== */
+.zoom-fade-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.zoom-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.zoom-fade-enter-from {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+.zoom-fade-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* ========== 工具類 ========== */
+.mr-1 { margin-right: 4px; }
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SeatResult.vue">
+<template>
+  <div class="seat-result-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon result-mode">
+                <i class="fas fa-list-alt"></i>
+              </div>
+              <div class="title-content">
+                <h1>Seat 查詢結果</h1>
+                <p class="subtitle">顯示符合條件的座位資料</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="fade-slide" appear>
+          <el-card shadow="hover" class="result-card">
+            <el-empty v-if="seatList.length === 0" description="沒有找到符合條件的資料。" />
+
+            <el-table
+              v-else
+              :data="seatList"
+              stripe
+              style="width: 100%"
+              :header-cell-style="{ background: '#f5f7fa', fontWeight: 'bold', color: '#303133' }"
+              class="modern-table"
+            >
+              <el-table-column prop="seatsId" label="ID" width="70" align="center" />
+              <el-table-column prop="seatsName" label="名稱" min-width="120">
+                <template #default="{ row }">
+                  <div class="seat-name-cell">
+                    <i class="fas fa-chair text-primary mr-2"></i>
+                    <span>{{ row.seatsName }}</span>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="seatsType" label="類型" width="100" />
+              <el-table-column prop="seatsStatus" label="狀態" width="100" align="center">
+                <template #default="{ row }">
+                  <el-tag
+                    :type="row.seatsStatus === '可用' ? 'success' : (row.seatsStatus === '維修' || row.seatsStatus === '故障' ? 'warning' : 'danger')"
+                    size="small"
+                    effect="light"
+                  >
+                    {{ row.seatsStatus }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="spotId" label="SpotId" width="90" align="center">
+                <template #default="{ row }">
+                  <el-tag type="info" size="small">{{ row.spotId }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="serialNumber" label="序號" width="120" />
+              <el-table-column label="UpdatedAt" min-width="160">
+                <template #default="{ row }">
+                  {{ row.updatedAt?.replace('T', ' ').substring(0, 19) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="140" align="center" fixed="right">
+                <template #default="{ row }">
+                  <el-button-group>
+                    <el-tooltip content="檢視" placement="top">
+                      <router-link :to="`/admin/seat/view/${row.seatsId}`">
+                        <el-button size="small" type="info">
+                          <i class="fas fa-eye"></i>
+                        </el-button>
+                      </router-link>
+                    </el-tooltip>
+                    <el-tooltip content="修改" placement="top">
+                      <router-link :to="`/admin/seat/edit/${row.seatsId}`">
+                        <el-button size="small" type="primary">
+                          <i class="fas fa-edit"></i>
+                        </el-button>
+                      </router-link>
+                    </el-tooltip>
+                  </el-button-group>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <div class="card-actions">
+              <router-link to="/admin/seat/search">
+                <el-button type="primary">
+                  <i class="fas fa-search mr-1"></i> 回查詢
+                </el-button>
+              </router-link>
+              <router-link to="/admin/seat/list">
+                <el-button>
+                  <i class="fas fa-list mr-1"></i> 回清單
+                </el-button>
+              </router-link>
+            </div>
+          </el-card>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import axios from 'axios'
+
+const route = useRoute()
+const seatList = ref([])
+
+// 明確定義元件名稱，方便識別與除錯
+defineOptions({
+  name: 'SeatResult'
+})
+
+onMounted(async () => {
+  const query = route.query
+  console.log('Search query:', query)
+
+  try {
+    // 改用 RESTful API: GET /api/seats/search (搭配查詢參數)
+    const response = await axios.get('/api/seats/search', { params: query })
+    seatList.value = response.data
+  } catch (error) {
+    console.error('Error fetching seats:', error)
+  }
+})
+
+// [新增] 簡單的狀態顏色輔助函式
+const getStatusClass = (status) => {
+  if (status === '可用') return 'badge badge-success'
+  if (status === '維修' || status === '故障') return 'badge badge-warning'
+  if (status === '停用') return 'badge badge-danger'
+  return 'badge badge-secondary'
+}
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.seat-result-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.result-mode {
+  background: linear-gradient(135deg, #67c23a 0%, #95d475 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 結果卡片 ========== */
+.result-card {
+  border-radius: 12px;
+}
+
+.modern-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.seat-name-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* ========== 按鈕區 ========== */
+.card-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* ========== 動畫效果 ========== */
+.fade-slide-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-slide-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.fade-slide-enter-from {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.fade-slide-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+/* ========== 工具類 ========== */
+.mr-1 { margin-right: 4px; }
+.mr-2 { margin-right: 8px; }
+.text-primary { color: #409eff; }
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SeatSearch.vue">
+<template>
+  <div class="seat-search-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon search-mode">
+                <i class="fas fa-search"></i>
+              </div>
+              <div class="title-content">
+                <h1>Seat 條件查詢</h1>
+                <p class="subtitle">依條件搜尋座位資料</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="zoom-fade" appear>
+          <el-card shadow="hover" class="search-card">
+            <el-form :model="searchCriteria" label-width="120px" label-position="top" @submit.prevent="handleSearch">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="名稱 (模糊)">
+                    <el-input v-model="searchCriteria.seatsName" placeholder="請輸入座位名稱" clearable>
+                      <template #prefix><i class="fas fa-chair"></i></template>
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="類型 (模糊)">
+                    <el-input v-model="searchCriteria.seatsType" placeholder="請輸入座位類型" clearable>
+                      <template #prefix><i class="fas fa-couch"></i></template>
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="狀態">
+                    <el-select v-model="searchCriteria.seatsStatus" placeholder="(不限制)" clearable style="width: 100%">
+                      <el-option label="可用" value="可用" />
+                      <el-option label="維修" value="維修" />
+                      <el-option label="停用" value="停用" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="SpotId (精準)">
+                    <el-input v-model="searchCriteria.spotId" type="number" placeholder="請輸入據點ID" clearable>
+                      <template #prefix><i class="fas fa-map-marker-alt"></i></template>
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="序號 (模糊)">
+                    <el-input v-model="searchCriteria.serialNumber" placeholder="請輸入序號" clearable>
+                      <template #prefix><i class="fas fa-barcode"></i></template>
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <div class="form-actions">
+                <el-button type="primary" @click="handleSearch" class="search-btn">
+                  <i class="fas fa-search mr-1"></i> 查詢
+                </el-button>
+                <router-link to="/admin/seat/list">
+                  <el-button>
+                    <i class="fas fa-arrow-left mr-1"></i> 回清單
+                  </el-button>
+                </router-link>
+              </div>
+            </el-form>
+          </el-card>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+// 明確定義元件名稱，方便識別與除錯
+defineOptions({
+  name: 'SeatSearch'
+})
+
+const router = useRouter()
+const searchCriteria = ref({
+  seatsName: '',
+  seatsType: '',
+  seatsStatus: '',
+  spotId: '',
+  serialNumber: '',
+})
+
+const handleSearch = () => {
+  // [修正] 加上 /admin
+  router.push({ path: '/admin/seat/result', query: { ...searchCriteria.value } })
+}
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.seat-search-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.search-mode {
+  background: linear-gradient(135deg, #409eff 0%, #79bbff 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 搜尋卡片 ========== */
+.search-card {
+  border-radius: 12px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ========== 按鈕區 ========== */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+.search-btn {
+  min-width: 120px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* ========== 動畫效果 ========== */
+.zoom-fade-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.zoom-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.zoom-fade-enter-from {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+.zoom-fade-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* ========== 工具類 ========== */
+.mr-1 { margin-right: 4px; }
+.mr-2 { margin-right: 8px; }
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SpotOne.vue">
+<template>
+  <div class="spot-one-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon detail-mode">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="title-content">
+                <h1>景點詳細資料</h1>
+                <p class="subtitle">查看據點完整資訊</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 text-right">
+            <ol class="breadcrumb-modern">
+              <li><router-link to="/admin/spot/list"><i class="fas fa-home"></i> Home</router-link></li>
+              <li class="active">Spot Detail</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="zoom-fade" appear>
+          <div>
+            <el-card v-if="loading" shadow="hover" class="detail-card">
+              <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>載入中...</span>
+              </div>
+            </el-card>
+
+            <el-card v-else-if="!spot" shadow="hover" class="detail-card">
+              <el-empty description="找不到資料" />
+            </el-card>
+
+            <el-card v-else shadow="hover" class="detail-card">
+              <div class="detail-content">
+                <el-descriptions :column="2" border>
+                  <el-descriptions-item label="ID">
+                    <el-tag type="info">{{ spot.spotId }}</el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="代碼 (Code)">
+                    <span class="code-text">{{ spot.spotCode }}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="名稱 (Name)">
+                    <span class="name-text">{{ spot.spotName }}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="狀態 (Status)">
+                    <el-tag :type="spot.spotStatus === '營運中' ? 'success' : (spot.spotStatus === '維修中' ? 'warning' : 'danger')">
+                      {{ spot.spotStatus }}
+                    </el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="地址 (Address)" :span="2">
+                    <i class="fas fa-map-marker-alt text-primary mr-2"></i>{{ spot.spotAddress }}
+                  </el-descriptions-item>
+                  <el-descriptions-item label="Merchant ID">
+                    <el-tag v-if="spot.merchantId" type="info">{{ spot.merchantId }}</el-tag>
+                    <span v-else class="text-muted">-</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="緯度 (Latitude)">
+                    {{ spot.latitude || '-' }}
+                  </el-descriptions-item>
+                  <el-descriptions-item label="經度 (Longitude)">
+                    {{ spot.longitude || '-' }}
+                  </el-descriptions-item>
+                </el-descriptions>
+              </div>
+
+              <div class="card-actions">
+                <router-link to="/admin/spot/list">
+                  <el-button>
+                    <i class="fas fa-arrow-left mr-1"></i> 回列表
+                  </el-button>
+                </router-link>
+                <router-link :to="`/admin/spot/edit/${spot.spotId}`">
+                  <el-button type="primary">
+                    <i class="fas fa-edit mr-1"></i> 編輯
+                  </el-button>
+                </router-link>
+              </div>
+            </el-card>
+          </div>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
+
+// 明確定義元件名稱，方便識別與除錯
+defineOptions({
+  name: 'SpotOne'
+});
+
+const route = useRoute();
+const spot = ref(null);
+const loading = ref(true);
+
+onMounted(async () => {
+  const id = route.params.id;
+  if (id) {
+    try {
+      const response = await axios.get(`/api/spot/${id}`);
+      spot.value = response.data;
+    } catch (error) {
+      console.error('Error fetching spot:', error);
+    }
+  }
+  loading.value = false;
+});
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.spot-one-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.detail-mode {
+  background: linear-gradient(135deg, #909399 0%, #c0c4cc 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 面包屑 ========== */
+.breadcrumb-modern {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.breadcrumb-modern li a {
+  color: #409eff;
+  text-decoration: none;
+}
+
+.breadcrumb-modern li.active {
+  color: #909399;
+}
+
+.breadcrumb-modern li:not(:last-child)::after {
+  content: '/';
+  margin-left: 8px;
+  color: #c0c4cc;
+}
+
+/* ========== 詳情卡片 ========== */
+.detail-card {
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  color: #409eff;
+  font-size: 16px;
+}
+
+.detail-content {
+  margin-bottom: 24px;
+}
+
+.code-text {
+  font-family: monospace;
+  background: #f5f7fa;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.name-text {
+  font-weight: 600;
+  color: #303133;
+}
+
+/* ========== 按鈕區 ========== */
+.card-actions {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* ========== 動畫效果 ========== */
+.zoom-fade-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.zoom-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.zoom-fade-enter-from {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+.zoom-fade-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* ========== 工具類 ========== */
+.mr-1 { margin-right: 4px; }
+.mr-2 { margin-right: 8px; }
+.text-primary { color: #409eff; }
+.text-muted { color: #909399; }
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SpotResult.vue">
+<template>
+  <div class="spot-result-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon result-mode">
+                <i class="fas fa-list-alt"></i>
+              </div>
+              <div class="title-content">
+                <h1>查詢結果列表</h1>
+                <p class="subtitle">顯示符合條件的據點資料</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="fade-slide" appear>
+          <el-card shadow="hover" class="result-card">
+            <el-empty v-if="spotList.length === 0" description="沒有找到符合條件的資料。" />
+
+            <el-table
+              v-else
+              :data="spotList"
+              stripe
+              style="width: 100%"
+              :header-cell-style="{ background: '#f5f7fa', fontWeight: 'bold', color: '#303133' }"
+              class="modern-table"
+            >
+              <el-table-column prop="spotId" label="ID" width="70" align="center" />
+              <el-table-column prop="spotCode" label="代碼" width="100" />
+              <el-table-column prop="spotName" label="名稱" min-width="150">
+                <template #default="{ row }">
+                  <div class="spot-name-cell">
+                    <i class="fas fa-store text-primary mr-2"></i>
+                    <span>{{ row.spotName }}</span>
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="spotAddress" label="地址" min-width="200" show-overflow-tooltip />
+              <el-table-column prop="spotStatus" label="狀態" width="100" align="center">
+                <template #default="{ row }">
+                  <el-tag
+                    :type="row.spotStatus === '營運中' ? 'success' : (row.spotStatus === '維修中' ? 'warning' : 'danger')"
+                    size="small"
+                    effect="light"
+                  >
+                    {{ row.spotStatus }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="Merchant ID" width="110" align="center">
+                <template #default="{ row }">
+                  <el-tag v-if="row.merchantId" type="info" size="small">{{ row.merchantId }}</el-tag>
+                  <span v-else class="text-muted">-</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="latitude" label="緯度" width="100" />
+              <el-table-column prop="longitude" label="經度" width="100" />
+            </el-table>
+
+            <div class="card-actions">
+              <router-link to="/admin/spot/search">
+                <el-button type="primary">
+                  <i class="fas fa-search mr-1"></i> 回查詢
+                </el-button>
+              </router-link>
+            </div>
+          </el-card>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
+
+const route = useRoute();
+const spotList = ref([]);
+
+// 明確定義元件名稱，方便識別與除錯
+defineOptions({
+  name: 'SpotResult'
+})
+
+onMounted(async () => {
+  const query = route.query;
+  try {
+    // [AXIOS GET 請求原理]
+    // 1. 動作：發送 GET 請求到 /spot/condition，並帶上查詢參數 (query)。
+    const response = await axios.get('/api/spot/condition', { params: query });
+    // 2. 接收：後端回傳的是一個 JSON 陣列 (List<RentalSpot>，即租借據點列表)。
+    // 3. 更新：將資料存入 spotList，Vue 的 v-for 就會自動把表格畫出來。
+    spotList.value = response.data;
+  } catch (error) {
+    console.error('Error fetching spots:', error);
+  }
+});
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.spot-result-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.result-mode {
+  background: linear-gradient(135deg, #67c23a 0%, #95d475 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 結果卡片 ========== */
+.result-card {
+  border-radius: 12px;
+}
+
+.modern-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.spot-name-cell {
+  display: flex;
+  align-items: center;
+}
+
+/* ========== 按鈕區 ========== */
+.card-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* ========== 動畫效果 ========== */
+.fade-slide-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-slide-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.fade-slide-enter-from {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.fade-slide-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+/* ========== 工具類 ========== */
+.mr-1 { margin-right: 4px; }
+.mr-2 { margin-right: 8px; }
+.text-primary { color: #409eff; }
+.text-muted { color: #909399; }
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SpotSearch.vue">
+<template>
+  <div class="spot-search-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon search-mode">
+                <i class="fas fa-search"></i>
+              </div>
+              <div class="title-content">
+                <h1>景點查詢</h1>
+                <p class="subtitle">依條件搜尋據點資料</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="zoom-fade" appear>
+          <el-card shadow="hover" class="search-card">
+            <el-form :model="searchCriteria" label-width="120px" label-position="top" @submit.prevent="handleSearch">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="景點名稱">
+                    <el-input v-model="searchCriteria.spotName" placeholder="請輸入景點名稱" clearable>
+                      <template #prefix><i class="fas fa-store"></i></template>
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="景點代碼">
+                    <el-input v-model="searchCriteria.spotCode" placeholder="請輸入景點代碼" clearable>
+                      <template #prefix><i class="fas fa-barcode"></i></template>
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="狀態">
+                    <el-select v-model="searchCriteria.spotStatus" placeholder="啟用/停用" clearable style="width: 100%">
+                      <el-option label="營運中" value="營運中" />
+                      <el-option label="停用" value="停用" />
+                      <el-option label="維修中" value="維修中" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="商家ID">
+                    <el-input v-model="searchCriteria.merchantId" type="number" :min="1" placeholder="請輸入商家ID" clearable>
+                      <template #prefix><i class="fas fa-building"></i></template>
+                    </el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <div class="form-actions">
+                <el-button type="primary" @click="handleSearch" class="search-btn">
+                  <i class="fas fa-search mr-1"></i> 查詢
+                </el-button>
+                <router-link to="/admin/spot/add">
+                  <el-button type="success">
+                    <i class="fas fa-plus mr-1"></i> 新增景點
+                  </el-button>
+                </router-link>
+              </div>
+            </el-form>
+          </el-card>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+// 明確定義元件名稱，方便識別與除錯
+defineOptions({
+  name: 'SpotSearch'
+})
+
+const router = useRouter()
+const searchCriteria = ref({
+  spotName: '',
+  spotCode: '',
+  spotStatus: '',
+  merchantId: '',
+})
+
+const handleSearch = () => {
+  // 將查詢條件帶入 URL query 參數，跳轉至結果頁
+  router.push({
+    path: '/admin/spot/result',
+    query: { ...searchCriteria.value },
+  })
+}
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.spot-search-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.search-mode {
+  background: linear-gradient(135deg, #409eff 0%, #79bbff 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 搜尋卡片 ========== */
+.search-card {
+  border-radius: 12px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ========== 按鈕區 ========== */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+.search-btn {
+  min-width: 120px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* ========== 動畫效果 ========== */
+.zoom-fade-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.zoom-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.zoom-fade-enter-from {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+.zoom-fade-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* ========== 工具類 ========== */
+.mr-1 { margin-right: 4px; }
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SeatForm.vue">
+<template>
+  <div class="seat-form-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon" :class="isEditMode ? 'edit-mode' : 'add-mode'">
+                <i :class="isEditMode ? 'fas fa-edit' : 'fas fa-plus-circle'"></i>
+              </div>
+              <div class="title-content">
+                <h1>{{ isEditMode ? '修改座位' : '新增座位' }}</h1>
+                <p class="subtitle">{{ isEditMode ? '修改座位資訊' : '建立新的座位設備' }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 text-right">
+            <el-button @click="goBack">
+              <i class="fas fa-arrow-left mr-1"></i> 返回列表
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="zoom-fade" appear>
+          <el-card shadow="hover" class="form-card">
+            <el-form
+              :model="formData"
+              label-width="120px"
+              label-position="top"
+              class="modern-form"
+              @submit.prevent="handleSubmit"
+            >
+              <!-- ========== 基本資料區 ========== -->
+              <div class="form-section">
+                <div class="section-header">
+                  <i class="fas fa-info-circle"></i>
+                  <span>基本資料</span>
+                </div>
+
+                <!-- 所屬據點 (下拉選單) -->
+                <el-form-item label="所屬據點" required>
+                  <el-select v-model="formData.spotId" placeholder="請選擇據點" style="width: 100%">
+                    <el-option
+                      v-for="spot in spotList"
+                      :key="spot.spotId"
+                      :label="`${spot.spotName} (ID: ${spot.spotId})`"
+                      :value="spot.spotId"
+                    />
+                  </el-select>
+                </el-form-item>
+
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <!-- 座位名稱 -->
+                    <el-form-item label="座位名稱" required>
+                      <el-input v-model="formData.seatsName" placeholder="例如：A-01" clearable>
+                        <template #prefix><i class="fas fa-chair"></i></template>
+                      </el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <!-- 序號 -->
+                    <el-form-item label="序號">
+                      <el-input v-model="formData.serialNumber" :placeholder="isEditMode ? '例如：SN-2023001' : '留空則自動產生 (例如：SN-2026001)'" clearable>
+                        <template #prefix><i class="fas fa-barcode"></i></template>
+                      </el-input>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <!-- 類型 -->
+                    <el-form-item label="類型" required>
+                      <el-input v-model="formData.seatsType" placeholder="例如:高腳椅、塑膠椅..." clearable>
+                        <template #prefix><i class="fas fa-couch"></i></template>
+                      </el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <!-- 狀態 -->
+                    <el-form-item label="狀態">
+                      <el-select v-model="formData.seatsStatus" style="width: 100%">
+                        <el-option label="啟用" value="啟用">
+                          <i class="fas fa-check-circle text-success mr-2"></i> 啟用
+                        </el-option>
+                        <el-option label="停用" value="停用">
+                          <i class="fas fa-ban text-danger mr-2"></i> 停用
+                        </el-option>
+                        <el-option label="維修中" value="維修中">
+                          <i class="fas fa-tools text-warning mr-2"></i> 維修中
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </div>
+
+              <!-- ========== 按鈕區 ========== -->
+              <div class="form-actions">
+                <el-button @click="goBack" class="back-btn">
+                  <i class="fas fa-times mr-1"></i> 取消
+                </el-button>
+                <el-button type="primary" @click="handleSubmit" :loading="isSubmitting" class="submit-btn">
+                  <i class="fas fa-save mr-1"></i> {{ isSubmitting ? '儲存中...' : '儲存' }}
+                </el-button>
+              </div>
+            </el-form>
+          </el-card>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+const route = useRoute()
+const router = useRouter()
+
+// 明確定義元件名稱，方便識別與除錯
+defineOptions({
+  name: 'SeatForm'
+})
+
+// 判斷是否為編輯模式 (網址有 id 參數)
+const isEditMode = computed(() => !!route.params.id)
+
+// 表單資料
+const formData = ref({
+  seatsName: '',
+  seatsType: '',
+  seatsStatus: '啟用',
+  spotId: '',
+  serialNumber: '',
+})
+
+// 防止重複提交的狀態
+const isSubmitting = ref(false)
+
+// 據點列表 (供下拉選單使用)
+const spotList = ref([])
+
+// 初始化
+onMounted(async () => {
+  await fetchSpots()
+  
+  if (isEditMode.value) {
+    await fetchSeatData(route.params.id)
+  }
+})
+
+// 取得所有據點 (用於下拉選單)
+const fetchSpots = async () => {
+  try {
+    const res = await axios.get('/api/spot/list')
+    spotList.value = res.data
+  } catch (err) {
+    console.error('無法取得據點列表:', err)
+    Swal.fire({
+      title: '載入失敗',
+      html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f56c6c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p style="margin-top:12px;">無法載入據點列表，請檢查後端連線</p></div>',
+      confirmButtonColor: '#409eff',
+      confirmButtonText: '確定'
+    })
+  }
+}
+
+// 取得單一座位資料 (編輯模式用)
+const fetchSeatData = async (id) => {
+  if (!id) {
+    console.warn('未提供座位ID，無法取得資料')
+    return
+  }
+  try {
+    const res = await axios.get(`/api/seats/${id}`)
+    // 將後端資料填入表單
+    formData.value = {
+      seatsId: res.data.seatsId, // 雖然表單不顯示，但更新時可能需要
+      seatsName: res.data.seatsName,
+      seatsType: res.data.seatsType,
+      seatsStatus: res.data.seatsStatus,
+      spotId: res.data.spotId,
+      serialNumber: res.data.serialNumber,
+    }
+  } catch (err) {
+    console.error('無法取得座位資料:', err)
+    Swal.fire({
+      title: '讀取失敗',
+      html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f56c6c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p style="margin-top:12px;">無法讀取座位資料</p></div>',
+      confirmButtonColor: '#409eff',
+      confirmButtonText: '確定'
+    })
+    router.push('/admin/seat/list')
+  }
+}
+
+// 送出表單
+const handleSubmit = async () => {
+  if (isSubmitting.value) return
+  isSubmitting.value = true
+
+  // [優化] 建立一個乾淨的 payload，避免直接修改 ref
+  const payload = { ...formData.value };
+
+  // [修正] 如果序號為空字串，應轉為 null 送出，以符合資料庫的唯一索引篩選 (WHERE serialNumber IS NOT NULL)
+  // 避免多筆空字串資料違反唯一約束
+  if (payload.serialNumber === '') {
+    payload.serialNumber = null;
+  }
+
+  try {
+    if (isEditMode.value) {
+      // 更新 (PUT)
+      const seatId = route.params.id
+      await axios.put(`/api/seats/${seatId}`, payload)
+      await Swal.fire({
+        title: '更新成功',
+        html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#67c23a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p style="margin-top:12px;">座位資料已成功更新</p></div>',
+        confirmButtonColor: '#409eff',
+        confirmButtonText: '確定'
+      })
+    } else {
+      // 新增 (POST)
+      await axios.post('/api/seats', payload)
+      await Swal.fire({
+        title: '新增成功',
+        html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#67c23a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p style="margin-top:12px;">座位資料已成功新增</p></div>',
+        confirmButtonColor: '#409eff',
+        confirmButtonText: '確定'
+      })
+    }
+    // 成功後返回列表
+    router.push('/admin/seat/list')
+  } catch (err) {
+    console.error('儲存失敗:', err)
+    // [優化] 顯示更詳細的錯誤訊息
+    const errorMsg = err.response?.data?.message || '儲存失敗，請檢查輸入資料或後端連線';
+    Swal.fire({
+      title: '儲存失敗',
+      html: `<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f56c6c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><p style="margin-top:12px;">${errorMsg}</p></div>`,
+      confirmButtonColor: '#409eff',
+      confirmButtonText: '確定'
+    })
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const goBack = () => {
+  router.back()
+}
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.seat-form-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.add-mode {
+  background: linear-gradient(135deg, #67c23a 0%, #95d475 100%);
+}
+
+.edit-mode {
+  background: linear-gradient(135deg, #e6a23c 0%, #f3d19e 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 表單卡片 ========== */
+.form-card {
+  border-radius: 12px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #409eff;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #409eff;
+}
+
+/* ========== 按鈕區 ========== */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+.submit-btn {
+  min-width: 120px;
+  border-radius: 10px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #67c23a 0%, #95d475 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(103, 194, 58, 0.4);
+}
+
+.back-btn {
+  min-width: 100px;
+  border-radius: 10px;
+}
+
+/* ========== 動畫效果 ========== */
+.zoom-fade-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.zoom-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.zoom-fade-enter-from {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+.zoom-fade-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* ========== 工具類 ========== */
+.mr-1 { margin-right: 4px; }
+.mr-2 { margin-right: 8px; }
+.text-success { color: #67c23a; }
+.text-warning { color: #e6a23c; }
+.text-danger { color: #f56c6c; }
+
+/* ========== 響應式設計 ========== */
+@media (max-width: 768px) {
+  .page-title-box {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+}
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SeatList.vue">
+<template>
+  <div class="seat-list-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon view-mode">
+                <i class="fas fa-chair"></i>
+              </div>
+              <div class="title-content">
+                <h1>座位管理列表</h1>
+                <p class="subtitle">管理所有座位設備資訊</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 text-right">
+            <el-button type="primary" @click="goToAdd" class="add-btn">
+              <i class="fas fa-plus mr-1"></i> 新增座位
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="fade-slide" appear>
+          <div>
+            <!-- ========== 主要表格卡片 ========== -->
+            <el-card shadow="hover" class="table-card">
+              <!-- 搜尋區塊 -->
+              <!-- [修改] 參考 SpotList.vue 的搜尋介面 -->
+              <div class="toolbar">
+                <div class="search-controls">
+                  <el-input
+                    v-model="searchKeyword"
+                    placeholder="搜尋名稱、類型或序號"
+                    clearable
+                    prefix-icon="Search"
+                    class="search-input"
+                  />
+                  <el-input
+                    v-model.number="searchSpotId"
+                    placeholder="搜尋據點ID"
+                    type="number"
+                    :min="1"
+                    clearable
+                    class="search-input-sm"
+                    @input="sanitizeSpotId"
+                  />
+                  <el-select v-model="searchStatus" placeholder="全部狀態" clearable class="search-select">
+                    <el-option label="啟用" value="啟用" />
+                    <el-option label="停用" value="停用" />
+                    <el-option label="維修中" value="維修中" />
+                  </el-select>
+                </div>
+              </div>
+
+              <!-- 表格 -->
+              <el-table
+                :data="paginatedSeats"
+                v-loading="loading"
+                stripe
+                style="width: 100%"
+                :header-cell-style="{ background: '#f5f7fa', fontWeight: 'bold', color: '#303133' }"
+                class="modern-table"
+              >
+                <el-table-column prop="seatsId" label="ID" width="70" align="center" />
+                <el-table-column prop="seatsName" label="名稱" min-width="120">
+                  <template #default="{ row }">
+                    <div class="seat-name-cell">
+                      <i class="fas fa-chair text-primary mr-2"></i>
+                      <span>{{ row.seatsName }}</span>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="seatsType" label="類型" width="120" />
+                <el-table-column prop="serialNumber" label="序號" width="140" />
+                <!-- 建議後端 DTO 回傳 spotName，若無則顯示 ID -->
+                <el-table-column label="所屬據點 ID" width="120" align="center">
+                  <template #default="{ row }">
+                    <el-tag type="info" size="small" effect="plain">
+                      {{ row.spotName || row.spotId }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="seatsStatus" label="設備狀態" width="100" align="center">
+                  <!-- 增加對後端可能回傳 1/0 或 ACTIVE/INACTIVE 的相容性判斷 -->
+                  <template #default="{ row }">
+                    <el-tag
+                      :type="(row.seatsStatus === '啟用' || row.seatsStatus === 1 || row.seatsStatus === 'ACTIVE') ? 'success' : (row.seatsStatus === '維修中' ? 'warning' : 'danger')"
+                      size="small"
+                      effect="light"
+                    >
+                      {{ row.seatsStatus }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="180" align="center" fixed="right">
+                  <template #default="{ row }">
+                    <el-button-group>
+                      <!-- [新增] 詳細按鈕 -->
+                      <el-tooltip content="檢視" placement="top">
+                        <el-button size="small" type="info" @click="goToView(row.seatsId)">
+                          <i class="fas fa-eye"></i>
+                        </el-button>
+                      </el-tooltip>
+                      <!-- [新增] 編輯按鈕 -->
+                      <el-tooltip content="編輯" placement="top">
+                        <el-button size="small" type="primary" @click="goToEdit(row.seatsId)">
+                          <i class="fas fa-edit"></i>
+                        </el-button>
+                      </el-tooltip>
+                      <el-tooltip content="刪除" placement="top">
+                        <el-button size="small" type="danger" @click="deleteSeat(row.seatsId)">
+                          <i class="fas fa-trash-alt"></i>
+                        </el-button>
+                      </el-tooltip>
+                    </el-button-group>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <el-empty v-if="filteredSeats.length === 0 && !loading" description="目前沒有符合條件的座位資料" />
+
+              <!-- 分頁元件 -->
+              <div class="pagination-wrapper" v-if="total > 0">
+                <el-pagination
+                  v-model:current-page="currentPage"
+                  v-model:page-size="pageSize"
+                  :page-sizes="[10, 20, 50, 100]"
+                  :total="total"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  background
+                  @size-change="handleSizeChange"
+                  @current-change="handlePageChange"
+                />
+              </div>
+            </el-card>
+          </div>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router' // [新增] 引入 useRouter
+import axios from 'axios'
+import Swal from 'sweetalert2' // 假設您有安裝，若無可改用 alert
+
+// 明確定義元件名稱
+defineOptions({
+  name: 'SeatList'
+})
+
+const router = useRouter() // [新增] 初始化 router
+const seats = ref([])
+const loading = ref(false)
+
+// 分頁狀態
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// [新增] 參考 SpotList.vue 的搜尋狀態
+const searchKeyword = ref('')
+const searchSpotId = ref('')
+const searchStatus = ref('')
+
+// [新增] 參考 SpotList.vue 的數字輸入處理函式，並調整變數名稱
+const sanitizeSpotId = () => {
+  const v = searchSpotId.value
+  if (v === '' || v === null || v === undefined) return
+
+  if (!Number.isFinite(v) || v < 1) {
+    searchSpotId.value = 1
+  }
+}
+
+// [新增] 跳轉到詳細頁 (使用具名路由，更安全)
+const goToView = (id) => {
+  router.push({ name: 'seat-view', params: { id } })
+}
+
+// [新增] 跳轉到編輯頁
+const goToEdit = (id) => {
+  router.push({ name: 'seat-edit', params: { id } })
+}
+
+// [新增] 跳轉到新增頁
+const goToAdd = () => {
+  router.push({ name: 'seat-insert' })
+}
+
+// 查詢座位
+const fetchSeats = async () => {
+  loading.value = true
+  try {
+    // [修改] 為了實現前端過濾，移除請求參數，一次性獲取所有資料
+    const res = await axios.get('/api/seats/search')
+    seats.value = res.data
+  } catch (err) {
+    console.error('載入失敗:', err)
+    Swal.fire({
+      title: '錯誤',
+      html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f56c6c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p style="margin-top:12px;">無法載入座位列表</p></div>',
+      confirmButtonColor: '#409eff',
+      confirmButtonText: '確定'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// [新增] 參考 SpotList.vue 的計算屬性，並根據 Seat 的欄位調整過濾邏輯
+const filteredSeats = computed(() => {
+  let results = seats.value
+
+  // 1. 關鍵字過濾 (對應 Seat 的名稱、類型、序號)
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.toLowerCase().trim()
+    results = results.filter(
+      (seat) =>
+        seat.seatsName?.toLowerCase().includes(keyword) ||
+        seat.seatsType?.toLowerCase().includes(keyword) ||
+        seat.serialNumber?.toLowerCase().includes(keyword)
+    )
+  }
+
+  // 2. 據點 ID 過濾 (對應 Seat 的 spotId)
+  if (searchSpotId.value !== '' && searchSpotId.value !== null) {
+    const sId = Number(searchSpotId.value)
+    results = results.filter((seat) => Number(seat.spotId) === sId)
+  }
+
+  // 3. 狀態過濾 (對應 Seat 的 seatsStatus)
+  if (searchStatus.value) {
+    results = results.filter((seat) => seat.seatsStatus === searchStatus.value)
+  }
+
+  return results
+})
+
+// 分頁後的資料
+const paginatedSeats = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredSeats.value.slice(start, end)
+})
+
+// 總筆數
+const total = computed(() => filteredSeats.value.length)
+
+// 分頁切換處理
+const handlePageChange = (page) => {
+  currentPage.value = page
+}
+
+const handleSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+}
+
+// 刪除座位
+const deleteSeat = async (id) => {
+  const result = await Swal.fire({
+    title: '確定刪除?',
+    html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e6a23c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><p style="margin-top:12px;">刪除後將無法復原！</p></div>',
+    showCancelButton: true,
+    confirmButtonColor: '#f56c6c',
+    cancelButtonColor: '#909399',
+    confirmButtonText: '是的，刪除',
+    cancelButtonText: '取消'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await axios.delete(`/api/seats/${id}`)
+      Swal.fire({
+        title: '已刪除',
+        html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#67c23a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p style="margin-top:12px;">該座位已被移除</p></div>',
+        confirmButtonColor: '#409eff',
+        confirmButtonText: '確定'
+      })
+      fetchSeats() // 重新整理列表
+    } catch (err) {
+      Swal.fire({
+        title: '失敗',
+        html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f56c6c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><p style="margin-top:12px;">刪除失敗，可能尚有相關聯的訂單</p></div>',
+        confirmButtonColor: '#409eff',
+        confirmButtonText: '確定'
+      })
+    }
+  }
+}
+
+onMounted(() => {
+  fetchSeats()
+})
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.seat-list-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.view-mode {
+  background: linear-gradient(135deg, #409eff 0%, #79bbff 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 新增按鈕 ========== */
+.add-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #67c23a 0%, #95d475 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(103, 194, 58, 0.4);
+}
+
+/* ========== 表格卡片 ========== */
+.table-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.search-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-input {
+  width: 220px;
+}
+
+.search-input-sm {
+  width: 120px;
+}
+
+.search-select {
+  width: 140px;
+}
+
+/* ========== 表格樣式 ========== */
+.modern-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.seat-name-cell {
+  display: flex;
+  align-items: center;
+}
+
+.text-primary {
+  color: #409eff;
+}
+
+/* ========== 動畫效果 ========== */
+.fade-slide-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-slide-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.fade-slide-enter-from {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.fade-slide-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+/* ========== 間距工具類 ========== */
+.mr-1 { margin-right: 4px; }
+.mr-2 { margin-right: 8px; }
+
+/* ========== 分頁樣式 ========== */
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* ========== 響應式設計 ========== */
+@media (max-width: 768px) {
+  .page-title-box {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .search-controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .search-input,
+  .search-input-sm,
+  .search-select {
+    width: 100%;
+  }
+}
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SpotList.vue">
+<template>
+  <div class="spot-list-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon view-mode">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="title-content">
+                <h1>據點管理列表</h1>
+                <p class="subtitle">管理所有營業據點資訊</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 text-right">
+            <!-- 點擊新增，跳轉到 SpotForm (無 ID) -->
+            <el-button type="primary" @click="goToAdd" class="add-btn">
+              <i class="fas fa-plus mr-1"></i> 新增據點
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <!-- ========== 數據摘要區 ========== -->
+        <div class="stats-overview">
+          <div class="stat-box blue">
+            <div class="stat-icon"><i class="fas fa-building"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">據點總數</span>
+              <span class="stat-value">{{ statsSummary.totalSpots }}</span>
+            </div>
+          </div>
+          <div class="stat-box orange">
+            <div class="stat-icon"><i class="fas fa-wrench"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">維修中據點</span>
+              <span class="stat-value">{{ statsSummary.maintenance }}</span>
+            </div>
+          </div>
+          <div class="stat-box purple">
+            <div class="stat-icon"><i class="fas fa-chair"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">營運座位數</span>
+              <span class="stat-value">{{ statsSummary.activeSeats }}</span>
+            </div>
+          </div>
+          <div class="stat-box green">
+            <div class="stat-icon"><i class="fas fa-clipboard-check"></i></div>
+            <div class="stat-info">
+              <span class="stat-label">今日累計租借</span>
+              <span class="stat-value">{{ statsSummary.todayRents }}</span>
+            </div>
+          </div>
+        </div>
+
+        <transition name="fade-slide" appear>
+          <div>
+            <!-- ========== 主要表格卡片 ========== -->
+            <el-card shadow="hover" class="table-card">
+              <!-- 工具列 -->
+              <div class="toolbar">
+                <div class="search-controls">
+                  <!-- [修復] 補上遺失的關鍵字搜尋框 -->
+                  <el-input
+                    v-model="searchKeyword"
+                    placeholder="搜尋名稱、代碼或地址"
+                    clearable
+                    prefix-icon="Search"
+                    class="search-input"
+                  />
+                  <!-- Merchant ID 搜尋框 ，說明：min="0" 讓點擊上下箭頭時不會變負數；oninput 則是防止使用者直接用鍵盤打 - 號。-->
+                  <el-input
+                    v-model.number="searchMerchantId"
+                    placeholder="搜尋ID"
+                    type="number"
+                    :min="1"
+                    clearable
+                    class="search-input-sm"
+                    @input="sanitizeMerchantId"
+                  />
+                  <!-- 狀態下拉選單 -->
+                  <el-select v-model="searchStatus" placeholder="全部狀態" clearable class="search-select">
+                    <el-option label="營運中" value="營運中" />
+                    <el-option label="停用" value="停用" />
+                    <el-option label="維修中" value="維修中" />
+                  </el-select>
+                </div>
+              </div>
+
+              <!-- 表格 -->
+              <el-table
+                :data="paginatedSpots"
+                v-loading="loading"
+                stripe
+                style="width: 100%"
+                :header-cell-style="{ background: '#f5f7fa', fontWeight: 'bold', color: '#303133' }"
+                class="modern-table"
+              >
+                <el-table-column prop="spotId" label="ID" width="70" align="center" />
+                <el-table-column prop="spotCode" label="代碼" width="100" />
+                <el-table-column prop="spotName" label="名稱" min-width="150">
+                  <template #default="{ row }">
+                    <div class="spot-name-cell">
+                      <i class="fas fa-store text-primary mr-2"></i>
+                      <span>{{ row.spotName }}</span>
+                    </div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="spotAddress" label="地址" min-width="200" show-overflow-tooltip />
+                <!-- 這裡新增了 Merchant ID 的標題欄位 -->
+                <!-- 建議後端 DTO 補上 merchantName -->
+                <el-table-column label="Merchant ID" width="120" align="center">
+                  <template #default="{ row }">
+                    <el-tag v-if="row.merchantId" type="info" size="small" effect="plain">
+                      {{ row.merchantName || row.merchantId }}
+                    </el-tag>
+                    <span v-else class="text-muted">-</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="spotStatus" label="狀態" width="100" align="center">
+                  <template #default="{ row }">
+                    <el-tag
+                      :type="(row.spotStatus === '營運中' || row.spotStatus === '啟用' || row.spotStatus === 1) ? 'success' : (row.spotStatus === '維修中' ? 'warning' : 'danger')"
+                      size="small"
+                      effect="light"
+                    >
+                      {{ row.spotStatus }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="180" align="center" fixed="right">
+                  <template #default="{ row }">
+                    <el-button-group>
+                      <!-- [修改] 改用 button 統一操作風格，並呼叫 goToView 函式 -->
+                      <el-tooltip content="檢視" placement="top">
+                        <el-button size="small" type="info" @click="goToView(row.spotId)">
+                          <i class="fas fa-eye"></i>
+                        </el-button>
+                      </el-tooltip>
+                      <!-- 點擊編輯，跳轉到 SpotForm (帶 ID) -->
+                      <el-tooltip content="編輯" placement="top">
+                        <el-button size="small" type="primary" @click="goToEdit(row.spotId)">
+                          <i class="fas fa-edit"></i>
+                        </el-button>
+                      </el-tooltip>
+                      <el-tooltip content="刪除" placement="top">
+                        <el-button size="small" type="danger" @click="deleteSpot(row.spotId, row.spotName)">
+                          <i class="fas fa-trash-alt"></i>
+                        </el-button>
+                      </el-tooltip>
+                    </el-button-group>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <!-- 空資料提示 -->
+              <el-empty v-if="paginatedSpots.length === 0 && !loading" description="目前沒有資料" />
+
+              <!-- 分頁元件 -->
+              <div class="pagination-wrapper" v-if="total > 0">
+                <el-pagination
+                  v-model:current-page="currentPage"
+                  v-model:page-size="pageSize"
+                  :page-sizes="[10, 20, 50, 100]"
+                  :total="total"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  background
+                  @size-change="handleSizeChange"
+                  @current-change="handlePageChange"
+                />
+              </div>
+            </el-card>
+          </div>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+
+defineOptions({
+  name: 'SpotList'
+})
+
+const router = useRouter()
+const spots = ref([])
+const loading = ref(false)
+const searchKeyword = ref('') // 搜尋關鍵字狀態
+const searchMerchantId = ref('') // Merchant ID 搜尋狀態
+const searchStatus = ref('') // 狀態搜尋狀態
+
+// 統計數據摘要
+const statsSummary = ref({
+  totalSpots: 0,
+  maintenance: 0,
+  activeSeats: 0,
+  todayRents: 0
+})
+
+// 分頁設定
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// 防止輸入負數
+const sanitizeMerchantId = () => {
+  const v = searchMerchantId.value
+  if (v === '' || v === null || v === undefined) return
+  if (!Number.isFinite(v) || v < 1) {
+    searchMerchantId.value = 1
+  }
+}
+
+const loadSpots = async () => {
+  loading.value = true
+  try {
+    // 1. 先讀取列表 (核心功能)
+    const resList = await axios.get('/api/spot/list')
+    spots.value = resList.data
+
+    // 2. 再嘗試讀取統計數據 (非核心功能，失敗不應影響列表)
+    try {
+      const resStats = await axios.get('/api/analyze/stats')
+      calculateStats(resList.data, resStats.data)
+    } catch (statsErr) {
+      console.warn('統計數據讀取失敗，僅顯示列表:', statsErr)
+      // 傳入 null 讓 calculateStats 計算基礎數據即可
+      calculateStats(resList.data, null)
+    }
+
+  } catch (err) {
+    console.error('讀取失敗:', err)
+    Swal.fire({
+      title: '讀取失敗',
+      text: '讀取資料失敗，請檢查後端連線',
+      icon: 'error',
+      confirmButtonText: '確定',
+      confirmButtonColor: '#409eff'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+const calculateStats = (listData, statsData) => {
+  // A. 從列表計算的基本數據
+  statsSummary.value.totalSpots = listData.length
+  statsSummary.value.maintenance = listData.filter(s => s.spotStatus === '維修中').length
+
+  // B. 從統計 API 取得的進階數據 (spotMonitor 陣列)
+  const monitorList = statsData?.spotMonitor || []
+
+  // 用 reduce 加總所有站點的數據
+  statsSummary.value.activeSeats = monitorList.reduce((sum, item) => sum + (item.totalSeats || 0), 0)
+  statsSummary.value.todayRents = monitorList.reduce((sum, item) => sum + (item.rentedCount || 0), 0)
+}
+
+const filteredSpots = computed(() => {
+  let results = spots.value
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.toLowerCase().trim()
+    results = results.filter(
+      (spot) =>
+        spot.spotName?.toLowerCase().includes(keyword) ||
+        spot.spotCode?.toLowerCase().includes(keyword) ||
+        spot.spotAddress?.toLowerCase().includes(keyword),
+    )
+  }
+  if (searchMerchantId.value !== '' && searchMerchantId.value !== null) {
+    const mId = Number(searchMerchantId.value)
+    results = results.filter((spot) => Number(spot.merchantId) === mId)
+  }
+  if (searchStatus.value) {
+    results = results.filter((spot) => spot.spotStatus === searchStatus.value)
+  }
+  return results
+})
+
+// 分頁後的資料
+const paginatedSpots = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredSpots.value.slice(start, end)
+})
+
+// 總筆數
+const total = computed(() => filteredSpots.value.length)
+
+// 當過濾條件變化時，重置到第一頁
+const resetPage = () => {
+  currentPage.value = 1
+}
+
+// 分頁變化
+const handlePageChange = (page) => {
+  currentPage.value = page
+}
+
+const handleSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+}
+
+// 跳轉到新增頁面
+const goToAdd = () => {
+  router.push({ name: 'spot-add' })
+}
+
+const goToMonitor = () => {
+  // 請確保 router/index.js 中已設定 name: 'dispatch-monitor' 的路由
+  router.push({ name: 'dispatch-monitor' })
+}
+
+const goToAnalyze = () => {
+  router.push({ name: 'spot-analyze' })
+}
+
+const goToView = (id) => {
+  router.push({ name: 'spot-view', params: { id } })
+}
+
+const goToEdit = (id) => {
+  router.push({ name: 'spot-edit', params: { id } })
+}
+
+const deleteSpot = async (id, name) => {
+  // 二次確認：顯示更詳細的資訊 (名稱 + ID)，並提示無法復原，增加安全性
+  const result = await Swal.fire({
+    title: '確定要刪除嗎？',
+    html: `您即將刪除據點「<strong>${name}</strong>」(ID: ${id})<br><span style="color: #f56c6c;">此動作無法復原！</span>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#f56c6c',
+    cancelButtonColor: '#909399',
+    confirmButtonText: '是的，刪除',
+    cancelButtonText: '取消'
+  })
+
+  if (!result.isConfirmed) return
+
+  try {
+    await axios.delete(`/api/spot/${id}`)
+
+    Swal.fire({
+      title: '刪除成功',
+      text: '據點已成功刪除',
+      icon: 'success',
+      confirmButtonText: '確定',
+      confirmButtonColor: '#67c23a'
+    })
+    await loadSpots()
+  } catch (err) {
+    console.error('刪除失敗:', err)
+    Swal.fire({
+      title: '刪除失敗',
+      text: '刪除失敗，可能尚有相關聯的座位或訂單',
+      icon: 'error',
+      confirmButtonText: '確定',
+      confirmButtonColor: '#409eff'
+    })
+  }
+}
+
+onMounted(() => {
+  loadSpots()
+})
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.spot-list-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+/* ========== 數據摘要區 ========== */
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.stat-box {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: transform 0.3s ease;
+}
+
+.stat-box:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.stat-box.blue .stat-icon { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+.stat-box.orange .stat-icon { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+.stat-box.purple .stat-icon { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+.stat-box.green .stat-icon { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.view-mode {
+  background: linear-gradient(135deg, #409eff 0%, #79bbff 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 新增按鈕 ========== */
+.add-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #67c23a 0%, #95d475 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(103, 194, 58, 0.4);
+}
+
+/* ========== 表格卡片 ========== */
+.table-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.search-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-input {
+  width: 220px;
+}
+
+.search-input-sm {
+  width: 120px;
+}
+
+.search-select {
+  width: 140px;
+}
+
+/* ========== 表格樣式 ========== */
+.modern-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.spot-name-cell {
+  display: flex;
+  align-items: center;
+}
+
+.text-primary {
+  color: #409eff;
+}
+
+.text-muted {
+  color: #909399;
+}
+
+/* ========== 動畫效果 ========== */
+.fade-slide-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fade-slide-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.fade-slide-enter-from {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.fade-slide-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+/* ========== 間距工具類 ========== */
+.mb-4 { margin-bottom: 1.5rem; }
+.mr-1 { margin-right: 4px; }
+.mr-2 { margin-right: 8px; }
+
+/* ========== 分頁樣式 ========== */
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* ========== 響應式設計 ========== */
+@media (max-width: 768px) {
+  .page-title-box {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .search-controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .search-input,
+  .search-input-sm,
+  .search-select {
+    width: 100%;
+  }
+}
+</style>
+</file>
+
+<file path="frontend/src/views/spot/DispatchMonitor.vue">
+<template>
+  <div class="dispatch-monitor container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold text-dark">
+        <i class="fas fa-chart-line me-2"></i>站點調度監控中心
+      </h2>
+      <div class="controls d-flex gap-3 align-items-center">
+        <span class="text-muted small">
+          最後更新: {{ lastUpdateTime }}
+        </span>
+        <button 
+          class="btn btn-primary" 
+          @click="fetchData" 
+          :disabled="loading"
+        >
+          <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i> 
+          {{ loading ? '更新中...' : '立即更新' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- 警示摘要卡片 -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="card bg-danger text-white shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-title mb-0">急需補給 (可租用率過低)</h6>
+              <h2 class="display-6 fw-bold my-2">{{ lowStockSpots.length }}</h2>
+              <small>可租用率 &lt; 20%</small>
+            </div>
+            <i class="fas fa-battery-empty fa-3x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-warning text-dark shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-title mb-0">建議清運 (可租用率過高)</h6>
+              <h2 class="display-6 fw-bold my-2">{{ overStockSpots.length }}</h2>
+              <small>可租用率 &gt; 80%</small>
+            </div>
+            <i class="fas fa-battery-full fa-3x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-success text-white shadow-sm h-100">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="card-title mb-0">營運正常</h6>
+              <h2 class="display-6 fw-bold my-2">{{ normalSpots.length }}</h2>
+              <small>可租用率健康</small>
+            </div>
+            <i class="fas fa-check-circle fa-3x opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 監控列表 -->
+    <div class="card shadow">
+      <div class="card-header bg-white py-3">
+        <h5 class="mb-0">即時站點狀態列表</h5>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>租借據點名稱</th>
+              <th>各據點容量上限</th>
+              <th>可借數</th>
+              <th>可租用率</th>
+              <th>調度建議</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="spot in allSpots" :key="spot.spotId" :class="getRowClass(spot)">
+              <td>{{ spot.spotId }}</td>
+              <td class="fw-bold">{{ spot.spotName }}</td>
+              <td>{{ spot.totalSeats }}</td>
+              <td>{{ spot.availableSeats }}</td>
+              <td style="width: 200px;">
+                <div class="progress" style="height: 20px;">
+                  <div 
+                    class="progress-bar" 
+                    role="progressbar" 
+                    :style="{ width: getRentableRate(spot) + '%', backgroundColor: getProgressColor(spot) }"
+                    :aria-valuenow="getRentableRate(spot)" 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                  >
+                    {{ getRentableRate(spot) }}%
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge rounded-pill" :class="getStatusBadge(spot).class">
+                  {{ getStatusBadge(spot).text }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary" @click="notifyDispatch(spot)">
+                  <i class="fas fa-paper-plane"></i> 發送調度單
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
+import Swal from 'sweetalert2';
+
+defineOptions({ name: 'DispatchMonitor' });
+
+const allSpots = ref([]);
+const loading = ref(false);
+const lastUpdateTime = ref('-');
+
+const API_URL = '/api/analyze/spot-monitor';
+
+const getRentableRate = (spot) => {
+  const total = Number(spot.totalSeats) || 0;
+  const available = Number(spot.availableSeats) || 0;
+  if (total <= 0) return 0;
+
+  const rate = Math.round((available / total) * 100);
+  return Math.min(100, Math.max(0, rate));
+};
+
+
+const getStatusType = (spot) => {
+  const rate = getRentableRate(spot);
+  if (rate < 20) return 'NEED_SUPPLY';
+  if (rate > 80) return 'NEED_CLEAR';
+  return 'NORMAL';
+};
+
+const lowStockSpots = computed(() => allSpots.value.filter(s => getStatusType(s) === 'NEED_SUPPLY'));
+const overStockSpots = computed(() => allSpots.value.filter(s => getStatusType(s) === 'NEED_CLEAR'));
+const normalSpots = computed(() => allSpots.value.filter(s => getStatusType(s) === 'NORMAL'));
+
+const getRowClass = (spot) => {
+  const type = getStatusType(spot);
+  if (type === 'NEED_SUPPLY') return 'table-danger';
+  if (type === 'NEED_CLEAR') return 'table-warning';
+  return '';
+};
+
+const getProgressColor = (spot) => {
+  const type = getStatusType(spot);
+  if (type === 'NEED_SUPPLY') return '#dc3545'; // Red
+  if (type === 'NEED_CLEAR') return '#ffc107'; // Yellow
+  return '#198754'; // Green
+};
+
+const getStatusBadge = (spot) => {
+  const type = getStatusType(spot);
+  if (type === 'NEED_SUPPLY')  return { class: 'bg-danger', text: '急需補給' };
+  if (type === 'NEED_CLEAR') return { class: 'bg-warning text-dark', text: '建議清運' };
+  return { class: 'bg-success', text: '正常' };
+};
+
+const fetchData = async () => {
+  loading.value = true;
+  try {
+    const res = await axios.get(API_URL);
+    allSpots.value = res.data;
+    lastUpdateTime.value = new Date().toLocaleTimeString();
+  } catch (err) {
+    console.error('監控數據載入失敗', err);
+    Swal.fire({
+      icon: 'error',
+      title: '載入失敗',
+      text: '無法獲取站點監控數據，請稍後再試。'
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const notifyDispatch = (spot) => {
+  const type = getStatusType(spot);
+  let msg = '';
+  if (type === 'NEED_SUPPLY') msg = `請派員前往 [${spot.spotName}] 補充設備！`;
+  else if (type === 'NEED_CLEAR') msg = `請派員前往 [${spot.spotName}] 回收設備！`;
+  else msg = `[${spot.spotName}] 目前狀態正常，確定要派單？`;
+
+  Swal.fire({
+    title: '發送調度通知?',
+    text: msg,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: '發送',
+    cancelButtonText: '取消'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire('已發送', '管理員已收到通知', 'success');
+    }
+  });
+};
+
+onMounted(() => {
+  fetchData();
+});
+</script>
+
+<style scoped>
+.dispatch-monitor {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+.card {
+  border: none;
+  border-radius: 10px;
+}
+.table-danger {
+  background-color: #ffebe9 !important;
+}
+.table-warning {
+  background-color: #fff8e1 !important;
+}
+</style>
+</file>
+
+<file path="frontend/src/views/spot/SpotAnalyze.vue">
+<template>
+  <div class="spot-analyze-container">
+    <el-card class="mb-4">
+      <template #header>
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold m-0 flex items-center gap-2">
+            <i class="fas fa-chart-line text-blue-500"></i>
+            據點營運統計儀表板
+          </h2>
+          <div class="flex items-center gap-2" style="display: flex; gap: 10px; align-items: center;">
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="開始日期"
+              end-placeholder="結束日期"
+              value-format="YYYY-MM-DD"
+              :shortcuts="shortcuts"
+              @change="fetchData"
+            />
+            <el-button type="primary" :loading="loading" @click="fetchData">
+              <i class="fas fa-sync-alt mr-1"></i> 重新載入
+            </el-button>
+          </div>
+        </div>
+      </template>
+
+      <!-- 恢復為純圖表模式 (移除方案 A 的 Tabs) -->
+      <div v-loading="loading">
+        <el-row :gutter="20" class="mb-4">
+          <el-col :md="10" :sm="24" class="mb-4">
+            <el-card shadow="hover" class="chart-card">
+              <template #header><b>各縣市站點分佈</b></template>
+              <div v-if="hasData" ref="cityChartRef" class="chart-container"></div>
+              <el-empty v-else description="暫無數據" />
+            </el-card>
+          </el-col>
+          <el-col :md="14" :sm="24" class="mb-4">
+            <el-card shadow="hover" class="chart-card">
+              <template #header><b>24小時租借熱度</b></template>
+              <div v-if="hasData" ref="heatChartRef" class="chart-container"></div>
+              <el-empty v-else description="暫無數據" />
+            </el-card>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :md="10" :sm="24" class="mb-4">
+            <el-card shadow="hover" class="chart-card">
+              <template #header><b>租借時長分佈</b></template>
+              <div v-if="hasData" ref="durationChartRef" class="chart-container"></div>
+              <el-empty v-else description="暫無數據" />
+            </el-card>
+          </el-col>
+          <el-col :md="14" :sm="24" class="mb-4">
+            <el-card shadow="hover" class="chart-card">
+              <template #header><b>站點即時分佈概覽</b></template>
+              <el-table :data="statsData.spotMonitor" style="width: 100%" height="280">
+                <el-table-column prop="spotName" label="據點" />
+                <el-table-column prop="totalSeats" label="總位" width="80" align="center" />
+                <el-table-column prop="availableSeats" label="可借" width="80" align="center" />
+                <el-table-column label="可借率" width="120">
+                  <template #default="scope">
+                    <el-progress :percentage="Math.round((scope.row.availableSeats/scope.row.totalSeats)*100)" />
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+    </el-card>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import axios from 'axios'
+import ApexCharts from 'apexcharts'
+import Swal from 'sweetalert2'
+
+const loading = ref(false)
+const hasData = ref(false)
+const statsData = ref({ cityDistribution: [], spotMonitor: [], hourlyHeatMap: [], durationStats: [] })
+const dateRange = ref([])
+
+const shortcuts = [
+  { text: '最近一週', value: () => { const end = new Date(); const start = new Date(); start.setTime(start.getTime() - 3600 * 1000 * 24 * 7); return [start, end] } },
+  { text: '最近一個月', value: () => { const end = new Date(); const start = new Date(); start.setTime(start.getTime() - 3600 * 1000 * 24 * 30); return [start, end] } },
+  { text: '最近三個月', value: () => { const end = new Date(); const start = new Date(); start.setTime(start.getTime() - 3600 * 1000 * 24 * 90); return [start, end] } },
+]
+
+const cityChartRef = ref(null); const heatChartRef = ref(null); const durationChartRef = ref(null)
+let cityChart = null; let heatChart = null; let durationChart = null
+
+const fetchData = async () => {
+  loading.value = true
+  try {
+    const params = {}
+    if (dateRange.value && dateRange.value.length === 2) {
+      params.startDate = dateRange.value[0]
+      params.endDate = dateRange.value[1]
+    }
+    const res = await axios.get('/api/analyze/stats', { params })
+    if (res.data) { statsData.value = res.data; hasData.value = true; nextTick(() => renderCharts()) }
+  } catch (err) { console.error(err) } finally { loading.value = false }
+}
+
+const renderCharts = () => {
+  if (cityChartRef.value) {
+    if (cityChart) cityChart.destroy()
+    cityChart = new ApexCharts(cityChartRef.value, {
+      series: statsData.value.cityDistribution.map(i => i.spotCount),
+      labels: statsData.value.cityDistribution.map(i => i.city),
+      chart: { type: 'donut', height: 280 }
+    })
+    cityChart.render()
+  }
+  if (heatChartRef.value) {
+    if (heatChart) heatChart.destroy()
+    heatChart = new ApexCharts(heatChartRef.value, {
+      series: [{ name: '租借', data: Array.from({length:24}, (_,i) => statsData.value.hourlyHeatMap.find(d => d.hourofDay === i)?.rentedCount || 0) }],
+      chart: { type: 'area', height: 280 },
+      xaxis: { categories: Array.from({length:24}, (_,i) => `${i}:00`) }
+    })
+    heatChart.render()
+  }
+  if (durationChartRef.value) {
+    if (durationChart) durationChart.destroy()
+    durationChart = new ApexCharts(durationChartRef.value, {
+      series: [{ name: '筆數', data: statsData.value.durationStats.map(i => i.count) }],
+      chart: { type: 'bar', height: 280 },
+      xaxis: { categories: statsData.value.durationStats.map(i => i.durationRange) }
+    })
+    durationChart.render()
+  }
+}
+
+onMounted(() => fetchData())
+onBeforeUnmount(() => { if(cityChart) cityChart.destroy(); if(heatChart) heatChart.destroy(); if(durationChart) durationChart.destroy() })
+</script>
+
+<style scoped>
+.chart-card { border-radius: 12px; height: 100%; }
+.chart-container { min-height: 280px; }
+.mb-4 { margin-bottom: 20px; }
+</style>
+</file>
+
+<file path="frontend/src/composables/spot/useGoogleMaps.js">
+import { ref } from 'vue'
+import Swal from 'sweetalert2'
+
+/**
+ * [核心] Google Maps 相關邏輯的組合式函數 (Composable)
+ * @param {Ref} formData - 表單資料的 ref 物件
+ * @param {Object} manualOverride - 手動覆蓋座標的 reactive 狀態
+ */
+export function useGoogleMaps(formData, manualOverride) {
+  // ========== 狀態定義 ==========
+  const geoLoading = ref(false)
+  const geoError = ref('')
+  const geoPrecision = ref('') // 儲存 Google 回傳的精確度類型
+  
+  // Template Refs (需在元件 setup 中 return 給 template 綁定)
+  const gmapAutoRef = ref(null)
+  const addrElInputRef = ref(null)
+
+  // ========== 輔助函式 ==========
+  
+  // 精確度顯示文字轉換
+  const formatPrecision = (type) => {
+    const map = { 
+      'ROOFTOP': '精確 (Rooftop)', 
+      'RANGE_INTERPOLATED': '街道插值 (Interpolated)', 
+      'GEOMETRIC_CENTER': '區域中心 (Center)', 
+      'APPROXIMATE': '粗略 (Approximate)', 
+      'PLACES_API': 'Google 地點 (Place)', 
+      'MANUAL': '手動修正 (Manual)' 
+    }
+    return map[type] || type
+  }
+
+  const getPrecisionTagType = (type) => {
+    return (type === 'ROOFTOP' || type === 'PLACES_API' || type === 'MANUAL') ? 'success' : (type === 'RANGE_INTERPOLATED' ? 'warning' : 'info')
+  }
+
+  /**
+  清理 Google 回傳的地址格式
+   */
+  const formatGoogleAddress = (rawAddress) => {
+    if (!rawAddress) return ''
+    // Regex: 移除開頭的 "數字+空白(可選)" 以及 "台灣"
+    return rawAddress.replace(/^(\d+\s?)?(台灣)?/, '').trim()
+  }
+
+  /**
+   * [關鍵] 將 formData 中的 spotAddress「強制同步」回 ElementPlus 的原生 input 元素。
+   * 這是為了解決 Google Maps Autocomplete 腳本會覆蓋 Vue 響應式更新的問題。
+   * 透過多次延遲執行，確保在 Google 初始化完成後，我們的值能成功寫入。
+   * @returns {void}
+   */
+  const syncAddressToNativeInput = () => {
+    const updateValue = () => {
+      const comp = addrElInputRef.value
+      let nativeInput = null
+
+      // 1. 嘗試從 Element Plus 元件實例獲取 input
+      if (comp) {
+        // Element Plus 暴露的 input 屬性 (HTMLInputElement)
+        if (comp.input && comp.input instanceof HTMLInputElement) {
+          nativeInput = comp.input
+        } 
+        // 或者透過 DOM 查找
+        else if (comp.$el) {
+          nativeInput = comp.$el.querySelector('input')
+        }
+      }
+
+      // 2. 最後手段：透過 placeholder 查找
+      if (!nativeInput) {
+        nativeInput = document.querySelector('input[placeholder="請輸入完整地址（可用建議清單）"]')
+      }
+
+      if (nativeInput) {
+        const newValue = formData.value.spotAddress || ''
+        // 只有當值不一致時才寫入
+        if (nativeInput.value !== newValue) {
+          nativeInput.value = newValue
+          // 重要：觸發 input 事件，確保 Vue v-model 也能收到通知
+          nativeInput.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      }
+    }
+    
+    // 增加多次嘗試，確保在 Google Maps 初始化或 DOM 更新後能正確寫入
+    setTimeout(updateValue, 100)
+    setTimeout(updateValue, 300)
+    setTimeout(updateValue, 800)
+  }
+
+  // ========== 核心邏輯 ==========
+  /**
+   * [初始化] 將 Google Places Autocomplete 功能綁定到地址輸入框上。
+   * 這個函式必須在元件掛載 (mounted) 後呼叫，確保能抓取到 DOM 元素。
+   * @returns {Promise<void>}
+   */
+const initPlacesAutocomplete = async () => {
+  // 注意：要在元件 mounted 後、DOM 出來後才抓得到 input
+  const comp = addrElInputRef.value
+  const nativeInput =
+    comp?.input instanceof HTMLInputElement
+      ? comp.input
+      : comp?.$el?.querySelector?.('input')
+
+  if (!nativeInput) return
+
+  // [新增] 等待機制：如果 Google Maps API 還沒載入，就稍微等一下 (最多等 3 秒)
+  if (!window.google?.maps?.places?.Autocomplete) {
+    await new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (window.google?.maps?.places?.Autocomplete) {
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100) // 每 0.1 秒檢查一次
+      setTimeout(() => { clearInterval(checkInterval); resolve() }, 3000) // 3秒後超時放棄
+    })
+  }
+
+  if (!window.google?.maps?.places?.Autocomplete) {
+    geoError.value = 'Google Places 載入失敗或逾時（請確認網路狀況或 API Key 設定）'
+    return
+  }
+
+  const ac = new window.google.maps.places.Autocomplete(nativeInput, {
+    fields: ['name', 'geometry', 'formatted_address', 'place_id'],
+    componentRestrictions: { country: 'tw' }
+  })
+
+  ac.addListener('place_changed', () => {
+    const place = ac.getPlace()
+    onPlaceChangedForForm(place)
+  })
+}
+
+
+
+  /**
+   * [途徑 A-1] 當使用者從 Google Autocomplete 下拉選單中選取一個地點時觸發。
+   * @param {google.maps.places.PlaceResult} placeFromEvent - Google API 回傳的地點物件。
+   */
+  const onPlaceChangedForForm = (placeFromEvent) => {
+    const place = placeFromEvent || gmapAutoRef.value?.getPlace?.()
+    if (!place?.geometry?.location) return
+
+    // 如果 Google Place 有名稱，且我們的「據點名稱」欄位是空的，就自動帶入
+    // 這是為了提升使用者體驗，選了「台北101」，名稱欄位就自動填上。
+    if (place.name && !formData.value.spotName) {
+      formData.value.spotName = place.name
+    }
+
+    if (place.formatted_address) {
+      formData.value.spotAddress = formatGoogleAddress(place.formatted_address)
+      syncAddressToNativeInput()
+    }
+
+    const loc = place.geometry.location
+    formData.value.latitude = Number(loc.lat())
+    formData.value.longitude = Number(loc.lng())
+
+    // 標記精確度，並重置手動鎖定
+    geoPrecision.value = 'PLACES_API'
+    manualOverride.lat = false
+    manualOverride.lng = false
+    geoError.value = ''
+  }
+
+  /**
+   * [途徑 A-2] 將文字地址透過 Geocoder API 轉換為經緯度。
+   * @param {Object} options - 選項物件
+   * @param {boolean} options.force - 是否強制執行，無視 `manualOverride` 鎖定。
+   */
+  const geocodeAddress = ({ force } = { force: false }) => {
+    const address = (formData.value.spotAddress || '').trim()
+    if (!address) return
+
+    // [關鍵] 如果使用者手動修改過座標 (manualOverride 為 true)，
+    // 且不是強制執行 (force 為 false)，則直接返回，以保護使用者的手動輸入。
+    if (!force && (manualOverride.lat || manualOverride.lng)) return
+
+    if (!window.google?.maps?.Geocoder) {
+      geoError.value = 'Google Maps 尚未載入（請確認已載入 places library）'
+      return
+    }
+
+    geoLoading.value = true
+    geoError.value = ''
+
+    const geocoder = new window.google.maps.Geocoder()
+    geocoder.geocode({ address }, (results, status) => {
+      geoLoading.value = false
+
+      if (status === 'OK' && results?.[0]) {
+        const location = results[0].geometry.location
+        const lat = Number(location.lat())
+        const lng = Number(location.lng())
+
+        geoPrecision.value = results[0].geometry.location_type
+        if (force || !manualOverride.lat) formData.value.latitude = lat
+        if (force || !manualOverride.lng) formData.value.longitude = lng
+        return
+      }
+
+      geoError.value = `找不到座標，請輸入更完整地址（狀態：${status}）`
+    })
+  }
+
+  /**
+   * [途徑 B] 依據「據點名稱」搜尋經緯度與地址。
+   * 當使用者點擊名稱欄位旁的搜尋按鈕時觸發。
+   */
+  const geocodeByName = () => {
+    const name = (formData.value.spotName || '').trim()
+    if (!name) {
+      Swal.fire({ icon: 'warning', title: '請先輸入據點名稱', timer: 1500, showConfirmButton: false })
+      return
+    }
+    
+    geoLoading.value = true
+    geoError.value = ''
+    
+    const geocoder = new window.google.maps.Geocoder()
+    geocoder.geocode({ address: name, componentRestrictions: { country: 'TW' } }, (results, status) => {
+      geoLoading.value = false
+      if (status === 'OK' && results?.[0]) {
+        const location = results[0].geometry.location
+        formData.value.latitude = Number(location.lat())
+        formData.value.longitude = Number(location.lng())
+        formData.value.spotAddress = formatGoogleAddress(results[0].formatted_address)
+        syncAddressToNativeInput()
+        
+        geoPrecision.value = results[0].geometry.location_type
+        manualOverride.lat = false
+        manualOverride.lng = false
+      } else {
+        geoError.value = `找不到該名稱的位置（狀態：${status}）`
+      }
+    })
+  }
+
+  /**
+   * [途徑 C] 當使用者在地圖上拖曳標記 (Marker) 後觸發。
+   * 這是最高優先權的操作，會直接更新座標並啟用「手動鎖定」。
+   * @param {google.maps.MapMouseEvent} event - 拖曳事件物件，包含新的經緯度。
+   */
+  const onMarkerDragEnd = (event) => {
+    const lat = event.latLng.lat()
+    const lng = event.latLng.lng()
+    formData.value.latitude = Number(lat.toFixed(6))
+    formData.value.longitude = Number(lng.toFixed(6))
+    manualOverride.lat = true
+    manualOverride.lng = true
+    geoPrecision.value = 'MANUAL'
+  }
+
+  // 將狀態和方法導出，供 Vue 元件使用
+  return {
+    // State
+    geoLoading,
+    geoError,
+    geoPrecision,
+    gmapAutoRef,
+    addrElInputRef,
+    
+    // Methods
+     initPlacesAutocomplete,
+    syncAddressToNativeInput,
+    onPlaceChangedForForm,
+    geocodeAddress,
+    geocodeByName,
+    onMarkerDragEnd,
+    formatPrecision,
+    getPrecisionTagType
+  }
+}
+</file>
+
+<file path="frontend/src/views/spot/SpotForm.vue">
+<template>
+  <div class="spot-form-container">
+    <!-- ========== Header 區域 ========== -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <div class="page-title-box">
+              <div class="title-icon" :class="isEditMode ? 'edit-mode' : 'add-mode'">
+                <i :class="isEditMode ? 'fas fa-edit' : 'fas fa-plus-circle'"></i>
+              </div>
+              <div class="title-content">
+                <h1>{{ isEditMode ? '編輯據點' : '新增據點' }}</h1>
+                <p class="subtitle">{{ isEditMode ? '修改據點資訊' : '建立新的營業據點' }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 text-right">
+            <el-button @click="goBack">
+              <i class="fas fa-arrow-left mr-1"></i> 返回列表
+            </el-button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="container-fluid">
+        <transition name="zoom-fade" appear>
+          <el-card shadow="hover" class="form-card">
+            <el-form
+              v-if="isEditMode && spotDataForView"
+              :model="spotDataForView"
+              label-width="120px"
+              label-position="top"
+              class="view-section"
+              disabled
+            >
+              <div class="form-section">
+                <div class="section-header">
+                  <i class="fas fa-eye"></i>
+                  <span>目前資料預覽</span>
+                </div>
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="據點代碼">
+                      <el-input v-model="spotDataForView.spotCode" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="據點名稱">
+                      <el-input v-model="spotDataForView.spotName" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </div>
+            </el-form>
+            <!-- 1. 綁定 formRef (用於JS控制驗證) 與 rules (驗證規則物件) -->
+            <el-form
+              ref="formRef"
+              :rules="rules"
+              :model="formData"
+              label-width="120px"
+              label-position="top"
+              class="modern-form"
+              @submit.prevent="submitForm"
+            >
+              <!-- ========== 基本資料區 ========== -->
+              <div class="form-section">
+                <div class="section-header">
+                  <i class="fas fa-info-circle"></i>
+                  <span>編輯資料</span>
+                </div>
+
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <!-- [修改說明] 2. 設定 prop="spotCode"，對應 rules 中的 key，驗證才會生效 -->
+                    <el-form-item label="據點代碼 (Code)" prop="spotCode" required>
+                      <el-input v-model="formData.spotCode" placeholder="例如: TP001" clearable>
+                        <template #prefix><i class="fas fa-barcode"></i></template>
+                      </el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <!-- [修改說明] 2. 設定 prop="spotName" -->
+                    <el-form-item label="據點名稱 (Name)" prop="spotName" required>
+                      <el-input v-model="formData.spotName" placeholder="例如: 台北車站店" clearable>
+                        <template #prefix><i class="fas fa-store"></i></template>
+                        <template #append>
+                          <el-button @click="geocodeByName" :loading="geoLoading" title="依名稱搜尋座標"><i class="fas fa-search-location"></i></el-button>
+                        </template>
+                      </el-input>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <!--地址（Autocomplete + Enter geocode） -->
+                <el-form-item label="地址 (Address)" prop="spotAddress">
+  <el-input
+    ref="addrElInputRef"
+    v-model="formData.spotAddress"
+    placeholder="請輸入地址"
+    @keyup.enter="geocodeAddress({ force: true })"
+  />
+</el-form-item>
+
+                <!-- 經緯度 -->
+                <el-row :gutter="12">
+                  <el-col :span="12">
+                    <el-form-item label="緯度 Latitude" prop="latitude">
+                      <el-input-number
+                        v-model="formData.latitude"
+                        :precision="7"
+                        :step="0.000001"
+                        style="width: 100%"
+                        @change="manualOverride.lat = true"
+                      />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="經度 Longitude" prop="longitude">
+                      <el-input-number
+                        v-model="formData.longitude"
+                        :precision="7"
+                        :step="0.000001"
+                        style="width: 100%"
+                        @change="manualOverride.lng = true"
+                      />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <div style="display:flex; gap:10px; margin-bottom: 12px;">
+                  <el-button type="primary" :loading="geoLoading" @click="geocodeAddress({ force: true })">
+                    依地址帶入經緯度
+                  </el-button>
+                  <el-button @click="manualOverride.lat=false; manualOverride.lng=false">
+                    允許自動覆蓋
+                  </el-button>
+                </div>
+
+                <!-- [新增] 地圖預覽與精確度提示 -->
+                <div class="map-preview-container" v-if="formData.latitude && formData.longitude">
+                  <div class="precision-info mb-2" v-if="geoPrecision">
+                    <el-tag :type="getPrecisionTagType(geoPrecision)" effect="dark">
+                      <i class="fas fa-crosshairs mr-1"></i>
+                      定位精確度: {{ formatPrecision(geoPrecision) }}
+                    </el-tag>
+                    <span class="text-muted text-xs ml-2"><i class="fas fa-info-circle"></i> 若位置有偏差，可直接拖曳地圖上的紅色標記進行修正</span>
+                  </div>
+                  
+                  <GMapMap
+                    :center="{lat: formData.latitude, lng: formData.longitude}"
+                    :zoom="16"
+                    style="width: 100%; height: 350px; border-radius: 8px; border: 1px solid #dcdfe6;"
+                  >
+                    <GMapMarker
+                      :position="{lat: formData.latitude, lng: formData.longitude}"
+                      :draggable="true"
+                      @dragend="onMarkerDragEnd"
+                    />
+                  </GMapMap>
+                </div>
+
+                <el-alert
+                  v-if="geoError"
+                  :title="geoError"
+                  type="warning"
+                  show-icon
+                  :closable="false"
+                  style="margin-bottom: 12px;"
+                />
+
+                <el-row :gutter="20">
+                  <el-col :span="8">
+                    <el-form-item label="所屬商家 (Merchant)">
+                      <el-select
+                        v-model="formData.merchantId"
+                        placeholder="請選擇商家 (可留空)"
+                        clearable
+                        filterable
+                        style="width: 100%"
+                      >
+                        <template #prefix><i class="fas fa-building"></i></template>
+                        <el-option
+                          v-for="item in merchantOptions"
+                          :key="item.merchantId"
+                          :label="item.merchantName"
+                          :value="item.merchantId"
+                        >
+                          <span style="float: left">{{ item.merchantName }}</span>
+                          <span style="float: right; color: #8492a6; font-size: 13px">ID: {{ item.merchantId }}</span>
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <el-form-item label="描述 (Description)">
+                  <el-input
+                    v-model="formData.spotDescription"
+                    type="textarea"
+                    :rows="3"
+                    placeholder="請輸入據點描述..."
+                  />  
+                </el-form-item>
+
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="狀態">
+                      <el-select v-model="formData.spotStatus" style="width: 100%">
+                        <el-option label="營運中" value="營運中">
+                          <i class="fas fa-check-circle text-success mr-2"></i> 營運中
+                        </el-option>
+                        <el-option label="維修中" value="維修中">
+                          <i class="fas fa-tools text-warning mr-2"></i> 維修中
+                        </el-option>
+                        <el-option label="停用" value="停用">
+                          <i class="fas fa-ban text-danger mr-2"></i> 停用
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </div>
+
+              <!-- ========== 圖片上傳區 (整合原有功能) ========== -->
+              <div class="form-section">
+                <div class="section-header">
+                  <i class="fas fa-image"></i>
+                  <span>據點圖片</span>
+                </div>
+
+                <el-form-item>
+                  <div v-if="previewUrl" class="preview-section">
+                    <div class="preview-header">
+                      <p class="preview-title">圖片預覽：</p>
+                      <el-button type="danger" size="small" @click="deleteImage" :loading="isUploading">
+                        <i class="fas fa-trash mr-1"></i> 刪除圖片
+                      </el-button>
+                    </div>
+                    <img :src="previewUrl" alt="預覽圖片" class="preview-image" />
+                  </div>
+
+                  <div v-else class="image-upload-area">
+                    <input
+                      type="file"
+                      @change="handleFileChange"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      class="file-input"
+                      id="image-upload"
+                    />
+                    <label for="image-upload" class="upload-label">
+                      <i class="fas fa-cloud-upload-alt"></i>
+                      <span>點擊或拖曳上傳圖片</span>
+                      <span class="upload-hint">支援 JPG, PNG, GIF, WebP (最大 5MB)</span>
+                    </label>
+                  </div>
+
+                  <div v-if="isUploading" class="uploading-hint">
+                    <i class="el-icon-loading"></i> 上傳中...
+                  </div>
+                </el-form-item>
+              </div>
+
+              <div class="form-actions">
+                <el-button @click="goBack" class="back-btn">
+                  <i class="fas fa-times mr-1"></i> 取消
+                </el-button>
+                <el-button type="primary" @click="submitForm" :loading="isSubmitting" class="submit-btn">
+                  <i class="fas fa-save mr-1"></i> {{ isSubmitting ? '處理中...' : '儲存資料' }}
+                </el-button>
+              </div>
+            </el-form>
+          </el-card>
+        </transition>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed, reactive, watch, nextTick, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
+import Swal from 'sweetalert2'
+import { useGoogleMaps } from '@/composables/spot/useGoogleMaps'
+
+defineOptions({ name: 'SpotForm' })
+
+const route = useRoute()
+const router = useRouter()
+
+//  後端 Controller 是 /spot（沒有 /api）
+const API_BASE = '/spot'
+const MERCHANT_API_BASE = '/spot/merchants'
+
+// 3. 定義 formRef 變數，對應 template 中的 ref="formRef"
+const formRef = ref(null)
+
+// 4. 定義驗證規則：必填 (required: true) 與 觸發時機 (trigger: 'blur' 失焦時)
+const rules = {
+  spotCode: [{ required: true, message: '請輸入據點代碼', trigger: 'blur' }],
+  spotName: [{ required: true, message: '請輸入據點名稱', trigger: 'blur' }],
+  spotAddress: [{ required: true, message: '請輸入地址', trigger: 'change' }],
+}
+
+// ========== Geo（地址 → 經緯度）狀態 ==========
+// [關鍵] 手動鎖定旗標。當使用者手動修改經緯度或拖曳地圖標記時，
+// 此旗標會設為 true，用來防止 `watch` 自動觸發的 geocodeAddress 覆蓋掉手動輸入。
+const manualOverride = reactive({ lat: false, lng: false })
+
+// ========== 狀態定義 ==========
+const isEditMode = computed(() => !!route.params.id)
+const isSubmitting = ref(false)
+const selectedFile = ref(null)
+const previewUrl = ref('')
+const spotDataForView = ref(null) // [新增] 用於顯示的原始資料
+const isUploading = ref(false)
+const merchantOptions = ref([])
+
+// ========== 表單資料模型 ==========
+const formData = ref({
+  spotCode: '',
+  spotName: '',
+  spotAddress: '',
+  latitude: null,
+  longitude: null,
+  merchantId: '',
+  spotDescription: '',
+  spotStatus: '營運中',
+  spotImage: '',
+})
+
+/**
+ * [核心] 引入並使用 useGoogleMaps Composable。
+ * 將所有地圖相關的狀態 (geoLoading) 和方法 (geocodeByName) 解構出來，直接在 template 和 script 中使用。
+ */
+const {
+  geoLoading,
+  geoError,
+  geoPrecision,
+  gmapAutoRef,
+  addrElInputRef,
+  initPlacesAutocomplete ,
+  syncAddressToNativeInput,
+  onPlaceChangedForForm,
+  geocodeAddress,
+  geocodeByName,
+  onMarkerDragEnd,
+  formatPrecision,
+  getPrecisionTagType
+} = useGoogleMaps(formData, manualOverride)
+
+/**
+ * [途徑 A-2 的觸發點] 監聽地址輸入框的變化。
+ * 使用 setTimeout 實現防抖 (Debounce) 機制：
+ * - 當使用者連續輸入時，會不斷清除舊的計時器。
+ * - 直到使用者停止輸入 700 毫秒後，才會真正執行 geocodeAddress。
+ * - 這樣可以避免在打字過程中發送大量不必要的 API 請求。
+ */
+let geoTimer = null
+watch(
+  () => formData.value.spotAddress,
+  (v) => {
+    geoError.value = ''
+    if (!v || v.trim().length < 6) return
+    clearTimeout(geoTimer)
+    geoTimer = setTimeout(() => {
+      geocodeAddress({ force: false })
+    }, 700)
+  },
+)
+
+// [優化] 元件銷毀時清除計時器，避免在頁面切換後，計時器依然執行，導致非預期的行為或記憶體洩漏。
+onUnmounted(() => {
+  if (geoTimer) clearTimeout(geoTimer)
+})
+
+// ========== 取得商家列表 ==========
+const fetchMerchants = async () => {
+  try {
+    const res = await axios.get(MERCHANT_API_BASE)
+    merchantOptions.value = res.data
+  } catch (error) {
+    console.error('無法取得商家列表:', error)
+  }
+}
+
+// ========== 初始化：編輯模式載入資料 ==========
+onMounted(async () => {
+  // [初始化步驟 1] 等待 Vue 將模板渲染成真實的 DOM。
+  // 這是必要的，因為 initPlacesAutocomplete 需要抓取 <el-input> 內部的 <input> 元素。
+  await nextTick()
+  // [初始化步驟 2] 呼叫 Composable 中的初始化函式，將 Google Autocomplete 綁定到地址輸入框。
+  await initPlacesAutocomplete()
+
+  // 載入商家選項
+  await fetchMerchants()
+
+  // 如果是編輯模式，則從後端載入既有資料。
+  if (isEditMode.value) {
+    try {
+      const res = await axios.get(`${API_BASE}/${route.params.id}`)
+      console.log('api回傳值 res.data =', res.data)
+      console.log('api回傳 spotAddress =', res.data?.spotAddress)
+
+      formData.value = { ...formData.value, ...res.data }
+      spotDataForView.value = { ...res.data } // [新增] 將原始資料存入顯示用的 ref
+
+      manualOverride.lat = false
+      manualOverride.lng = false
+      geoPrecision.value = '' // 既有資料不確定精確度，先留空
+
+      if (formData.value.spotImage) {
+        previewUrl.value = `http://localhost:8080/${formData.value.spotImage}`
+      }
+
+      // [關鍵] 載入資料後，呼叫 Composable 中的同步函式。
+      // 確保從 API 取得的地址能夠正確顯示在被 Google 腳本控制的輸入框中。
+      syncAddressToNativeInput()
+    } catch (err) {
+      console.error('載入失敗', err)
+      Swal.fire({
+        title: '載入失敗',
+        html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f56c6c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p style="margin-top:12px;">無法載入據點資料</p></div>',
+        confirmButtonColor: '#409eff',
+        confirmButtonText: '確定',
+      })
+    }
+  }
+})
+
+// ========== 處理檔案選擇 ==========
+const handleFileChange = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    Swal.fire({
+      icon: 'error',
+      title: '檔案類型錯誤',
+      text: '只能上傳圖片檔案 (jpg, png, gif)',
+      confirmButtonColor: '#409eff',
+    })
+    return
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    Swal.fire({
+      icon: 'error',
+      title: '檔案過大',
+      text: '圖片大小不能超過 5MB',
+      confirmButtonColor: '#409eff',
+    })
+    return
+  }
+
+  selectedFile.value = file
+  previewUrl.value = URL.createObjectURL(file)
+
+  if (isEditMode.value) {
+    await uploadImage()
+  }
+}
+
+// ========== 上傳圖片到後端 ==========
+const uploadImage = async () => {
+  if (!selectedFile.value) return
+
+  isUploading.value = true
+  const formDataUpload = new FormData()
+  formDataUpload.append('image', selectedFile.value)
+
+  try {
+    const res = await axios.post(`${API_BASE}/${route.params.id}/upload-image`, formDataUpload, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+
+    formData.value.spotImage = res.data.filePath
+    previewUrl.value = `http://localhost:8080${res.data.imageUrl}`
+
+    Swal.fire({
+      icon: 'success',
+      title: '上傳成功',
+      text: '圖片已成功上傳',
+      timer: 1500,
+      showConfirmButton: false,
+    })
+  } catch (error) {
+    console.error('上傳失敗:', error)
+    Swal.fire({
+      icon: 'error',
+      title: '上傳失敗',
+      text: error.response?.data?.message || '圖片上傳失敗',
+      confirmButtonColor: '#409eff',
+    })
+  } finally {
+    isUploading.value = false
+  }
+}
+
+// ========== 刪除圖片 ==========
+const deleteImage = async () => {
+  const result = await Swal.fire({
+    title: '確定要刪除圖片嗎？',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#f56c6c',
+    cancelButtonColor: '#909399',
+    confirmButtonText: '刪除',
+    cancelButtonText: '取消',
+  })
+
+  if (!result.isConfirmed) return
+
+  if (isEditMode.value && formData.value.spotImage) {
+    try {
+      await axios.delete(`${API_BASE}/${route.params.id}/image`)
+      formData.value.spotImage = ''
+      previewUrl.value = ''
+      selectedFile.value = null
+
+      Swal.fire({
+        icon: 'success',
+        title: '已刪除',
+        text: '圖片已成功刪除',
+        timer: 1500,
+        showConfirmButton: false,
+      })
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: '刪除失敗',
+        text: error.response?.data?.message || '無法刪除圖片',
+        confirmButtonColor: '#409eff',
+      })
+    }
+  } else {
+    previewUrl.value = ''
+    selectedFile.value = null
+    formData.value.spotImage = ''
+  }
+}
+
+// ========== 提交表單 ==========
+const submitForm = async () => {
+  //  5. 確保 formRef 已掛載
+  if (!formRef.value) return
+  
+  try {
+    //  6. 執行表單驗證，若驗證失敗會拋出錯誤並跳到 catch 區塊，阻止後續 API 呼叫
+    await formRef.value.validate()
+  } catch (error) {
+    Swal.fire({ icon: 'warning', title: '資料不完整', text: '請檢查必填欄位是否已填寫' })
+    return
+  }
+
+  isSubmitting.value = true
+  try {
+    const payload = {
+      spotCode: formData.value.spotCode,
+      spotName: formData.value.spotName,
+      spotAddress: formData.value.spotAddress,
+      latitude:
+        formData.value.latitude === '' || formData.value.latitude === null || formData.value.latitude === undefined
+          ? null
+          : Number(formData.value.latitude),
+      longitude:
+        formData.value.longitude === '' || formData.value.longitude === null || formData.value.longitude === undefined
+          ? null
+          : Number(formData.value.longitude),
+      spotDescription: formData.value.spotDescription,
+      spotStatus: formData.value.spotStatus,
+      spotImage: formData.value.spotImage,
+      merchantId:
+        formData.value.merchantId === '' || formData.value.merchantId === null || formData.value.merchantId === undefined
+          ? null
+          : Number(formData.value.merchantId),
+    }
+
+    if (isEditMode.value) {
+      payload.spotId = Number(route.params.id)
+      await axios.put(`${API_BASE}/${route.params.id}`, payload)
+
+      await Swal.fire({
+        title: '更新成功',
+        html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#67c23a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p style="margin-top:12px;">據點資料已成功更新</p></div>',
+        confirmButtonColor: '#409eff',
+        confirmButtonText: '確定',
+      })
+    } else {
+      const res = await axios.post(`${API_BASE}`, payload)
+
+      if (selectedFile.value && res.data?.spotId) {
+        const spotId = res.data.spotId
+        const formDataUpload = new FormData()
+        formDataUpload.append('image', selectedFile.value)
+
+        await axios.post(`${API_BASE}/${spotId}/upload-image`, formDataUpload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+      }
+
+      await Swal.fire({
+        title: '新增成功',
+        html: '<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#67c23a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p style="margin-top:12px;">據點資料已成功新增</p></div>',
+        confirmButtonColor: '#409eff',
+        confirmButtonText: '確定',
+      })
+    }
+
+    router.push({ name: 'spot-list' })
+  } catch (error) {
+    console.error('儲存錯誤:', error)
+    const msg = error.response?.data?.message || error.message || '儲存失敗，請檢查輸入資料或後端連線'
+    Swal.fire({
+      title: '操作失敗',
+      html: `<div style="display:flex;flex-direction:column;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f56c6c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><p style="margin-top:12px;">${msg}</p></div>`,
+      confirmButtonColor: '#409eff',
+      confirmButtonText: '確定',
+    })
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const goBack = () => router.back()
+</script>
+
+<style scoped>
+/* ========== 頁面容器 ========== */
+.spot-form-container {
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  min-height: 100vh;
+}
+
+.view-section {
+  background-color: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+/* ========== 頁面標題區 ========== */
+.page-title-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.title-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.title-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.add-mode {
+  background: linear-gradient(135deg, #67c23a 0%, #95d475 100%);
+}
+
+.edit-mode {
+  background: linear-gradient(135deg, #e6a23c 0%, #f3d19e 100%);
+}
+
+.title-content h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #303133;
+}
+
+.title-content .subtitle {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: #909399;
+}
+
+/* ========== 表單卡片 ========== */
+.form-card {
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #409eff;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #409eff;
+}
+
+.map-preview-container {
+  margin-bottom: 20px;
+}
+
+/* ========== 圖片上傳 ========== */
+.image-upload-area {
+  border: 2px dashed #dcdfe6;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.image-upload-area:hover {
+  border-color: #409eff;
+  background: rgba(64, 158, 255, 0.05);
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  color: #909399;
+}
+
+.upload-label i {
+  font-size: 48px;
+  color: #c0c4cc;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #c0c4cc;
+  margin-top: 4px;
+}
+
+.preview-section {
+  margin-top: 16px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.preview-title {
+  color: #909399;
+  font-size: 14px;
+  margin: 0;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: block;
+  margin: 0 auto;
+}
+
+.uploading-hint {
+  text-align: center;
+  color: #409eff;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+/* ========== 按鈕區 ========== */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 24px;
+  margin-top: 24px;
+  border-top: 1px solid #ebeef5;
+}
+
+.submit-btn {
+  min-width: 140px;
+  border-radius: 10px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #409eff 0%, #79bbff 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.4);
+}
+
+.back-btn {
+  min-width: 100px;
+  border-radius: 10px;
+}
+
+/* ========== 動畫效果 ========== */
+.zoom-fade-enter-active {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.zoom-fade-leave-active {
+  transition: all 0.3s ease-in;
+}
+
+.zoom-fade-enter-from {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+.zoom-fade-leave-to {
+  transform: scale(0.95);
+  opacity: 0;
+}
+
+/* ========== 工具類 ========== */
+.mr-1 { margin-right: 4px; }
+.mr-2 { margin-right: 8px; }
+.text-success { color: #67c23a; }
+.text-warning { color: #e6a23c; }
+.text-danger { color: #f56c6c; }
+
+@media (max-width: 768px) {
+  .page-title-box {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+}
+</style>
+</file>
+
+<file path="frontend/src/router/index.js">
+import { createRouter, createWebHistory } from 'vue-router'
+import Swal from 'sweetalert2'
+
+/**
+ * ==========================================
+ * 1. 靜態導入元件 (Static Imports)
+ * ==========================================
+ */
+import LoginView from '@/views/member/LoginView.vue' // 登入頁
+import AdminLayout from '@/layouts/AdminLayout.vue' // 後臺主框架 (包含側邊欄與 Header)
+import AdminHomeView from '@/views/member/AdminHomeView.vue' // 後臺首頁(儀表板)
+import MemberListView from '@/views/member/MemberListView.vue' // 會員列表
+import MemberEditView from '@/views/member/MemberEditView.vue' // 會員編輯
+import MemberCreateView from '@/views/member/MemberCreateView.vue' // 會員新增
+import PaymentView from '@/views/ecpay/PaymentView.vue' // 綠界付款頁
+import AdminListView from '@/views/member/AdminListView.vue' // 管理員列表
+import AdminCreateView from '@/views/member/AdminCreateView.vue' // 管理員新增
+import AdminEditView from '@/views/member/AdminEditView.vue' // 管理員編輯
+import MemberLayout from '@/layouts/MemberLayout.vue' // 會員主框架
+import MemberProfileView from '@/views/member/MemberProfileView.vue' // 會員個人資料頁
+import AuthLayout from '@/layouts/AuthLayout.vue' // 認證相關頁面框架
+import MainLayout from '@/layouts/MainLayout.vue' // 前台主框架
+import HomeView from '@/views/HomeView.vue' // 前台首頁
+
+/**
+ * ==========================================
+ * 2. 懶加載導入 (Dynamic Imports)
+ * ==========================================
+ */
+const MerchantList = () => import('@/views/merchantAndCoupon/MerchantList.vue') // 商家列表
+const DiscountList = () => import('@/views/merchantAndCoupon/DiscountList.vue') // 優惠券列表
+const RedemptionLogList = () => import('@/views/merchantAndCoupon/RedemptionLogList.vue') // 新增：後台紀錄
+const CouponMall = () => import('@/views/merchantAndCoupon/CouponMallView.vue') // 新增：前台商城
+const SnakeGame = () => import('@/views/game/SnakeGame.vue') // 貪食蛇遊戲
+
+// 定義路由表
+const routes = [
+  // --- 登入頁面 ---
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+  },
+
+  // ==========================================
+  // [新增] 前台使用者頁面 (不套用後台側邊欄)
+  // ==========================================
+  {
+    path: '/',
+    name: 'entrance',
+    component: MainLayout,
+    children: [
+      {
+        path: '',
+        name: 'home',
+        component: HomeView,
+      },
+
+      // 會員頁面
+      {
+        path: 'profile',
+        name: 'member-profile',
+        component: MemberProfileView,
+      },
+
+      // 租借頁面
+      {
+        path: 'rent/:action?',
+        name: 'rec-rent-user',
+        component: () => import('@/views/rec/RecRentUserPage.vue'),
+      },
+      {
+        path: 'SearchSpot',
+        name: 'SearchSpot',
+        component: () => import('@/views/rec/RecRentUserSearchPage.vue'),
+      },
+      {
+        path: 'VisitSiteReommand',
+        name: 'VisitSiteReommand',
+        component: () => import('@/views/rec/VisitSiteReommandPage.vue'),
+      },
+
+      // 將 'rec-rent-record' 路由重定向至帶有 action 參數的標準租借路由
+      {
+        path: 'recordRoute',
+        name: 'rec-rent-record',
+        redirect: { name: 'rec-rent-user', params: { action: 'record' } },
+      },
+
+      {
+        path: 'payment/order',
+        name: 'payment-order',
+        component: () => import('@/views/ecpay/PaymentViewOrder.vue'),
+      },
+      {
+        path: 'claims',
+        name: 'claims',
+        component: () => import('@/views/rec/RightsClaimPage.vue'),
+      },
+
+      // --- 新增：優惠券商城 ---
+      {
+        path: '/mall',
+        name: 'coupon-mall',
+        component: CouponMall,
+      },
+
+      // --- 新增：前台貪食蛇遊戲 ---
+      {
+        path: '/snake',
+        name: 'snake-game',
+        component: SnakeGame,
+      },
+      {
+        path: '/redemption-history',
+        name: 'redemption-history',
+        component: () => import('@/views/merchantAndCoupon/RedemptionHistory.vue'),
+      },
+      {
+        path: '/sponsor',
+        name: 'sponsor',
+        component: () => import('@/views/ecpay/SponsorView.vue'),
+      },
+      {
+        path: '/payment-success',
+        name: 'payment-success',
+        component: () => import('@/views/ecpay/PaymentSuccessView.vue'),
+      },
+
+      // 訂單確認與付款頁
+      {
+        path: '/payment-checkout/:recId',
+        name: 'payment-checkout',
+        component: () => import('@/views/ecpay/PaymentView.vue'),
+      },
+
+      // ==========================================
+      // (翌帆2026-1-31)【新增】客服支援模組 (Support)
+      // ==========================================
+      {
+        path: '/support',
+        name: 'support-center',
+        component: () => import('@/views/support/SupportCenterView.vue'),
+      },
+      {
+        path: '/support/report',
+        name: 'support-report-entry',
+        component: () => import('@/views/support/ReportEntryView.vue'),
+      },
+      {
+        path: '/support/report/damage',
+        name: 'support-report-damage',
+        component: () => import('@/views/support/ReportDamageView.vue'),
+      },
+      {
+        path: '/support/report/manual',
+        name: 'support-report-manual',
+        component: () => import('@/views/support/ReportManualView.vue'),
+      },
+    ],
+  },
+
+  // 註冊會員
+  {
+    path: '/register',
+    component: AuthLayout,
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/member/Register.vue'),
+      },
+    ],
+  },
+
+  /**
+   * ==========================================
+   * 3. 管理後臺嵌套路由 (Nested Routes)
+   * 網址前綴統一為 /admin
+   * ==========================================
+   */
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      // 管理後臺首頁
+      {
+        path: '',
+        name: 'admin-home',
+        component: AdminHomeView,
+      },
+
+      // 據點與座位管理 (Spot & Seat)
+      {
+        path: 'spot/list',
+        name: 'spot-list',
+        component: () => import('@/views/spot/SpotList.vue'),
+      },
+
+      // 據點新增與編輯共用同一個元件
+      {
+        path: 'spot/add',
+        name: 'spot-add',
+        component: () => import('@/views/spot/SpotForm.vue'),
+      },
+
+      // 據點編輯
+      {
+        path: 'spot/edit/:id',
+        name: 'spot-edit',
+        component: () => import('@/views/spot/SpotForm.vue'),
+      },
+
+      // 據點詳細資訊
+      {
+        path: 'spot/view/:id', // 網址: /admin/spot/view/1
+        name: 'spot-view',
+        component: () => import('@/views/spot/SpotOne.vue'),
+      },
+      // 據點統計儀表板
+      {
+        path: 'spot/analyze',
+        name: 'spot-analyze',
+        component: () => import('@/views/spot/SpotAnalyze.vue'),
+      },
+      {
+        path: 'spot/monitor',
+        name: 'dispatch-monitor',
+        component: () => import('@/views/spot/DispatchMonitor.vue'),
+      },
+      // ==========================================
+      // [整合] 座位管理模組 (Seat)
+      // ==========================================
+      // 座位管理
+
+      {
+        path: 'seat/list',
+        name: 'seat-list',
+        component: () => import('@/views/spot/SeatList.vue'),
+      },
+
+      // 座位新增與編輯共用同一個元件
+      {
+        path: 'seat/insert',
+        name: 'seat-insert',
+        component: () => import('@/views/spot/SeatForm.vue'),
+      },
+
+      // 座位編輯
+      {
+        path: 'seat/edit/:id',
+        name: 'seat-edit',
+        component: () => import('@/views/spot/SeatForm.vue'),
+      },
+
+      // 座位詳細資訊
+      {
+        path: 'seat/view/:id',
+        name: 'seat-view',
+        component: () => import('@/views/spot/SeatOne.vue'),
+      },
+
+      // [核心功能] 商家與優惠券管理
+      {
+        path: 'merchants',
+        name: 'merchants',
+        component: MerchantList,
+      },
+
+      // 優惠券管理
+      {
+        path: 'discounts',
+        name: 'discounts',
+        component: DiscountList,
+        alias: 'coupons',
+      },
+      // --- 新增：兌換紀錄報表 ---
+      {
+        path: 'redemption-logs',
+        name: 'admin-redemption-logs',
+        component: RedemptionLogList,
+      },
+
+      // [新增] 後台貪食蛇遊戲
+      {
+        path: 'snake-game',
+        name: 'admin-snake-game',
+        component: SnakeGame,
+      },
+      {
+        path: 'sponsors',
+        name: 'admin-sponsors',
+        component: () => import('@/views/ecpay/SponsorLog.vue'),
+      },
+
+      // [核心功能] 會員管理
+      {
+        path: 'members',
+        name: 'member-list',
+        component: MemberListView,
+      },
+
+      // 會員編輯
+      {
+        path: 'members/edit/:id',
+        name: 'member-edit',
+        component: MemberEditView,
+      },
+
+      // 會員新增
+      {
+        path: 'members/create',
+        name: 'member-create',
+        component: MemberCreateView,
+      },
+
+      // [核心功能] 管理員管理
+      {
+        path: 'admins',
+        name: 'admin-list',
+        component: AdminListView,
+      },
+
+      // 管理員新增
+      {
+        path: 'admins/create',
+        name: 'admin-create',
+        component: AdminCreateView,
+      },
+
+      // 管理員編輯
+      {
+        path: 'admins/edit/:id',
+        name: 'admin-edit',
+        component: AdminEditView,
+      },
+
+      // [功能] 租借訂單管理
+      {
+        path: 'rec-rent',
+        name: 'rec-rent',
+        component: () => import('@/views/rec/RecRentMgnPage.vue'),
+      },
+      {
+        path: 'rec-chart',
+        name: 'rec-chart',
+        component: () => import('@/views/rec/RecRentMgnChartPage.vue'),
+      },
+
+      // [功能] 維修管理 (Maintenance)
+      {
+        path: 'staff-list',
+        name: 'staff-list',
+        component: () => import('@/views/maintenance/MaintenanceStaffList.vue'),
+      },
+
+      // 維修人員表單 (新增/編輯)
+      {
+        path: 'staff-form/:id?',
+        name: 'staff-form',
+        component: () => import('@/views/maintenance/MaintenanceStaffForm.vue'),
+      },
+
+      // 維修人員歷史紀錄
+      {
+        path: 'staff-history',
+        name: 'staff-history',
+        component: () => import('@/views/maintenance/MaintenanceStaffHistory.vue'),
+      },
+
+      // 維修工單列表與表單
+      {
+        path: 'mtif-list',
+        name: 'mtif-list',
+        component: () => import('@/views/maintenance/MtifList.vue'),
+        props: { historyMode: false },
+      },
+
+      // 維修工單歷史紀錄
+      {
+        path: 'mtif-history',
+        name: 'mtif-history',
+        component: () => import('@/views/maintenance/MtifList.vue'),
+        props: { historyMode: true },
+      },
+
+      // 維修工單表單 (新增/編輯)
+      {
+        path: 'mtif-form/:id?',
+        name: 'mtif-form',
+        component: () => import('@/views/maintenance/MtifForm.vue'),
+      },
+
+      // --- Schedule (排程) ---
+      {
+        path: 'maintenance/schedule',
+        name: 'schedule-list',
+        component: () => import('@/views/maintenance/ScheduleList.vue'),
+      },
+
+      // 排程表單 (新增/編輯)
+      {
+        path: 'maintenance/schedule/create',
+        name: 'schedule-create',
+        component: () => import('@/views/maintenance/ScheduleForm.vue'),
+      },
+
+      // 排程編輯
+      {
+        path: 'maintenance/schedule/edit/:id',
+        name: 'schedule-edit',
+        component: () => import('@/views/maintenance/ScheduleForm.vue'),
+      },
+    ],
+  },
+
+  // ==========================================
+  // 4. 路由守衛與轉址 (Redirects)
+  // ==========================================
+
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
+]
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+})
+
+/**
+ * ==========================================
+ * 全域路由守衛：後台登入驗證（統一 localStorage）
+ * ==========================================
+ */
+router.beforeEach((to, from, next) => {
+  // 1. 如果不是去後台，直接放行
+  if (!to.path.startsWith('/admin')) {
+    next()
+    return
+  }
+
+  // 2. 取得 localStorage 資料
+  const token = localStorage.getItem('token')
+  const adminJson = localStorage.getItem('admin')
+
+  // Debug 用：如果進不去，請按 F12 看 Console
+  console.log('路由守衛檢查:', { path: to.path, hasToken: !!token, hasAdmin: !!adminJson })
+
+  // 3. 判斷是否有管理員身分
+  if (adminJson) {
+    // 只要有 admin 資料就讓它進去 (Token 視後端攔截器而定)
+    next()
+  } else {
+    // 沒資料才跳警告
+    Swal.fire({
+      icon: 'warning',
+      title: '請先登入',
+      text: '管理員帳號已過期或尚未登入。',
+      confirmButtonText: '去登入',
+      allowOutsideClick: false,
+    }).then(() => {
+      next('/login')
+    })
+  }
+})
+
+export default router
+</file>
+
+</files>

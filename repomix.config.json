@@ -1,0 +1,27 @@
+{
+  "output": {
+    "copyToClipboard": false,
+    "style": "xml"
+  },
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/*.map",
+      "**/*.min.js",
+      "**/*.min.css",
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/target/**",
+      "**/vendor/**",
+      "**/public/vendor/**",
+      "**/logs/**",
+      "**/*.log",
+      "**/*.svg",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.ico",
+      "AI_good/**"
+    ]
+  }
+}

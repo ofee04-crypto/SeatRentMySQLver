@@ -1,0 +1,12 @@
+大更新 (前後端都改了) :npm run xml:all
+
+
+只改了前端 (Frontend):npm run xml:front
+
+只改了後端 (Backend):npm run xml:back
+
+只改了特定模組 (例如：維修模組) :npm run xml:back:maintenance
+
+整包程式 : npx repomix
+
+監聽模式(沒用過) : npm repomix --watch

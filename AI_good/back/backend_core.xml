@@ -1,0 +1,643 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: backend/pom.xml, backend/src/main/resources/**, backend/**/config/**, backend/**/util/**, backend/**/security/**, backend/**/exception/**
+- Files matching these patterns are excluded: **/*.map, **/*.min.js, **/*.min.css, **/node_modules/**, **/dist/**, **/target/**, **/vendor/**, **/public/vendor/**, **/logs/**, **/*.log, **/*.svg, **/*.png, **/*.jpg, **/*.ico, AI_good/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+backend/pom.xml
+backend/src/main/java/com/example/backend/config/ProjectionValidConfig.java
+backend/src/main/java/com/example/backend/config/SecurityConfig.java
+backend/src/main/java/com/example/backend/config/WebConfig.java
+backend/src/main/java/com/example/backend/exception/GlobalExceptionHandler.java
+backend/src/main/resources/application.properties
+backend/src/main/resources/application.yml
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="backend/src/main/resources/application.properties">
+spring.datasource.url=jdbc:mysql://localhost:3306/seatrentsys?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+spring.datasource.username=tippy
+spring.datasource.password=1234
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+</file>
+
+<file path="backend/pom.xml">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.9</version>
+    <relativePath/> </parent>
+  
+  <groupId>com.example</groupId>
+  <artifactId>backend</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>backend</name>
+  <description>Demo project for Spring Boot</description>
+  
+  <properties>
+    <java.version>17</java.version>
+  </properties>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-devtools</artifactId>
+      <scope>runtime</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.10.1</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-oauth2-client</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+</file>
+
+<file path="backend/src/main/java/com/example/backend/exception/GlobalExceptionHandler.java">
+package com.example.backend.exception;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 全域例外處理器
+ * 統一攔截 Controller 拋出的例外，並回傳標準 JSON 格式 { message: "..." }
+ * 讓前端可以直接讀取 error.response.data.message 顯示錯誤訊息
+ */
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    /**
+     * 處理參數驗證錯誤（業務邏輯驗證失敗）
+     * HTTP 400 Bad Request
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("IllegalArgumentException: {}", ex.getMessage());
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("status", 400);
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * 處理狀態衝突錯誤（例如：狀態不允許執行某操作）
+     * HTTP 409 Conflict
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException ex) {
+        log.warn("IllegalStateException: {}", ex.getMessage());
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("status", 409);
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    /**
+     * 處理靜態資源找不到錯誤（Spring Boot 3.x 新增）
+     * HTTP 404 Not Found
+     * 
+     * 常見情境：
+     * - 前端請求不存在的 API endpoint
+     * - 請求不存在的靜態資源（圖片、CSS、JS 等）
+     * 
+     * 注意：此錯誤不應被視為系統錯誤（500），而是正常的 404 回應
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFoundException(NoResourceFoundException ex) {
+        log.warn("NoResourceFoundException: {} - {}", ex.getResourcePath(), ex.getMessage());
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", "Not Found");
+        errorResponse.put("path", ex.getResourcePath());
+        errorResponse.put("status", 404);
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    /**
+     * 處理執行階段錯誤（例如：檔案格式不對、系統存取問題）
+     * HTTP 400 Bad Request
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        log.warn("RuntimeException: {}", ex.getMessage());
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("status", 400);
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
+     * 處理所有未預期的例外
+     * HTTP 500 Internal Server Error
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
+        // 記錄完整 stack trace 到後端 log（不回傳給前端）
+        log.error("Unexpected exception occurred", ex);
+
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("message", "系統發生非預期錯誤，請稍後再試或聯繫管理員");
+        errorResponse.put("status", 500);
+        errorResponse.put("timestamp", LocalDateTime.now().toString());
+        // 開發環境可以加上 ex.getClass().getSimpleName() 方便除錯
+        // errorResponse.put("type", ex.getClass().getSimpleName());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/config/ProjectionValidConfig.java">
+package com.example.backend.config;
+
+import com.example.backend.repository.rec.RecRentAnalyzeRepository;
+import com.example.backend.repository.spot.RentalSpotRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
+import java.util.List;
+
+@Configuration
+public class ProjectionValidConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(ProjectionValidConfig.class);
+
+    /**
+     * 啟動時自動執行 Projection 映射檢查
+     * 建議只在 'dev' 或 'test' 環境執行，避免影響生產環境啟動速度
+     */
+    @Bean
+    @Profile("dev") // 若您沒有設定 profile，可暫時註解掉這行
+    public CommandLineRunner validateAnalyzeProjections(
+            RentalSpotRepository spotRepo,
+            RecRentAnalyzeRepository analyzeRepo) {
+        return args -> {
+            log.info("==========================================");
+            log.info(" [自我檢查] 開始驗證 Projection SQL 別名映射...");
+
+            // 檢查 1: 縣市分佈
+            validate(() -> spotRepo.getCityDistribution(), "SpotCountByCity (縣市分佈)");
+
+            // 檢查 2: 站點即時監控
+            validate(() -> spotRepo.getSpotRealtimeStatus(), "SpotMonitor (即時監控)");
+
+            // 檢查 3: 時段熱度
+            validate(() -> analyzeRepo.getHourlyHeatMap(null, null), "HourlyRate (時段熱度)");
+
+            // 檢查 4: 時長統計
+            validate(() -> analyzeRepo.getDurationStats(null, null), "DurationRate (時長統計)");
+
+            log.info("==========================================");
+        };
+    }
+
+    private void validate(java.util.function.Supplier<List<?>> query, String checkName) {
+        try {
+            List<?> result = query.get();
+            // 注意：如果資料庫是空的，這裡不會拋出映射錯誤，必須要有測試資料才準確
+            if (result.isEmpty()) {
+                log.warn("⚠️ [WARN] {} - 無資料可驗證 (請確保 DB 有測試數據)", checkName);
+            } else {
+                // 嘗試讀取第一筆資料的欄位，觸發 Getter 映射
+                Object firstItem = result.get(0);
+                log.info("✅ [PASS] {} - 映射成功 (回傳 {} 筆) Sample: {}", checkName, result.size(), firstItem);
+            }
+        } catch (Exception e) {
+            log.error("❌ [FAIL] {} - 映射失敗! 請檢查 SQL 別名與 Interface Getter 是否一致。", checkName);
+            log.error("   錯誤訊息: {}", e.getMessage());
+            // 若希望檢查失敗就停止啟動，可取消下行註解
+            // throw new RuntimeException("Projection Mapping Failed: " + checkName, e);
+        }
+    }
+}
+</file>
+
+<file path="backend/src/main/java/com/example/backend/config/WebConfig.java">
+package com.example.backend.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * Web MVC 配置
+ * 設定靜態資源路徑，讓前端可以存取上傳的圖片
+ */
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${app.file.upload-path}")
+    private String uploadPath;
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 確保路徑以 / 結尾，並加上 file: 前綴
+        // 使用 System.getProperty("user.dir") 確保對應到專案根目錄下的 uploads
+        String projectRoot = System.getProperty("user.dir");
+        String resourceLocation = "file:" + projectRoot + "/" + uploadPath + "/";
+
+        // 保持原本的 uploads 映射
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations(resourceLocation);
+
+        // ✨ 新增這個：把前端請求的 /images/** 指向你的實體存放資料夾
+        // 假設你的圖片是存放在專案根目錄下的 uploads 資料夾
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations(resourceLocation);
+    }
+}
+</file>
+
+<file path="backend/src/main/resources/application.yml">
+server:
+  port: 8080
+
+app:
+  file:
+    upload-path: uploads
+
+spring:
+  profiles:
+    active: local
+
+  application:
+    name: seat-rent-backend
+
+  # --- 新增 Google OAuth2 設定 ---
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 231325237264-ngpc81gmkl8pop0nq8jlgv0g63pj9fjg.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+
+  # 本地端資料庫連線設定
+  datasource:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  # JPA 與 Hibernate 設定 (格式修正：原本這段在 datasource 內會讀不到)
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    properties:
+      "[hibernate.format_sql]": true
+      "[hibernate.default_schema]": dbo
+      "[hibernate.dialect]": org.hibernate.dialect.SQLServerDialect
+      "[hibernate.jdbc.lob.non_contextual_creation]": true
+
+  # --- 新增郵件發送設定 ---
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: alan123149@gmail.com
+    password: nyjctvblehdjzxbc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Coze Web Chat SDK 配置
+# 用途：提供前端初始化 Coze AI 客服所需的資訊
+#
+# 設定方式：
+# 1. 直接在此檔案設定（開發環境）
+# 2. 使用環境變數（正式環境建議）：
+#    export COZE_BOT_ID="你的Bot ID"
+#    export COZE_PAT="你的Personal Access Token"
+#    export COZE_CHAT_SDK_SRC="SDK來源URL"
+coze:
+  bot-id: ${COZE_BOT_ID:7601738394883883013}
+  pat: ${COZE_PAT:pat_d0EULo0arrZmb8XiINrc935XCzOBNn4C3o36MCLaJZkJ7kVZRoB29CJYFPhz78s3}
+  chat-sdk-src: ${COZE_CHAT_SDK_SRC:}
+  # 新增：診斷用欄位
+  platform-hint: ${COZE_PLATFORM_HINT:coze.com}
+  api-host-hint: ${COZE_API_HOST_HINT:api.coze.com}
+  # 注意：PAT (Personal Access Token) 特性
+  # - 只能在建立時看到一次，之後無法再查看
+  # - 有過期時間，過期後無法延長，需重新建立
+  # - 建議定期更換（例如：每 90 天）
+</file>
+
+<file path="backend/src/main/java/com/example/backend/config/SecurityConfig.java">
+package com.example.backend.config;
+
+import com.example.backend.repository.member.CustomOAuth2UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+        @Autowired
+        private CustomOAuth2UserService customOAuth2UserService;
+
+        @Autowired
+        private ClientRegistrationRepository clientRegistrationRepository;
+
+        @Bean
+        public BCryptPasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
+
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                /**
+                                 * - 綠界回呼 /api/payment/** 多為外部 POST，若不排除常見 403
+                                 * - /login/member：註解說是解 403 的關鍵，保留
+                                 * - /api/auth/**：前端跨域呼叫常見，保留
+                                 */
+                                .csrf(csrf -> csrf.ignoringRequestMatchers(
+                                                /*
+                                                 * (翌帆)這邊我要說明一下 原本寫法是這樣
+                                                 * "/api/payment/**", // 綠界回呼的 POST 請求
+                                                 * "/login/member", // 放行前端登入請求
+                                                 * "/api/auth/**" // 放行所有認證相關請求
+                                                 * 但是會發生其他功能模組的 POST 請求也被擋下來的問題，還有後台管理員登入無法進入的問題。
+                                                 * 所以我先改成放行所有後端 API 的請求，跟管理員登入請求，未來再視情況調整。
+                                                 */
+                                                "/api/**", // 放行所有後端 API (工單、金流、座位、分析...)
+                                                "/rec-rent/**", // 解決前端歸還座位時，PUT請求被CSRF阻擋的問題
+                                                "/login/**", // 放行所有登入請求
+                                                "/oauth2/**", // 放行 OAuth2 相關 (通常不需要，但加著保險)
+                                                "/spot/**",
+                                                "/seats/**",
+                                                "/admins/**"))
+
+                                // 2. 載入自定義的 CORS 設定
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                                // 3. 處理 iframe 同源問題
+                                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+
+                                // 4. 請求權限控管
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(
+                                                                "/favicon.ico", "/error", "/css/**", "/js/**",
+                                                                "/images/**")
+                                                .permitAll()
+                                                .requestMatchers(
+                                                                "/api/**", // 其實下方API前綴都已經被包含了，只是寫了也不影響就不特別刪除。
+                                                                "/login/**",
+                                                                "/oauth2/**",
+                                                                "/api/auth/**",
+                                                                "/api/analyze/**",
+                                                                "/api/forgot-password/**",
+                                                                "/api/admin/forgot-password/**",
+                                                                "/api/payment/**")
+                                                .permitAll()
+                                                .anyRequest().permitAll() // 開發期間放行所有請求
+                                )
+
+                                // 5. OAuth2 登入配置
+                                .oauth2Login(oauth2 -> oauth2
+                                                .authorizationEndpoint(authorization -> authorization
+                                                                .authorizationRequestResolver(
+                                                                                authorizationRequestResolver(
+                                                                                                clientRegistrationRepository)))
+                                                .userInfoEndpoint(userInfo -> userInfo
+                                                                .userService(customOAuth2UserService))
+                                                .defaultSuccessUrl("http://localhost:5173/", true))
+
+                                // 6. 登出配置
+                                .logout(logout -> logout
+                                                .logoutUrl("/api/auth/logout")
+                                                .logoutSuccessHandler((request, response, authentication) -> {
+                                                        response.setStatus(200);
+                                                })
+                                                .invalidateHttpSession(true)
+                                                .deleteCookies("JSESSIONID"));
+
+                return http.build();
+        }
+
+        /**
+         * 強制 Google 顯示帳號選擇視窗
+         */
+        private OAuth2AuthorizationRequestResolver authorizationRequestResolver(
+                        ClientRegistrationRepository clientRegistrationRepository) {
+                DefaultOAuth2AuthorizationRequestResolver resolver = new DefaultOAuth2AuthorizationRequestResolver(
+                                clientRegistrationRepository, "/oauth2/authorization");
+                resolver.setAuthorizationRequestCustomizer(customizer -> customizer
+                                .additionalParameters(params -> params.put("prompt", "select_account")));
+                return resolver;
+        }
+
+        /**
+         * 整合後的 CORS 設定
+         */
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+                // A. 前端 Vue 使用 (需 credentials, 用 Pattern)
+                CorsConfiguration frontendConfig = new CorsConfiguration();
+                frontendConfig.setAllowedOriginPatterns(Arrays.asList(
+                                "http://localhost:5173",
+                                "https://*.ngrok-free.dev",
+                                "https://*.trycloudflare.com",
+                                "https://*.loca.lt"));
+                // 加入 PATCH 方法，支援 /toggle 狀態切換 API(翌帆工單系統有用到)
+                frontendConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+                frontendConfig.setAllowedHeaders(Arrays.asList("*"));
+                frontendConfig.setAllowCredentials(true);
+
+                // B. 綠界回傳使用 (不允許 credentials, 用 *)
+                CorsConfiguration ecpayConfig = new CorsConfiguration();
+                ecpayConfig.setAllowedOrigins(Arrays.asList("*"));
+                ecpayConfig.setAllowedMethods(Arrays.asList("POST", "GET"));
+                ecpayConfig.setAllowedHeaders(Arrays.asList("*"));
+                ecpayConfig.setAllowCredentials(false);
+
+                // 註冊路徑：具體路徑優先權高
+                source.registerCorsConfiguration("/api/payment/payment-success", ecpayConfig);
+                source.registerCorsConfiguration("/**", frontendConfig);
+
+                return source;
+        }
+}
+</file>
+
+</files>

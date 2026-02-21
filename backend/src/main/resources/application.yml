@@ -1,0 +1,77 @@
+server:
+  port: 8080
+
+app:
+  file:
+    upload-path: uploads
+
+spring:
+  profiles:
+    active: local
+
+  application:
+    name: seat-rent-backend
+
+  # ---Google OAuth2 設定 ---
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 231325237264-ngpc81gmkl8pop0nq8jlgv0g63pj9fjg.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+
+  # 本地端資料庫連線設定
+  datasource:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  # JPA 與 Hibernate 設定 (格式修正：原本這段在 datasource 內會讀不到)
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    properties:
+      "[hibernate.format_sql]": true
+      "[hibernate.default_schema]": dbo
+      "[hibernate.dialect]": org.hibernate.dialect.SQLServerDialect
+      "[hibernate.jdbc.lob.non_contextual_creation]": true
+
+  # --- 新增郵件發送設定 ---
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: alan123149@gmail.com
+    password: nyjctvblehdjzxbc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Coze Web Chat SDK 配置
+# 用途：提供前端初始化 Coze AI 客服所需的資訊
+#
+# 設定方式：
+# 1. 直接在此檔案設定（開發環境）
+# 2. 使用環境變數（正式環境建議）：
+#    export COZE_BOT_ID="你的Bot ID"
+#    export COZE_PAT="你的Personal Access Token"
+#    export COZE_CHAT_SDK_SRC="SDK來源URL"
+coze:
+  bot-id: ${COZE_BOT_ID:7601738394883883013}
+  pat: ${COZE_PAT:pat_d0EULo0arrZmb8XiINrc935XCzOBNn4C3o36MCLaJZkJ7kVZRoB29CJYFPhz78s3}
+  chat-sdk-src: ${COZE_CHAT_SDK_SRC:}
+  # 新增：診斷用欄位
+  platform-hint: ${COZE_PLATFORM_HINT:coze.com}
+  api-host-hint: ${COZE_API_HOST_HINT:api.coze.com}
+  # 注意：PAT (Personal Access Token) 特性
+  # - 只能在建立時看到一次，之後無法再查看
+  # - 有過期時間，過期後無法延長，需重新建立
+  # - 建議定期更換（例如：每 90 天）

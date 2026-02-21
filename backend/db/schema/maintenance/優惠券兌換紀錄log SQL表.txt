@@ -1,0 +1,12 @@
+CREATE TABLE redemption_log (
+    logId INT IDENTITY(1,1) PRIMARY KEY, -- 自動遞增主鍵
+    memId INT NOT NULL,                  -- 會員ID
+    couponId INT NOT NULL,               -- 優惠券ID
+    pointsSpent INT NOT NULL,            -- 當時扣除的點數
+    couponName NVARCHAR(100),            -- 優惠券名稱快照
+    redeemTime DATETIME2 DEFAULT GETDATE() -- 核銷時間，預設為當前時間
+);
+
+-- 建議加上索引，未來資料量大時查詢較快
+CREATE INDEX idx_redemption_memId ON redemption_log(memId);
+CREATE INDEX idx_redemption_time ON redemption_log(redeemTime);
