@@ -1,0 +1,87 @@
+# =====================================
+# 1. 系統與 IDE 暫存
+# =====================================
+.DS_Store
+Thumbs.db
+*.log
+**/.metadata/
+**/.recommenders/
+**/.idea/
+**/*.iml
+**/*.ipr
+**/*.iws
+**/.settings/
+**/.classpath
+**/.project
+**/.factorypath
+
+# VS Code 設定
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+*.code-workspace
+
+# =====================================
+# 2. 前端保護區 (Frontend - Vue)
+# =====================================
+node_modules/
+
+# ⭐️ [關鍵修改]：只忽略 Vue 打包出來的那個特定 dist 資料夾
+frontend/dist/
+
+# 其他前端暫存
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/coverage/
+**/.eslintcache
+**/.env.local
+**/.env.*.local
+
+# =====================================
+# 3. 後端保護區 (Backend - Spring Boot)
+# =====================================
+**/target/
+**/*.class
+**/HELP.md
+
+# =====================================
+# 4. 特殊保留
+# =====================================
+!**/.gitkeep
+
+# =====================================
+# 5. 忽略本地端的敏感設定檔
+# =====================================
+**/application-local.yml
+
+# =====================================
+# 6. Coze SDK 本地託管（需手動下載）
+# =====================================
+backend/src/main/resources/static/vendor/coze/index.js
+
+# =====================================
+# AI 開發專用忽略區 (Updated)
+# =====================================
+# 1. 忽略整個 AI 輸出目錄
+AI_good/
+
+# 2. 忽略根目錄可能產生的 XML 檔案
+*.xml
+
+# 3. 例外：絕對不能忽略 Maven 的設定檔
+!pom.xml
+!backend/pom.xml
+
+# 4. 確保忽略 repomix 的快取或 log (如果有)
+repomix-output.json
+
+# AI Context Tool Output
+repomix-output.xml
+repomix-output.txt
+repomix-output.md
+
+# AI Assistant / Agent folder
+.agent/
