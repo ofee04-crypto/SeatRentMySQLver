@@ -21,12 +21,12 @@ public interface RecRentAnalyzeRepository extends JpaRepository<RecRent, Integer
     // 需求 3: 每日每一時間之熱度 (全站總計)
     @Query(value = """
                 SELECT
-                    DATEPART(HOUR, recRentDT2) as hourofDay,
+                    HOUR(recRentDT2) as hourofDay,
                     COUNT(*) as rentedCount
                 FROM recRent
                 WHERE (:startDate IS NULL OR recRentDT2 >= :startDate)
-                  AND (:endDate IS NULL OR recRentDT2 < DATEADD(day, 1, :endDate))
-                GROUP BY DATEPART(HOUR, recRentDT2)
+                  AND (:endDate IS NULL OR recRentDT2 < DATE_ADD(:endDate, INTERVAL 1 DAY))
+                GROUP BY HOUR(recRentDT2)
                 ORDER BY hourofDay
             """, nativeQuery = true)
     List<HourlyRate> getHourlyHeatMap(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
@@ -35,21 +35,21 @@ public interface RecRentAnalyzeRepository extends JpaRepository<RecRent, Integer
     @Query(value = """
                 SELECT
                     CASE
-                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 60 THEN '1小時內'
-                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 120 THEN '1-2小時'
-                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 240 THEN '2-4小時'
+                        WHEN TIMESTAMPDIFF(MINUTE, recRentDT2, recReturnDT2) <= 60 THEN '1小時內'
+                        WHEN TIMESTAMPDIFF(MINUTE, recRentDT2, recReturnDT2) <= 120 THEN '1-2小時'
+                        WHEN TIMESTAMPDIFF(MINUTE, recRentDT2, recReturnDT2) <= 240 THEN '2-4小時'
                         ELSE '4小時以上'
                     END as durationRange,
                     COUNT(*) as count
                 FROM recRent
-                WHERE recStatus = N'已完成' AND recReturnDT2 IS NOT NULL
+                WHERE recStatus = '已完成' AND recReturnDT2 IS NOT NULL
                   AND (:startDate IS NULL OR recRentDT2 >= :startDate)
-                  AND (:endDate IS NULL OR recRentDT2 < DATEADD(day, 1, :endDate))
+                  AND (:endDate IS NULL OR recRentDT2 < DATE_ADD(:endDate, INTERVAL 1 DAY))
                 GROUP BY
                     CASE
-                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 60 THEN '1小時內'
-                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 120 THEN '1-2小時'
-                        WHEN DATEDIFF(MINUTE, recRentDT2, recReturnDT2) <= 240 THEN '2-4小時'
+                        WHEN TIMESTAMPDIFF(MINUTE, recRentDT2, recReturnDT2) <= 60 THEN '1小時內'
+                        WHEN TIMESTAMPDIFF(MINUTE, recRentDT2, recReturnDT2) <= 120 THEN '1-2小時'
+                        WHEN TIMESTAMPDIFF(MINUTE, recRentDT2, recReturnDT2) <= 240 THEN '2-4小時'
                         ELSE '4小時以上'
                     END
             """, nativeQuery = true)

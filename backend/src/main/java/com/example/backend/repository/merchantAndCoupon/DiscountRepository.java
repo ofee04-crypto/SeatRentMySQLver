@@ -24,13 +24,13 @@ public interface DiscountRepository extends JpaRepository<DiscountBean, Integer>
         Optional<DiscountBean> findById(Integer id);
 
         @Modifying(clearAutomatically = true, flushAutomatically = true)
-        @Query(value = "UPDATE d SET d.couponStatus = CASE " +
-                        "WHEN m.merchantStatus = 0 THEN 3 " + // 商家停用優先權最高，強制下架
-                        "WHEN d.endDate < CAST(GETDATE() AS DATE) THEN 2 " +
-                        "WHEN d.startDate > CAST(GETDATE() AS DATE) THEN 0 " +
-                        "ELSE 1 END " +
-                        "FROM discount d " +
+        @Query(value = "UPDATE discount d " +
                         "JOIN merchant m ON d.merchantId = m.merchantId " + // 關聯商家表
+                        "SET d.couponStatus = CASE " +
+                        "WHEN m.merchantStatus = 0 THEN 3 " + // 商家停用優先權最高，強制下架
+                        "WHEN d.endDate < CURDATE() THEN 2 " +
+                        "WHEN d.startDate > CURDATE() THEN 0 " +
+                        "ELSE 1 END " +
                         "WHERE d.couponStatus != 3 OR m.merchantStatus = 0", nativeQuery = true)
         int autoUpdateStatus();
 
@@ -52,8 +52,8 @@ public interface DiscountRepository extends JpaRepository<DiscountBean, Integer>
 
         @Modifying(clearAutomatically = true, flushAutomatically = true)
         @Query(value = "UPDATE discount SET couponStatus = CASE " +
-                        "WHEN endDate < CAST(GETDATE() AS DATE) THEN 2 " +
-                        "WHEN startDate > CAST(GETDATE() AS DATE) THEN 0 " +
+                        "WHEN endDate < CURDATE() THEN 2 " +
+                        "WHEN startDate > CURDATE() THEN 0 " +
                         "ELSE 1 END " +
                         "WHERE merchantId = :merchantId AND couponStatus = 3", nativeQuery = true)
         void relistAllByMerchantId(@Param("merchantId") Integer merchantId);

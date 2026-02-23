@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-
 const memberList = ref([])
 const spotList = ref([])
 const seatList = ref([]) // [新增] 座位列表
@@ -72,64 +71,63 @@ const formTitle = '新增訂單' // 標題是固定的
 
 // 連動邏輯
 
-
 // [新增] 過濾邏輯 (Computed)
 import { computed } from 'vue'
 
 const filteredMemIds = computed(() => {
   if (!form.value.memId) return memberList.value
-  return memberList.value.filter(m => String(m.memId).includes(String(form.value.memId)))
+  return memberList.value.filter((m) => String(m.memId).includes(String(form.value.memId)))
 })
 
 const filteredMemNames = computed(() => {
   if (!form.value.memName) return memberList.value
-  return memberList.value.filter(m => m.memName.includes(form.value.memName))
+  return memberList.value.filter((m) => m.memName.includes(form.value.memName))
 })
 
 const filteredSpotRentIds = computed(() => {
   if (!form.value.spotIdRent) return spotList.value
-  return spotList.value.filter(s => String(s.spotId).includes(String(form.value.spotIdRent)))
+  return spotList.value.filter((s) => String(s.spotId).includes(String(form.value.spotIdRent)))
 })
 
 const filteredSpotRentNames = computed(() => {
   if (!form.value.spotRentName) return spotList.value
-  return spotList.value.filter(s => s.spotName.includes(form.value.spotRentName))
+  return spotList.value.filter((s) => s.spotName.includes(form.value.spotRentName))
 })
 
 const filteredSpotReturnIds = computed(() => {
   if (!form.value.spotIdReturn) return spotList.value
-  return spotList.value.filter(s => String(s.spotId).includes(String(form.value.spotIdReturn)))
+  return spotList.value.filter((s) => String(s.spotId).includes(String(form.value.spotIdReturn)))
 })
 
 const filteredSpotReturnNames = computed(() => {
   if (!form.value.spotReturnName) return spotList.value
-  return spotList.value.filter(s => s.spotName.includes(form.value.spotReturnName))
+  return spotList.value.filter((s) => s.spotName.includes(form.value.spotReturnName))
 })
 
 // [新增] 可用座位過濾：需符合「所在站點 = 租借站點」且「狀態 = 可使用(或類似狀態)」
 // 若後端座位狀態 definition: '可用', '使用中', '維修中'
 const filteredSeats = computed(() => {
   let list = seatList.value
-  
+
   // 1. 先篩選出屬於「目前租借站點」的座位
   // if (form.value.spotIdRent) {
   //   list = list.filter(s => s.spotId == form.value.spotIdRent)
   // }
-  
+
   // 2. 再根據輸入的 seatsId 進行模糊搜尋 (包含 ID, 名稱, 序號)
   if (form.value.seatsId) {
     const term = String(form.value.seatsId).toLowerCase()
-    list = list.filter(s => {
+    list = list.filter((s) => {
       const id = String(s.seatsId).toLowerCase()
       const name = (s.seatsName || '').toLowerCase()
       const serial = (s.serialNumber || '').toLowerCase()
       return id.includes(term) || name.includes(term) || serial.includes(term)
     })
   }
-  
+
   // 3. 過濾掉非「可租借」狀態的座位 (可選)
-  list = list.filter(s => s.seatsStatus === '啟用') 
-  
+  list = list.filter((s) => s.seatsStatus === '啟用')
+
   return list
 })
 
@@ -213,20 +211,22 @@ const fillDefaultValues = () => {
   // 計算昨天 (語意更清楚的寫法)
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
-  
+
   form.value = {
     recSeqId: null,
     // recId: 'TEST-' + Math.floor(Math.random() * 10000), // 隨機產生訂單編號
-    memId: 1,
-    memName: '測試會員',
-    seatsId: '1',
+    memId: 12,
+    memName: '李宗翰',
+    seatsId: '100',
     recStatus: '租借中',
     spotIdRent: 1,
+    spotRentName: '桃園高鐵站',
     spotIdReturn: 2,
+    spotReturnName: '中壢火車站',
     recRentDT2: toLocalISOString(yesterday),
     recReturnDT2: toLocalISOString(now),
     recViolatInt: 2,
-    recNote: '系統自動帶入測試資料',
+    recNote: '測試資料-系統自動帶入',
   }
 }
 </script>
@@ -280,7 +280,7 @@ const fillDefaultValues = () => {
         </li>
       </ul>
     </div>
-    
+
     <div class="form-group relative">
       <label>座椅編號:</label>
       <input
@@ -294,9 +294,9 @@ const fillDefaultValues = () => {
         @keydown.esc="showSeatId = false"
       />
       <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showSeatId)">▼</span>
-       <ul v-if="showSeatId && filteredSeats.length" class="custom-dropdown">
+      <ul v-if="showSeatId && filteredSeats.length" class="custom-dropdown">
         <li v-for="s in filteredSeats" :key="s.seatsId" @mousedown="selectSeat(s)">
-          {{ s.seatsName }} ( {{ s.serialNumber}} )
+          {{ s.seatsName }} ( {{ s.serialNumber }} )
         </li>
       </ul>
     </div>
@@ -310,7 +310,7 @@ const fillDefaultValues = () => {
         <option value="已取消">已取消</option>
       </select>
     </div>
-    
+
     <div class="form-group relative">
       <label>租借站點編號:</label>
       <input
@@ -348,7 +348,7 @@ const fillDefaultValues = () => {
         </li>
       </ul>
     </div>
-    
+
     <div class="form-group relative">
       <label>歸還站點編號:</label>
       <input
@@ -361,7 +361,7 @@ const fillDefaultValues = () => {
         @keydown.esc="showSpotReturnId = false"
       />
       <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showSpotReturnId)">▼</span>
-       <ul v-if="showSpotReturnId && filteredSpotReturnIds.length" class="custom-dropdown">
+      <ul v-if="showSpotReturnId && filteredSpotReturnIds.length" class="custom-dropdown">
         <li v-for="s in filteredSpotReturnIds" :key="s.spotId" @mousedown="selectSpotReturn(s)">
           {{ s.spotId }} - {{ s.spotName }}
         </li>
@@ -379,7 +379,7 @@ const fillDefaultValues = () => {
         @keydown.esc="showSpotReturnName = false"
       />
       <span class="toggle-icon" @mousedown.prevent="toggleDropdown(showSpotReturnName)">▼</span>
-       <ul v-if="showSpotReturnName && filteredSpotReturnNames.length" class="custom-dropdown">
+      <ul v-if="showSpotReturnName && filteredSpotReturnNames.length" class="custom-dropdown">
         <li v-for="s in filteredSpotReturnNames" :key="s.spotId" @mousedown="selectSpotReturn(s)">
           {{ s.spotName }} ({{ s.spotId }})
         </li>
@@ -400,7 +400,7 @@ const fillDefaultValues = () => {
     <div class="form-group">
       <label>備註:</label>
       <!-- [修正] 修正綁定錯誤，原本誤綁定到 memName -->
-      <input v-model="form.recNote" type="text" placeholder="選填..."/>
+      <input v-model="form.recNote" type="text" placeholder="選填..." />
     </div>
 
     <div style="text-align: right">

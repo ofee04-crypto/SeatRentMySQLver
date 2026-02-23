@@ -10,13 +10,6 @@
       "request": "launch",
       "mainClass": "com.example.backend.BackendApplication",
       "projectName": "backend"
-    },
-    {
-      "type": "java",
-      "name": "Backend (project: HibernateProject)",
-      "request": "launch",
-      "mainClass": "com.example.backend.BackendApplication",
-      "projectName": "HibernateProject"
     }
   ]
 }

@@ -32,7 +32,7 @@ const router = useRouter()
 // --- 1. 組態設定 ---
 const center = ref({ lat: 24.973875, lng: 121.382025 })
 const zoom = ref(10)
-const backendApiUrl = 'http://localhost:8080/spot/list'
+const backendApiUrl = 'http://localhost:8080/spot/list-with-seats'
 // 地圖選項設定 (啟用 Google Maps 的完整 UI 控制項)
 const mapOptions = {
   zoomControl: true,
@@ -105,9 +105,22 @@ const stopScan = () => {
 
 // --- 3. 核心邏輯 ---
 
-// 根據站點狀態生成帶有顏色的地圖圖示
-const getMarkerIcon = (status) => {
-  const color = status === '營運中' ? 'green' : 'gray'
+// 根據站點狀態與數量生成帶有顏色的地圖圖示
+const getMarkerIcon = (status, seatCount, returnCount) => {
+  let color = 'gray' // default
+
+  if (status === '營運中') {
+    if (seatCount === 0) {
+      color = 'gold' // 無可租借
+    } else if (returnCount === 0) {
+      color = 'goldenrod' // 無可歸還
+    } else {
+      color = 'green' // 可租借
+    }
+  } else {
+    color = 'brown' // 維修中
+  }
+
   const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" fill="${color}" class="bi bi-lightbulb-fill" viewBox="0 0 16 16">
   <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5"/>
@@ -212,16 +225,22 @@ const fetchSpots = async () => {
   try {
     const response = await axios.get(backendApiUrl)
     // 將後端資料轉換為地圖標記所需的格式
-    const spotsData = response.data.map((spot) => ({
-      id: spot.spotId,
-      name: spot.spotName,
-      status: spot.spotStatus,
-      position: {
-        lat: parseFloat(spot.latitude),
-        lng: parseFloat(spot.longitude),
-      },
-      // 注意：seatCount 和 returnCount 在這裡不再預先載入
-    }))
+    const spotsData = response.data.map((spot) => {
+      const seatCount = spot.availableSeats !== undefined ? spot.availableSeats : 0
+      const returnCount = 20 - seatCount
+
+      return {
+        id: spot.spotId,
+        name: spot.spotName,
+        status: spot.spotStatus,
+        position: {
+          lat: parseFloat(spot.latitude),
+          lng: parseFloat(spot.longitude),
+        },
+        seatCount: seatCount,
+        returnCount: returnCount,
+      }
+    })
     spots.value = spotsData
   } catch (err) {
     console.error('無法獲取租借站點資料:', err)
@@ -334,13 +353,32 @@ const handleReportIssue = () => {
 // Vue 組件掛載時執行的初始化
 onMounted(() => {
   fetchSpots()
-  fetchSpots()
   //locateUser() // 初始化時嘗試定位
 })
 </script>
 
 <template>
   <div class="map-container-wrapper">
+    <!-- 狀態圖例 -->
+    <div class="legend-container">
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: green"></span>
+        <span>可用</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: gold"></span>
+        <span>無可租借</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: goldenrod"></span>
+        <span>無可歸還</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: brown"></span>
+        <span>站點維修中</span>
+      </div>
+    </div>
+
     <!-- 地點搜尋列 -->
     <!-- <button class="search-button scan-btn" @click="startScan" title="掃描 QR Code">
       <el-icon :size="20"><Camera /></el-icon>
@@ -389,7 +427,7 @@ onMounted(() => {
         :position="spot.position"
         :title="spot.name"
         :clickable="true"
-        :icon="getMarkerIcon(spot.status)"
+        :icon="getMarkerIcon(spot.status, spot.seatCount, spot.returnCount)"
         @click="openInfoWindowForSpot(spot)"
       />
       <!-- 渲染搜尋結果標記 -->
@@ -486,6 +524,38 @@ onMounted(() => {
   height: 100%;
   position: relative;
 }
+
+/* 狀態圖例樣式 */
+.legend-container {
+  position: absolute;
+  top: 60px; /* 位於搜尋列下方 */
+  left: 20px;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+  border: 1px solid #ccc;
+}
+
 .map {
   width: 100%;
   height: 100%;

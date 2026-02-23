@@ -141,7 +141,7 @@ public class RecDetailMgnService {
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         List<Object[]> results = detailRepos.findDailyOrderCounts(startDateTime, endDateTime);
         return results.stream()
-                .map(row -> new DailyOrderCountDTO((String) row[0], ((Number) row[1]).longValue()))
+                .map(row -> new DailyOrderCountDTO(row[0].toString(), ((Number) row[1]).longValue()))
                 .collect(Collectors.toList());
     }
 

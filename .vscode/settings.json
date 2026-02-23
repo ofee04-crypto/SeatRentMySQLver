@@ -1,10 +1,8 @@
 {
-    "maven.view": "hierarchical",
-    "java.debug.settings.onBuildFailureProceed": true,
-    "java.compile.nullAnalysis.mode": "automatic",
-    "cSpell.words": [
-        "axios",
-        "Violat"
-    ],
-    "java.configuration.updateBuildConfiguration": "interactive"
+  "maven.view": "hierarchical",
+  "java.debug.settings.onBuildFailureProceed": true,
+  "java.compile.nullAnalysis.mode": "automatic",
+  "cSpell.words": ["axios", "Violat"],
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.debug.settings.jre": "JavaSE-19"
 }
